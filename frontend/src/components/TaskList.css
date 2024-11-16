@@ -1,0 +1,36 @@
+.task-list {
+  background-color: #1a1a1a; /* Темный фон для списка */
+  padding: 20px;
+  border-radius: 5px;
+  border: 1px solid #00ff00;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #00ff00;
+  color: #00ff00;
+}
+
+.task-item:last-child {
+  border-bottom: none;
+}
+
+.task-item button {
+  padding: 5px 10px;
+  border: 1px solid #00ff00;
+  background-color: transparent;
+  color: #00ff00;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.task-item button:hover {
+  background-color: #00ff00;
+  color: #0f0f0f;
+}
