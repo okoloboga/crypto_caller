@@ -17,7 +17,7 @@ import { BullModule } from '@nestjs/bull';
     BullModule.forRoot({
       redis: {
         host: 'localhost',
-        port: 6379,
+        port: 6380,
       },
     }),
     BullModule.registerQueue(
@@ -27,7 +27,7 @@ import { BullModule } from '@nestjs/bull';
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'postgres',
-      port: 5432,
+      port: 5433,
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,

@@ -53,13 +53,13 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   # Сервис для Redis
   redis:
     image: redis:alpine
     ports:
-      - "6379:6379"
+      - "6380:6379"
 
   # Nginx для маршрутизации запросов
   nginx:
