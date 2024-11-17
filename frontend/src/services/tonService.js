@@ -36,7 +36,7 @@ const tonService = {
     try {
       // Отправляем транзакцию
       return this.tonConnect.sendTransaction({
-        to: 'YOUR_SMART_CONTRACT_ADDRESS', // Замените на адрес вашего смарт-контракта
+        to: process.env.TON_WALLET, // Замените на адрес вашего смарт-контракта
         value: amount * 10 ** 9, // Сумма в нанограммах
       });
     } catch (error) {

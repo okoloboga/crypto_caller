@@ -1,24 +1,33 @@
 .dashboard {
-  background-color: #0f0f0f; /* Темный фон */
-  color: #00ff00; /* Зеленый текст */
-  min-height: 10vh;
   padding: 20px;
-  font-family: 'Courier New', Courier, monospace;
+  background-color: #0f0f0f;
+  color: #00ff00;
+  text-align: center; /* Центрируем содержимое по горизонтали */
 }
 
-.dashboard h1 {
-  font-size: 2rem;
-  text-align: center;
-  margin-bottom: 20px;
-  color: #00ff88;
-}
-
-.dashboard .notification {
-  background-color: #1f1f1f;
-  border: 1px solid #00ff00;
-  padding: 10px;
-  margin: 10px auto;
-  text-align: center;
+.create-task-button {
+  margin: 10px auto; /* Центрируем кнопку с помощью auto */
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #00ff00;
+  color: #0f0f0f;
+  border: none;
+  cursor: pointer;
   border-radius: 5px;
-  width: fit-content;
+  transition: background-color 0.3s ease;
+  display: inline-block; /* Убедимся, что кнопка ведёт себя как inline-элемент */
+}
+
+.create-task-button:disabled {
+  background-color: #444;
+  cursor: not-allowed;
+}
+
+.create-task-button:hover:not(:disabled) {
+  background-color: #00cc00;
+}
+
+.notification {
+  margin-top: 10px;
+  color: #ff0000;
 }

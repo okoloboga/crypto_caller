@@ -29,7 +29,7 @@ const Login = ({ onLogin }) => {
 
   return (
     <div className="login">
-      <h1>Добро пожаловать в RUBLE Caller</h1>
+      <h1>RUBLE Caller</h1>
       <p>Пожалуйста, подключите ваш TON-кошелек, чтобы продолжить.</p>
       <button onClick={handleConnectWallet} disabled={loading}>
         {loading ? 'Подключение...' : 'Подключить TON-кошелек'}

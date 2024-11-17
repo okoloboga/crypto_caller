@@ -3,8 +3,6 @@ import { Twilio } from 'twilio';
 import { Notification } from './notification.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserService } from '../user/user.service';
-import { TaskService } from '../task/task.service';
 
 @Injectable()
 export class NotificationService {
@@ -13,8 +11,6 @@ export class NotificationService {
   constructor(
     @InjectRepository(Notification)
     private notificationRepository: Repository<Notification>,
-    private userService: UserService,
-    private taskService: TaskService,
   ) {
     this.twilioClient = new Twilio(
       process.env.TWILIO_ACCOUNT_SID,

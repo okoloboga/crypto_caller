@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
-import { getUserTasks, deleteTask } from '../services/apiService';
+import PointsWidget from '../components/PointsWidget'; // Виджет накопления очков
+import { getUserTasks, deleteTask, checkSubscription } from '../services/apiService'; // Импорт функции
 import './Dashboard.css';
 
 const Dashboard = ({ wallet, onLogin }) => {
@@ -12,10 +13,20 @@ const Dashboard = ({ wallet, onLogin }) => {
   const [notification, setNotification] = useState('');
 
   useEffect(() => {
-    if (isSubscribed) {
-      fetchTasks();
+    if (wallet) {
+      // Проверяем подписку, если кошелек подключен
+      checkSubscriptionStatus();
     }
-  }, [isSubscribed]);
+  }, [wallet]);
+
+  const checkSubscriptionStatus = async () => {
+    try {
+      const subscriptionStatus = wallet ? await checkSubscription() : false; // Используем правильный вызов
+      setIsSubscribed(subscriptionStatus);
+    } catch (error) {
+      console.error('Ошибка проверки подписки:', error);
+    }
+  };
 
   const fetchTasks = async () => {
     try {
@@ -44,6 +55,14 @@ const Dashboard = ({ wallet, onLogin }) => {
     }
   };
 
+  const handleCreateTask = () => {
+    if (!isSubscribed) {
+      showNotification('Купите подписку, чтобы создать задание.');
+    } else {
+      setCurrentTask({ currencyPair: '', targetPrice: '' }); // Открываем форму создания нового задания
+    }
+  };
+
   const showNotification = (message) => {
     setNotification(message);
     setTimeout(() => setNotification(''), 3000);
@@ -51,6 +70,26 @@ const Dashboard = ({ wallet, onLogin }) => {
 
   return (
     <div className="dashboard">
+      <PointsWidget 
+        isSubscribed={isSubscribed} 
+        showNotification={showNotification} 
+      />
+
+      <button
+        onClick={() => {
+          if (!wallet) {
+            showNotification('Подключите кошелек, чтобы создать задание.');
+          } else if (!isSubscribed) {
+            showNotification('Купите подписку, чтобы создать задание.');
+          } else {
+            handleCreateTask();
+          }
+        }}
+        className="create-task-button"
+      >
+        Создать задание
+      </button>
+
       {currentTask ? (
         <TaskForm
           task={currentTask}

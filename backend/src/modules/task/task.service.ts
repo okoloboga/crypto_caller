@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { Task } from './task.entity';
 import { User } from '../user/user.entity';
 import { NotificationService } from '../notification/notification.service';
-import { UserService } from '../user/user.service';
 import { OkxApiService } from '../../shared/okx-api.service';
 
 @Injectable()
@@ -13,7 +12,6 @@ export class TaskService {
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
     private notificationService: NotificationService,
-    private userService: UserService,
     private readonly okxApiService: OkxApiService,
   ) {}
 

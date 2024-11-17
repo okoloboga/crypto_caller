@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # Сервис для фронтенда
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "80:80"
+    environment:
+      - TON_WALLET=${TON_WALLET}
+    depends_on:
+      - backend
+
+  # Сервис для backend
+  backend:
+    build:
+      context: ./backend
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_AUTH_TEST_TOKEN: ${TWILIO_AUTH_TEST_TOKEN}
+      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
+      OKX_API_KEY: ${OKX_API_KEY}
+      OKX_API_SECRET: ${OKX_API_SECRET}
+      OKX_API_PASSPHRASE: ${OKX_API_PASSPHRASE}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+
+  # Сервис для бота
+  bot:
+    build:
+      context: ./bot
+    environment:
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
+    depends_on:
+      - redis
+      - backend
+
+  # Сервис для Postgres
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # Сервис для Redis
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  # Nginx для маршрутизации запросов
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "8080:80"
+    depends_on:
+      - frontend
+    networks:
+      - default
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    driver: bridge

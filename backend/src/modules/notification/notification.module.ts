@@ -1,10 +1,19 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { NotificationController } from './notification.controller';
-import { UserService } from '../user/user.service';  // Импортируем UserService
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Notification } from './notification.entity';
+import { UserModule } from '../user/user.module';
+import { TaskModule } from '../task/task.module';  // Импортируем TaskModule
 
 @Module({
-  providers: [NotificationService, UserService],
+  imports: [
+    TypeOrmModule.forFeature([Notification]),
+    forwardRef(() => TaskModule),
+    UserModule,
+  ],
+  providers: [NotificationService],
   controllers: [NotificationController],
+  exports: [NotificationService],
 })
 export class NotificationModule {}

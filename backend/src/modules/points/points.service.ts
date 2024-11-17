@@ -4,7 +4,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Point } from './points.entity';
 import { UserService } from '../user/user.service';  // Для работы с пользователем
-import { User } from '../user/user.entity';
 
 @Injectable()
 export class PointsService {
