@@ -6,7 +6,7 @@ services:
     build:
       context: ./frontend
     ports:
-      - "8080:80"
+      - "8081:80"
     environment:
       - TON_WALLET=${TON_WALLET}
     depends_on:
