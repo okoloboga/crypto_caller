@@ -5,6 +5,8 @@ services:
   frontend:
     build:
       context: ./frontend
+    volumes:
+      - frontend_build:/app/build
     ports:
       - "8081:80"
     environment:
