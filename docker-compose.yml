@@ -11,6 +11,8 @@ services:
       - TON_WALLET=${TON_WALLET}
     depends_on:
       - backend
+    networks:
+      - default  # Добавьте подключение к сети
 
   # Сервис для backend
   backend:
@@ -32,6 +34,8 @@ services:
     depends_on:
       - postgres
       - redis
+    networks:
+      - default  # Добавьте подключение к сети
 
   # Сервис для бота
   bot:
@@ -42,6 +46,8 @@ services:
     depends_on:
       - redis
       - backend
+    networks:
+      - default  # Добавьте подключение к сети
 
   # Сервис для Postgres
   postgres:
@@ -54,12 +60,16 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5433:5432"
+    networks:
+      - default  # Добавьте подключение к сети
 
   # Сервис для Redis
   redis:
     image: redis:alpine
     ports:
       - "6380:6379"
+    networks:
+      - default  # Добавьте подключение к сети
 
   # Nginx для маршрутизации запросов
   nginx:
@@ -73,11 +83,11 @@ services:
     depends_on:
       - frontend
     networks:
-      - default
+      - default  # Добавьте подключение к сети
 
 volumes:
   postgres_data:
 
 networks:
   default:
-    driver: bridge
+    driver: bridge  # Убедитесь, что используете общую сеть
