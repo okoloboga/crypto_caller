@@ -1,25 +1,9 @@
 version: '3.8'
 
 services:
-  # Сервис для фронтенда
-  frontend:
-    build:
-      context: ./frontend
-    volumes:
-      - frontend_build:/app/build
-    ports:
-      - "8081:80"
-    environment:
-      - TON_WALLET=${TON_WALLET}
-    depends_on:
-      - backend
-    networks:
-      - default  # Добавьте подключение к сети
-
   # Сервис для backend
   backend:
-    build:
-      context: ./backend
+    build: ./backend
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -39,18 +23,6 @@ services:
     networks:
       - default  # Добавьте подключение к сети
 
-  # Сервис для бота
-  bot:
-    build:
-      context: ./bot
-    environment:
-      BOT_TOKEN: ${BOT_TOKEN}
-    depends_on:
-      - redis
-      - backend
-    networks:
-      - default  # Добавьте подключение к сети
-
   # Сервис для Postgres
   postgres:
     image: postgres:15
@@ -63,7 +35,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - default  # Добавьте подключение к сети
+      - default
 
   # Сервис для Redis
   redis:
@@ -71,28 +43,31 @@ services:
     ports:
       - "6379:6379"
     networks:
-      - default  # Добавьте подключение к сети
+      - default
 
-  # Nginx для маршрутизации запросов
+  # Сервис для Nginx
   nginx:
-    image: nginx:alpine
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - frontend_build:/usr/share/nginx/html
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+    build:
+      context: .
+      dockerfile: ./nginx/Dockerfile
     ports:
       - "80:80"
       - "443:443"
     depends_on:
-      - frontend
+      - backend
     networks:
-      - default  # Добавьте подключение к сети
+      - default
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - frontend_build:/usr/share/nginx/html  # Копируем собранный фронтенд в Nginx
+    command: ["nginx", "-g", "daemon off;"]
 
 volumes:
   postgres_data:
-  frontend_build:
+  frontend_build:  # Новый volume для фронтенда
     driver: local
 
 networks:
   default:
-    driver: bridge  # Убедитесь, что используете общую сеть
+    driver: bridge  # Используем общую сеть
