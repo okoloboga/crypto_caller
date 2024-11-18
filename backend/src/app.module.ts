@@ -27,7 +27,7 @@ import { BullModule } from '@nestjs/bull';
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'postgres',
-      port: 5433,
+      port: 5432,
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
