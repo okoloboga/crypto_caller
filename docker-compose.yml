@@ -44,6 +44,14 @@ services:
       - "6379:6379"
     networks:
       - default
+  
+  bot:
+    build: ./bot
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN}
+    networks:
+      - default
+    restart: always
 
   # Сервис для Nginx
   nginx:
