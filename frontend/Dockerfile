@@ -15,7 +15,7 @@ COPY . .
 
 # Собираем проект
 RUN npm run build
-RUN ls -l /app/build
+RUN cp -r /app/build /frontend_build
 
 # Разворачиваем сервер с готовым билдом
 FROM nginx:alpine
