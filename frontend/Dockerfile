@@ -15,6 +15,7 @@ COPY . .
 
 # Собираем проект
 RUN npm run build
+RUN ls -l /app/build
 
 # Разворачиваем сервер с готовым билдом
 FROM nginx:alpine
