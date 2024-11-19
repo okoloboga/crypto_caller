@@ -52,6 +52,16 @@ services:
     networks:
       - default
     restart: always
+  
+  # Сервис для сборки frontend
+  frontend-build:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend/build:/usr/share/nginx/html  # Сохраняем собранный фронтенд в папку для nginx
+    networks:
+      - default
 
   # Сервис для Nginx
   nginx:
@@ -63,6 +73,7 @@ services:
       - "443:443"
     depends_on:
       - backend
+      - frontend-build
     networks:
       - default
     volumes:
@@ -70,10 +81,13 @@ services:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./frontend/public:/usr/share/nginx/html:ro
+      # - ./frontend/build:/usr/share/nginx/html:ro
     command: ["nginx", "-g", "daemon off;"]
 
 volumes:
   postgres_data:
+    frontend_build:  # Новый volume для фронтенда
+      driver: local
 
 networks:
   default:
