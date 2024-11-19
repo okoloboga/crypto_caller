@@ -1,6 +1,5 @@
 import React from 'react';
 import { TonConnectUIProvider, useTonAddress, TonConnectButton } from '@tonconnect/ui-react';
-import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 
 const App = () => {
