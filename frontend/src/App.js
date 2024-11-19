@@ -22,6 +22,7 @@ const App = () => {
     // Инициируем подключение через TonConnect
     await TonConnect.connect();
     const walletData = await TonConnect.getWallet();
+    console.log('Кошелек подключён:', walletData);
     setWallet(walletData); // Сохраняем данные кошелька в состояние
   };
 
