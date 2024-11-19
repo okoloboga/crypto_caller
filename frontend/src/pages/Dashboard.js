@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useTonAddress } from '@tonconnect/ui-react';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
 import PointsWidget from '../components/PointsWidget'; // Виджет накопления очков
 import { getUserTasks, deleteTask, checkSubscription } from '../services/apiService'; // Импорт функции
 import './Dashboard.css';
 
-const Dashboard = ({ wallet, onLogin }) => {
+const Dashboard = () => {
+  const walletAddress = useTonAddress(); // Проверяем, подключен ли кошелек
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [currentTask, setCurrentTask] = useState(null);
@@ -13,15 +15,16 @@ const Dashboard = ({ wallet, onLogin }) => {
   const [notification, setNotification] = useState('');
 
   useEffect(() => {
-    if (wallet) {
+    if (walletAddress) {
       // Проверяем подписку, если кошелек подключен
       checkSubscriptionStatus();
+      fetchTasks();
     }
-  }, [wallet]);
+  }, [walletAddress]);
 
   const checkSubscriptionStatus = async () => {
     try {
-      const subscriptionStatus = wallet ? await checkSubscription() : false; // Используем правильный вызов
+      const subscriptionStatus = walletAddress ? await checkSubscription(walletAddress) : false;
       setIsSubscribed(subscriptionStatus);
     } catch (error) {
       console.error('Ошибка проверки подписки:', error);
@@ -30,7 +33,7 @@ const Dashboard = ({ wallet, onLogin }) => {
 
   const fetchTasks = async () => {
     try {
-      const fetchedTasks = await getUserTasks();
+      const fetchedTasks = await getUserTasks(walletAddress);
       setTasks(fetchedTasks);
     } catch (error) {
       console.error('Ошибка загрузки заданий:', error);
@@ -77,7 +80,7 @@ const Dashboard = ({ wallet, onLogin }) => {
 
       <button
         onClick={() => {
-          if (!wallet) {
+          if (!walletAddress) {
             showNotification('Подключите кошелек, чтобы создать задание.');
           } else if (!isSubscribed) {
             showNotification('Купите подписку, чтобы создать задание.');
