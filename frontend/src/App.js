@@ -6,7 +6,9 @@ import { TonConnectUIProvider } from '@tonconnect/ui-react';
 const App = () => {
   const [wallet, setWallet] = useState(null);
 
+
   const handleLogin = (walletData) => {
+    console.log('Кошелек успешно подключен:', walletData);
     setWallet(walletData); // Устанавливаем данные авторизованного кошелька
   };
 
