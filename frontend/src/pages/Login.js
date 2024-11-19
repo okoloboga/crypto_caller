@@ -10,7 +10,10 @@ const Login = ({ onLogin }) => {
       <h1>RUBLE Caller</h1>
       <p>Пожалуйста, подключите ваш TON-кошелек, чтобы продолжить.</p>
       <TonConnectButton
-        onConnect={onLogin} // Обработчик события при подключении кошелька
+        onConnect={(walletData) => {
+          console.log("Данные о кошельке получены:", walletData);  // Логируем данные
+          onLogin(walletData);  // Передаем данные в App.js через onLogin
+        }}
         onError={(error) => {
           console.error('Ошибка подключения:', error);
           setErrorMessage('Не удалось подключить кошелек. Попробуйте снова.');
