@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import { TonConnectUIProvider, useTonConnect } from '@tonconnect/ui-react';
+import { TonConnectUIProvider, TonConnect } from '@tonconnect/ui-react';
 
 const App = () => {
   const [wallet, setWallet] = useState(null);
