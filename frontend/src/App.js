@@ -1,15 +1,24 @@
 import React, { useState } from 'react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import { TonConnectUIProvider } from '@tonconnect/ui-react';
+import { TonConnectUIProvider, useTonConnect } from '@tonconnect/ui-react';
 
 const App = () => {
   const [wallet, setWallet] = useState(null);
 
+  // Получаем объект TonConnect из контекста
+  const { connect, disconnect, wallet: connectedWallet } = useTonConnect();
 
-  const handleLogin = (walletData) => {
-    console.log('Кошелек успешно подключен:', walletData);
-    setWallet(walletData); // Устанавливаем данные авторизованного кошелька
+  useEffect(() => {
+    if (connectedWallet) {
+      // Если кошелек подключен, обновляем состояние
+      console.log("Кошелек подключен:", connectedWallet);
+      setWallet(connectedWallet);
+    }
+  }, [connectedWallet]); // Срабатывает, когда кошелек меняется
+
+  const handleLogin = () => {
+    connect();  // Инициализируем подключение
   };
 
   return (
