@@ -7,7 +7,7 @@ const tonService = {
     // Инициализируем TonConnectUI с манифестом, если он ещё не создан
     if (!this.tonConnect) {
       this.tonConnect = new TonConnectUI({
-        manifestUrl: 'http://localhost:3000/manifest.json', // Укажите путь к вашему манифесту
+        manifestUrl: 'https://caller.ruble.website/manifest.json', // Укажите путь к вашему манифесту
       });
     }
 
