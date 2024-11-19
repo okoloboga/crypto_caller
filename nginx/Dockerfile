@@ -9,7 +9,7 @@ RUN npm install
 
 # Копируем исходный код фронтенда и собираем приложение
 COPY frontend/ ./
-RUN npm run build
+RUN npm run build && ls -al /app/build
 
 # Stage 2: Настройка Nginx с собранным фронтендом
 FROM nginx:alpine
