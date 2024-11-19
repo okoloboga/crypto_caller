@@ -3,8 +3,8 @@ import { TonConnectUIProvider, useTonAddress, TonConnectButton } from '@tonconne
 import Dashboard from './pages/Dashboard';
 
 const App = () => {
-  //const walletAddress = useTonAddress(); // Получаем адрес кошелька
-  //console.log(`Wallet address: ${walletAddress}`);
+  const walletAddress = useTonAddress(); // Получаем адрес кошелька
+  console.log(`Wallet address: ${walletAddress}`);
 
   return (
     <TonConnectUIProvider manifestUrl="https://caller.ruble.website/manifest.json">
