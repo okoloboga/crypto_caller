@@ -62,6 +62,8 @@ services:
       - ./frontend/build:/usr/share/nginx/html  # Сохраняем собранный фронтенд в папку для nginx
     networks:
       - default
+    depends_on:
+      - nginx
 
   # Сервис для Nginx
   nginx:
@@ -86,8 +88,6 @@ services:
 
 volumes:
   postgres_data:
-    frontend_build:  # Новый volume для фронтенда
-      driver: local
 
 networks:
   default:
