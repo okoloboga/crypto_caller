@@ -52,18 +52,6 @@ services:
     networks:
       - default
     restart: always
-  
-  # Сервис для сборки frontend
-  frontend-build:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    volumes:
-      - ./frontend/build:/usr/share/nginx/html  # Сохраняем собранный фронтенд в папку для nginx
-    networks:
-      - default
-    depends_on:
-      - nginx
 
   # Сервис для Nginx
   nginx:
@@ -88,6 +76,7 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
 
 networks:
   default:
