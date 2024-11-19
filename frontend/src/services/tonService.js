@@ -4,25 +4,16 @@ const tonService = {
   tonConnect: null,
 
   async connectWallet() {
-    // Инициализируем TonConnectUI с манифестом, если он ещё не создан
     if (!this.tonConnect) {
       this.tonConnect = new TonConnectUI({
-        manifestUrl: 'https://caller.ruble.website/manifest.json', // Укажите путь к вашему манифесту
+        manifestUrl: 'https://caller.ruble.website/manifest.json',
       });
     }
 
     try {
-      // Открываем окно подключения кошелька
       await this.tonConnect.connectWallet();
-      return this.tonConnect.wallet; // Возвращаем данные подключённого кошелька
+      return this.tonConnect.wallet;
     } catch (error) {
-      if (error.message && error.message.includes('Wallet was not connected')) {
-        // Пользователь закрыл окно подключения
-        console.warn('Пользователь отменил подключение кошелька.');
-        return null; // Возвращаем null, чтобы обработать этот случай в UI
-      }
-
-      // Для остальных ошибок
       console.error('Ошибка подключения TON кошелька:', error);
       throw error;
     }
@@ -34,10 +25,9 @@ const tonService = {
     }
 
     try {
-      // Отправляем транзакцию
       return this.tonConnect.sendTransaction({
-        to: process.env.TON_WALLET, // Замените на адрес вашего смарт-контракта
-        value: amount * 10 ** 9, // Сумма в нанограммах
+        to: process.env.TON_WALLET,
+        value: amount * 10 ** 9,
       });
     } catch (error) {
       console.error('Ошибка отправки транзакции:', error);
