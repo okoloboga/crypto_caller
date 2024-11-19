@@ -36,3 +36,26 @@
     transform: rotate(360deg);
   }
 }
+
+/* styles.css */
+.center-button-container {
+  display: flex;
+  justify-content: center; /* Горизонтальное центрирование */
+  align-items: center;    /* Вертикальное центрирование */
+  height: 100vh;          /* Высота контейнера равна высоте окна */
+}
+
+.tonconnect-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #007BFF; /* Синий цвет фона */
+  color: white;             /* Белый текст */
+  border: none;
+  border-radius: 8px;       /* Закругленные углы */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.tonconnect-button:hover {
+  background-color: #0056b3; /* Темно-синий при наведении */
+}

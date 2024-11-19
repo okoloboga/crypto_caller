@@ -8,8 +8,10 @@ const App = () => {
 
   return (
     <div>
-      <TonConnectButton />
-      {/* <Dashboard walletAddress={walletAddress} />  */}      
+      <div className="center-button-container">
+        <TonConnectButton className="tonconnect-button" />
+      </div>
+      <Dashboard walletAddress={walletAddress} />      
     </div>
   );
 };
