@@ -13,8 +13,6 @@ RUN npm install
 # Копируем все остальные файлы проекта
 COPY . .
 
-RUN ls -alh /app
-
 # Собираем проект
 RUN npm run build
 
