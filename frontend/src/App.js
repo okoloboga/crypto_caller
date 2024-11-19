@@ -16,7 +16,7 @@ const App = () => {
     <TonConnectUIProvider manifestUrl="https://caller.ruble.website/manifest.json">
       <div>
         {!wallet && <Login onLogin={handleLogin} />}
-        <Dashboard wallet={wallet} onLogin={handleLogin} />
+        {wallet && <Dashboard wallet={wallet} onLogin={handleLogin} />}
       </div>
     </TonConnectUIProvider>
   );
