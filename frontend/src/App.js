@@ -6,19 +6,23 @@ import { TonConnectUIProvider, useTonConnect } from '@tonconnect/ui-react';
 const App = () => {
   const [wallet, setWallet] = useState(null);
 
-  // Получаем объект TonConnect из контекста
-  const { connect, disconnect, wallet: connectedWallet } = useTonConnect();
-
   useEffect(() => {
-    if (connectedWallet) {
-      // Если кошелек подключен, обновляем состояние
-      console.log("Кошелек подключен:", connectedWallet);
-      setWallet(connectedWallet);
-    }
-  }, [connectedWallet]); // Срабатывает, когда кошелек меняется
+    // Проверяем состояние кошелька при первом рендере
+    const checkWallet = async () => {
+      const connectedWallet = await TonConnect.getWallet();
+      if (connectedWallet) {
+        setWallet(connectedWallet); // Если кошелек уже подключен, обновляем состояние
+      }
+    };
 
-  const handleLogin = () => {
-    connect();  // Инициализируем подключение
+    checkWallet();  // Проверяем подключение при загрузке
+  }, []);
+
+  const handleLogin = async () => {
+    // Инициируем подключение через TonConnect
+    await TonConnect.connect();
+    const walletData = await TonConnect.getWallet();
+    setWallet(walletData); // Сохраняем данные кошелька в состояние
   };
 
   return (
