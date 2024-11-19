@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import { TonConnectUIProvider } from '@tonconnect/ui-react';
 
 const App = () => {
   const [wallet, setWallet] = useState(null);
@@ -10,10 +11,12 @@ const App = () => {
   };
 
   return (
-    <div>
-      {!wallet && <Login onLogin={handleLogin} />}
-      <Dashboard wallet={wallet} onLogin={handleLogin} />
-    </div>
+    <TonConnectUIProvider manifestUrl="https://caller.ruble.website/manifest.json">
+      <div>
+        {!wallet && <Login onLogin={handleLogin} />}
+        {wallet && <Dashboard wallet={wallet} onLogin={handleLogin} />}
+      </div>
+    </TonConnectUIProvider>
   );
 };
 
