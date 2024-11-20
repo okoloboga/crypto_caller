@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Создаем экземпляр Axios с базовым URL
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || '/api', // URL бекенда, замените на ваш
+  baseURL: process.env.API_URL || '/api', // URL бекенда, замените на ваш
   headers: {
     'Content-Type': 'application/json',
   },
