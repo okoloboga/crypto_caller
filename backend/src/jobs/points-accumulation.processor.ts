@@ -17,7 +17,7 @@ export class PointsAccumulationJob {
         const lastCollectedAt = user.lastPointsCollectedAt;
   
         if (new Date().getTime() - lastCollectedAt.getTime() >= POINTS_INTERVAL * 1000) {
-          await this.userService.updatePoints(user.id, newPoints, new Date());
+          await this.userService.updatePoints(user.walletAddress, newPoints, new Date());
           console.log(`Added points for user ${user.id}`);
         }
       }

@@ -25,10 +25,4 @@ export class SubscriptionController {
     return this.subscriptionService.createSubscription(telegramId, phoneNumber);
   }
 
-  // Cancel subscription
-  @Delete()
-  async cancelSubscription(@Request() req) {
-    const telegramId = req.user.telegramId; // Telegram ID из аутентификации
-    return this.subscriptionService.cancelSubscription(telegramId);
-  }
 }
