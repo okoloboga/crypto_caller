@@ -9,11 +9,11 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
-  telegramId: string;
-
   @Column({ nullable: true })
   phoneNumber: string;
+
+  @Column({ unique: true })
+  walletAddress: string;
 
   @Column({ default: 'inactive' })
   subscriptionStatus: string; // 'active' or 'inactive'

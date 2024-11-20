@@ -10,31 +10,39 @@ export class UserService {
     private userRepository: Repository<User>,
   ) {}
 
-  // Register a user based on their Telegram ID
-  async registerUser(telegramId: string, phoneNumber?: string): Promise<User> {
-    let user = await this.userRepository.findOne({ where: { telegramId } });
+  // Find user by ID
+  async findOne(walletAddress: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { walletAddress: walletAddress } });
+  }
+
+  // Create user subscription based on walletAddress
+  async createSubscription(walletAddress: string, phoneNumber: string): Promise<User> {
+    let user = await this.userRepository.findOne({ where: { walletAddress } });
 
     if (!user) {
-      user = this.userRepository.create({ telegramId, phoneNumber });
-      await this.userRepository.save(user);
+
+      user = this.userRepository.create({ walletAddress, phoneNumber, subscriptionStatus: 'active' });
+    } else {
+
+      user.phoneNumber = phoneNumber;
+      user.subscriptionStatus = 'active';
     }
 
+    await this.userRepository.save(user);
     return user;
   }
 
-  // Find user by ID
-  async findOne(userId: number): Promise<User | null> {
-    return this.userRepository.findOne({ where: { id: userId } });
-  }
+  // Update phone number of a user by Wallet Address
+  async updatePhoneNumber(walletAddress: string, phoneNumber: string): Promise<User | null> {
+    const user = await this.userRepository.findOne({ where: { walletAddress } });
 
-  // Update subscription status
-  async updateSubscriptionStatus(userId: number, status: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (user) {
-      user.subscriptionStatus = status;
-      await this.userRepository.save(user);
+    if (!user) {
+      return null; // Пользователь не найден
     }
-    return user;
+
+    user.phoneNumber = phoneNumber; // Обновляем номер телефона
+    await this.userRepository.save(user); // Сохраняем изменения
+    return user; // Возвращаем обновленного пользователя
   }
 
   // Update points and last collected time
@@ -46,11 +54,6 @@ export class UserService {
       await this.userRepository.save(user);
     }
     return user;
-  }
-
-  // Get user by Telegram ID
-  async findUserByTelegramId(telegramId: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { telegramId } });
   }
 
   async findActiveSubscribedUsers(): Promise<User[]> {
