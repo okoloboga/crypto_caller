@@ -46,8 +46,8 @@ export class UserService {
   }
 
   // Update points and last collected time
-  async updatePoints(userId: number, points: number, lastCollectedAt: Date): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+  async updatePoints(walletAddress: string, points: number, lastCollectedAt: Date): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { walletAddress } });
     if (user) {
       user.points = points;
       user.lastPointsCollectedAt = lastCollectedAt;

@@ -6,8 +6,8 @@ export class SubscriptionService {
   constructor(private readonly userService: UserService) {}
 
   // Check if the user has an active subscription
-  async checkSubscription(telegramId: string) {
-    const user = await this.userService.findUserByTelegramId(telegramId);
+  async checkSubscription(walletAddress: string) {
+    const user = await this.userService.findOne(walletAddress);
     if (!user) {
       throw new Error('User not found');
     }
@@ -18,26 +18,14 @@ export class SubscriptionService {
   }
 
   // Create a subscription
-  async createSubscription(telegramId: string, phoneNumber: string) {
-    const user = await this.userService.findUserByTelegramId(telegramId);
+  async createSubscription(walletAddress: string, phoneNumber: string) {
+    const user = await this.userService.findOne(walletAddress);
     if (!user) {
       throw new Error('User not found');
     }
 
     user.subscriptionStatus = 'active';
     user.phoneNumber = phoneNumber;
-    return this.userService.updateSubscriptionStatus(user.id, 'active');
-  }
-
-  // Cancel a subscription
-  async cancelSubscription(telegramId: string) {
-    const user = await this.userService.findUserByTelegramId(telegramId);
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    user.subscriptionStatus = 'inactive';
-    user.phoneNumber = null; // Удаляем номер телефона
-    return this.userService.updateSubscriptionStatus(user.id, 'inactive');
+    return this.userService.createSubscription(user.walletAddress, 'active');
   }
 }

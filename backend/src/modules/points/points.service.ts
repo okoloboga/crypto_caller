@@ -14,8 +14,8 @@ export class PointsService {
   ) {}
 
   // Метод для начисления очков
-  async accumulatePoints(userId: number): Promise<void> {
-    const user = await this.userService.findOne(userId);
+  async accumulatePoints(walletAddress: string): Promise<void> {
+    const user = await this.userService.findOne(walletAddress);
     if (user) {
       const lastCollectedAt = user.lastPointsCollectedAt;
       const now = new Date();
@@ -35,14 +35,14 @@ export class PointsService {
         // Обновляем время последнего сбора очков у пользователя
         user.lastPointsCollectedAt = now;
         user.points += points;  // Увеличиваем общие очки пользователя
-        await this.userService.updatePoints(user.id, user.points, now);
+        await this.userService.updatePoints(user.walletAddress, user.points, now);
       }
     }
   }
 
   // Метод для получения очков пользователя
-  async getUserPoints(userId: number): Promise<number> {
-    const user = await this.userService.findOne(userId);
+  async getUserPoints(walletAddress: string): Promise<number> {
+    const user = await this.userService.findOne(walletAddress);
     return user ? user.points : 0;
   }
 
