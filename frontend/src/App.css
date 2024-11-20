@@ -1,61 +1,27 @@
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+/* Общий стиль для приложения */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #121212; /* Глубокий темный фон */
+    color: white; /* Белый текст по умолчанию */
   }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+  
+  #root {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-color: #121212; /* Темный фон для всего приложения */
   }
-  to {
-    transform: rotate(360deg);
+  
+  .app-container {
+    width: 100%;
+    max-width: 400px; /* Ограничение для мобильных */
+    margin: 0 auto;
+    padding: 16px;
+    box-sizing: border-box;
   }
-}
-
-/* styles.css */
-.center-button-container {
-  display: flex;
-  justify-content: center; /* Горизонтальное центрирование */
-  align-items: center;    /* Вертикальное центрирование */
-  height: 100vh;          /* Высота контейнера равна высоте окна */
-}
-
-.tonconnect-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  background-color: #007BFF; /* Синий цвет фона */
-  color: white;             /* Белый текст */
-  border: none;
-  border-radius: 8px;       /* Закругленные углы */
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.tonconnect-button:hover {
-  background-color: #0056b3; /* Темно-синий при наведении */
-}
+  

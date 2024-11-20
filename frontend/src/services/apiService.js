@@ -22,14 +22,30 @@ export const fetchUserPoints = async () => {
   return api.get('/points');
 };
 
+// Функция для получения пользователя по Wallet Address
+export const getUserByWalletAddress = async (walletAddress) => {
+  const response = await api.get(`/user/${walletAddress}`);
+  return response.data; // возвращает объект User
+};
+
 // Функция для проверки подписки
 export const checkSubscription = async () => {
   return api.get('/subscription/status');
 };
 
 // Функция для создания подписки
-export const createSubscription = async (phoneNumber) => {
-  return api.post('/subscription', { phoneNumber });
+export const createSubscription = async (walletAddress, phoneNumber) => {
+  return api.post('/subscription', { walletAddress, phoneNumber });
+};
+
+export const updatePhoneNumber = async (walletAddress, phoneNumber) => {
+  try {
+    const response = await api.patch(`/user/${walletAddress}/phone`, { phoneNumber });
+    return response; // Возвращаем обновленные данные пользователя
+  } catch (error) {
+    console.error('Ошибка обновления номера телефона:', error.response?.data || error.message);
+    throw error; // Бросаем ошибку для обработки на уровне компонента
+  }
 };
 
 // Функция для получения списка заданий пользователя

@@ -1,33 +1,98 @@
+/* Общие стили для страницы Dashboard */
 .dashboard {
-  padding: 20px;
-  background-color: #0f0f0f;
-  color: #00ff00;
-  text-align: center; /* Центрируем содержимое по горизонтали */
-}
-
-.create-task-button {
-  margin: 10px auto; /* Центрируем кнопку с помощью auto */
-  padding: 10px 20px;
-  font-size: 16px;
-  background-color: #00ff00;
-  color: #0f0f0f;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
-  display: inline-block; /* Убедимся, что кнопка ведёт себя как inline-элемент */
-}
-
-.create-task-button:disabled {
-  background-color: #444;
-  cursor: not-allowed;
-}
-
-.create-task-button:hover:not(:disabled) {
-  background-color: #00cc00;
-}
-
-.notification {
-  margin-top: 10px;
-  color: #ff0000;
-}
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background-color: #121212; /* Темный фон */
+    color: #e0e0e0; /* Светлый текст */
+    min-height: 100vh;
+    padding: 16px;
+    font-family: 'Arial', sans-serif;
+    overflow-y: auto;
+  }
+  
+  /* Стили для кнопки создания задания */
+  .create-task-button {
+    background: linear-gradient(90deg, #4e54c8, #8f94fb); /* Градиент голубой -> фиолетовый */
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 25px;
+    margin: 16px 0;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease-in-out;
+    width: 90%; /* Удобно для нажатия пальцем */
+    max-width: 400px;
+  }
+  
+  .create-task-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .create-task-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Стили для уведомления */
+  .notification {
+    background-color: #1f1f1f; /* Темный фон для уведомления */
+    color: #03dac5; /* Голубоватый текст */
+    font-size: 16px;
+    font-weight: 500;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 10px 0;
+    text-align: center;
+    animation: fade-in-out 3s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  @keyframes fade-in-out {
+    0% {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    10% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    90% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+  
+  /* Убедимся, что Header и PointsWidget адаптируются */
+  header,
+  .points-widget {
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  /* Кнопки и элементы списка в TaskList и TaskForm */
+  button {
+    font-size: 16px;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    opacity: 0.9;
+  }
+  
+  button:active {
+    transform: scale(0.98);
+  }
+  

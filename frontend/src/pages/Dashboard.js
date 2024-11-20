@@ -2,21 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
-import PointsWidget from '../components/PointsWidget'; // Виджет накопления очков
-import { getUserTasks, deleteTask, checkSubscription } from '../services/apiService'; // Импорт функции
+import Header from '../components/Header';
+import PointsWidget from '../components/PointsWidget';
+import SubscriptionForm from '../components/SubscriptionForm'; // Импорт формы подписки
+import { getUserTasks, deleteTask, checkSubscription } from '../services/apiService';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const walletAddress = useTonAddress(); // Проверяем, подключен ли кошелек
+  const walletAddress = useTonAddress();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [currentTask, setCurrentTask] = useState(null);
   const [currencyPairs] = useState(['BTC/USDT', 'ETH/USDT', 'TON/USDT']);
   const [notification, setNotification] = useState('');
+  const [currentScreen, setCurrentScreen] = useState('dashboard'); // Управляет текущим экраном
 
   useEffect(() => {
     if (walletAddress) {
-      // Проверяем подписку, если кошелек подключен
       checkSubscriptionStatus();
       fetchTasks();
     }
@@ -40,52 +42,34 @@ const Dashboard = () => {
     }
   };
 
-  const handleSaveTask = () => {
-    fetchTasks();
-    setCurrentTask(null);
-  };
-
-  const handleEditTask = (task) => {
-    setCurrentTask(task);
-  };
-
-  const handleDeleteTask = async (taskId) => {
-    try {
-      await deleteTask(taskId);
-      fetchTasks();
-    } catch (error) {
-      console.error('Ошибка удаления задания:', error);
-    }
-  };
-
-  const handleCreateTask = () => {
-    if (!isSubscribed) {
-      showNotification('Купите подписку, чтобы создать задание.');
-    } else {
-      setCurrentTask({ currencyPair: '', targetPrice: '' }); // Открываем форму создания нового задания
-    }
+  const handleBackToDashboard = () => {
+    setCurrentScreen('dashboard');
   };
 
   const showNotification = (message) => {
     setNotification(message);
-    setTimeout(() => setNotification(''), 3000);
+    setTimeout(() => setNotification(''), 3000); // Очистить уведомление через 3 секунды
   };
+
+  if (currentScreen === 'subscription') {
+    return (
+      <SubscriptionForm onBack={handleBackToDashboard} />
+    );
+  }
 
   return (
     <div className="dashboard">
-      <PointsWidget 
-        isSubscribed={isSubscribed} 
-        showNotification={showNotification} 
-      />
+      <Header onNavigate={setCurrentScreen} />
+      <PointsWidget isSubscribed={isSubscribed} showNotification={showNotification} />
 
       <button
         onClick={() => {
           if (!walletAddress) {
-            showNotification('Подключите кошелек, чтобы создать задание.');
+            showNotification('Подключи кошелек, чтобы создать задание.');
           } else if (!isSubscribed) {
-            showNotification('Купите подписку, чтобы создать задание.');
+            showNotification('Купи подписку, чтобы создать задание.');
           } else {
-            handleCreateTask();
+            setCurrentTask({ currencyPair: '', targetPrice: '' });
           }
         }}
         className="create-task-button"
@@ -97,20 +81,13 @@ const Dashboard = () => {
         <TaskForm
           task={currentTask}
           currencyPairs={currencyPairs}
-          onSave={handleSaveTask}
+          onSave={fetchTasks}
           onCancel={() => setCurrentTask(null)}
-          disabled={!isSubscribed}
-          onDisabledAction={() => showNotification('Купите подписку, чтобы использовать эту функцию.')}
         />
       ) : (
-        <TaskList
-          tasks={tasks}
-          onEdit={handleEditTask}
-          onDelete={handleDeleteTask}
-          isDisabled={!isSubscribed}
-          onDisabledAction={() => showNotification('Купите подписку, чтобы использовать эту функцию.')}
-        />
+        <TaskList tasks={tasks} onEdit={setCurrentTask} onDelete={deleteTask} />
       )}
+
       {notification && <p className="notification">{notification}</p>}
     </div>
   );

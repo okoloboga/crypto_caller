@@ -9,7 +9,7 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
   // Функция для загрузки очков
   const loadPoints = async () => {
     if (!isSubscribed) {
-      showNotification('Пожалуйста, авторизуйтесь и подпишитесь, чтобы накапливать очки.');
+      showNotification('Оформи подписку, чтобы зарабатывать RUBLE.');
       return;
     }
     try {
@@ -35,16 +35,20 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
       className={`points-widget ${!isSubscribed ? 'blocked' : ''}`}
       onClick={() => {
         if (!isSubscribed) {
-          showNotification('Пожалуйста, авторизуйтесь и подпишитесь, чтобы накапливать очки.');
+          showNotification('чтобы зарабатывать RUBLE.');
         }
       }}
     >
-      <h3>Ваши накопленные очки: {isSubscribed ? points : 0}</h3>
-      {!isSubscribed && <p>Скорость накопления: 0 очков/мин</p>}
       {isSubscribed && lastUpdated && (
         <p>Последнее обновление: {lastUpdated.toLocaleTimeString()}</p>
       )}
-      <progress value={isSubscribed ? points : 0} max={100}></progress>
+      <div className="progress-container" style={{ position: 'relative', display: 'inline-block' }}>
+        <progress value={points} max={50}></progress>
+        <div className="progress-overlay">
+          {points} / 50
+        </div>
+      </div>
+      <h3>RUBLE: {isSubscribed ? points : 0}</h3>
     </div>
   );
 };

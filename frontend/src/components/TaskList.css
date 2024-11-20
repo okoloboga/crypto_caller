@@ -1,36 +1,107 @@
+/* Контейнер для списка задач */
 .task-list {
-  background-color: #1a1a1a; /* Темный фон для списка */
-  padding: 20px;
-  border-radius: 5px;
-  border: 1px solid #00ff00;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.task-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  border-bottom: 1px solid #00ff00;
-  color: #00ff00;
-}
-
-.task-item:last-child {
-  border-bottom: none;
-}
-
-.task-item button {
-  padding: 5px 10px;
-  border: 1px solid #00ff00;
-  background-color: transparent;
-  color: #00ff00;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.task-item button:hover {
-  background-color: #00ff00;
-  color: #0f0f0f;
-}
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 90%;
+    max-width: 400px;
+    margin: 16px auto;
+    padding: 16px;
+    background-color: #1e1e2f; /* Темный фон */
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    color: white;
+  }
+  
+  /* Сообщение при отсутствии задач */
+  .task-list p {
+    font-size: 16px;
+    color: #b0b0d9; /* Голубоватый текст */
+    text-align: center;
+    margin: 12px 0;
+  }
+  
+  /* Контейнер для одной задачи */
+  .task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    background-color: #2b2b40; /* Темный фон для задач */
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s;
+  }
+  
+  .task-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+  }
+  
+  /* Текст задачи */
+  .task-item p {
+    font-size: 16px;
+    margin: 0;
+    color: white;
+    flex: 1;
+    text-align: left;
+  }
+  
+  /* Кнопки редактирования и удаления */
+  .task-item button {
+    font-size: 14px;
+    font-weight: bold;
+    padding: 8px 12px;
+    margin-left: 8px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  /* Кнопка редактирования */
+  .task-item button:first-of-type {
+    background: linear-gradient(90deg, #4e54c8, #8f94fb); /* Градиент голубой -> фиолетовый */
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  .task-item button:first-of-type:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+  }
+  
+  .task-item button:first-of-type:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Кнопка удаления */
+  .task-item button:last-of-type {
+    background-color: #ff4e4e; /* Красный для кнопки удаления */
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  .task-item button:last-of-type:hover {
+    background-color: #ff6666;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+  }
+  
+  .task-item button:last-of-type:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Отключенные кнопки */
+  .task-item button:disabled {
+    background-color: #3c3c54; /* Тусклый фон для disabled */
+    color: #7a7a9d; /* Тусклый текст */
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  

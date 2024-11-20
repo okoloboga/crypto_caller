@@ -1,52 +1,101 @@
+/* Общие стили для PointsWidget */
 .points-widget {
-  border: 1px solid #00ff00;
-  border-radius: 5px;
-  padding: 20px;
-  text-align: center;
-  background-color: #1a1a1a;
-  color: #00ff00;
-  font-family: 'Courier New', Courier, monospace;
-  max-width: 300px;
-  margin: 20px auto;
-  cursor: pointer; /* Делаем весь блок кликабельным */
-  transition: background-color 0.3s ease;
-}
-
-.points-widget:hover {
-  background-color: #333333;
-}
-
-.points-widget.blocked {
-  border-color: #666666;
-  color: #666666;
-  background-color: #1a1a1a;
-}
-
-.points-widget h3 {
-  margin-bottom: 10px;
-  color: #00ff88;
-}
-
-.points-widget p {
-  margin: 5px 0;
-  font-size: 14px;
-  color: #00ff00;
-}
-
-.points-widget progress {
-  width: 100%;
-  height: 20px;
-  margin: 10px 0;
-  border-radius: 5px;
-  overflow: hidden;
-  appearance: none;
-  background-color: #333;
-}
-
-.points-widget progress::-webkit-progress-bar {
-  background-color: #333;
-}
-
-.points-widget progress::-webkit-progress-value {
-  background-color: #00ff00;
-}
+    background-color: #1e1e2f; /* Темный фон для виджета */
+    color: white; /* Белый текст */
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px auto; /* Горизонтальное центрирование */
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    width: 90%; /* Удобный размер для мобильного экрана */
+    max-width: 400px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-sizing: border-box; /* Учитываем отступы в ширине */
+  }
+  
+  .points-widget:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+  }
+  
+  .points-widget.blocked {
+    background-color: #2b2b40; /* Более темный фон для неактивного состояния */
+    color: #7a7a9d; /* Серый текст */
+    cursor: not-allowed;
+  }
+  
+  .points-widget.blocked:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  /* Стили для последнего обновления */
+  .points-widget p {
+    font-size: 14px;
+    color: #b0b0d9; /* Голубоватый текст для даты */
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  
+  /* Контейнер прогресса */
+  .progress-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto; /* Центрирование прогресс-бара */
+  }
+  
+  /* Стили для прогресс-бара */
+  progress {
+    width: 100%;
+    height: 20px;
+    border: none;
+    border-radius: 10px;
+    background-color: #3c3c54; /* Темный фон */
+    overflow: hidden;
+    appearance: none;
+    margin: 8px 0;
+  }
+  
+  progress::-webkit-progress-bar {
+    background-color: #3c3c54; /* Темный фон */
+    border-radius: 10px;
+  }
+  
+  progress::-webkit-progress-value {
+    background: linear-gradient(90deg, #4e54c8, #8f94fb); /* Градиент голубой -> фиолетовый */
+    border-radius: 10px;
+  }
+  
+  progress::-moz-progress-bar {
+    background: linear-gradient(90deg, #4e54c8, #8f94fb); /* Градиент для Firefox */
+    border-radius: 10px;
+  }
+  
+  /* Оверлей текста поверх прогресс-бара */
+  .progress-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+    pointer-events: none;
+  }
+  
+  /* Стили для заголовка */
+  .points-widget h3 {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 10px;
+    color: white;
+    text-align: center;
+  }
+  

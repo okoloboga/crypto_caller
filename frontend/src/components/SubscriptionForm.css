@@ -1,37 +1,109 @@
+/* Общий стиль для контейнера */
 .subscription-form {
-  background-color: #1a1a1a;
-  padding: 20px;
-  border: 1px solid #00ff00;
-  border-radius: 5px;
-  max-width: 400px;
-  margin: 20px auto;
-  color: #00ff00;
-}
-
-.subscription-form input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #00ff00;
-  border-radius: 5px;
-  background-color: #0f0f0f;
-  color: #00ff00;
-  font-family: 'Courier New', Courier, monospace;
-}
-
-.subscription-form button {
-  width: 100%;
-  padding: 10px 15px;
-  border: 1px solid #00ff00;
-  background-color: transparent;
-  color: #00ff00;
-  font-size: 1rem;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.subscription-form button:hover {
-  background-color: #00ff00;
-  color: #0f0f0f;
-}
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #1e1e2f; /* Темный фон */
+    color: white; /* Белый текст */
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px auto;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Текст уведомлений */
+  .subscription-form p {
+    font-size: 16px;
+    margin: 12px 0;
+    color: #e0e0e0;
+    text-align: center;
+  }
+  
+  /* Уведомления */
+  .subscription-form .notification {
+    background-color: #4e54c8; /* Фиолетовый фон */
+    color: white;
+    font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    animation: fade-in-out 3s ease-in-out;
+  }
+  
+  @keyframes fade-in-out {
+    0% {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    10% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    90% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+  
+  /* Поле ввода */
+  .subscription-form input[type="text"] {
+    width: 100%;
+    padding: 12px 16px;
+    margin: 10px 0;
+    font-size: 16px;
+    border: 2px solid #4e54c8; /* Фиолетовая рамка */
+    border-radius: 8px;
+    background-color: #2b2b40; /* Темный фон для ввода */
+    color: white;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  
+  .subscription-form input[type="text"]:focus {
+    border-color: #8f94fb; /* Голубой при фокусе */
+  }
+  
+  /* Кнопки */
+  .subscription-form button {
+    width: 100%;
+    padding: 12px 16px;
+    margin: 10px 0;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    background: linear-gradient(90deg, #4e54c8, #8f94fb); /* Градиент голубой -> фиолетовый */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  .subscription-form button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+  }
+  
+  .subscription-form button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .subscription-form button:last-of-type {
+    background-color: #2b2b40; /* Темный серый для кнопки "Назад" */
+    box-shadow: none;
+  }
+  
+  .subscription-form button:last-of-type:hover {
+    background-color: #3c3c54; /* Более светлый серый при наведении */
+  }
+  
