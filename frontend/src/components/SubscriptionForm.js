@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
-import { initiatePayment } from '../services/tonService';
 import { getUserByWalletAddress, updatePhoneNumber, createSubscription } from '../services/apiService';
 import './SubscriptionForm.css';
 
@@ -79,7 +78,7 @@ const SubscriptionForm = ({ onBack }) => {
       messages: [
         {
           address: process.env.TON_WALLET,
-          amount: "1000000000", // 1 TON
+          amount: "1000000", // 0.001 TON
         },
       ],
     };
