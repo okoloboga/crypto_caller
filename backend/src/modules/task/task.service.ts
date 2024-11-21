@@ -29,8 +29,8 @@ export class TaskService {
     await this.taskRepository.delete(id);
   }
 
-  async getTasksByUser(userId: number): Promise<Task[]> {
-    return this.taskRepository.find({ where: { user: { id: userId } } });
+  async getTasksByUser(walletAddress: string): Promise<Task[]> {
+    return this.taskRepository.find({ where: { user: { walletAddress } } });
   }
   async executeTask(taskId: number): Promise<void> {
     const task = await this.taskRepository.findOne({ where: { id: taskId } });

@@ -28,7 +28,7 @@ const Dashboard = () => {
 
   const checkSubscriptionStatus = async () => {
     try {
-      const subscriptionStatus = walletAddress ? await checkSubscription(walletAddress) : false;
+      const subscriptionStatus = walletAddress ? Boolean(await checkSubscription(walletAddress)) : false;
       setIsSubscribed(subscriptionStatus);
     } catch (error) {
       console.error('Ошибка проверки подписки:', error);

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useTonAddress } from '@tonconnect/ui-react';
 import { createTask, updateTask, deleteTask } from '../services/apiService';
 import './TaskForm.css';
 
 const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledAction }) => {
+  const walletAddress = useTonAddress();
   const [form, setForm] = useState(task || { currencyPair: '', targetPrice: '' });
   const [loading, setLoading] = useState(false);
 
@@ -20,15 +22,16 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
 
     setLoading(true);
     try {
+      const taskData = { walletAddress, ...form };
       if (task) {
-        await updateTask(task.id, form);
+        await updateTask(task.id, taskData);
       } else {
-        await createTask(form);
+        await createTask(taskData);
       }
       onSave();
     } catch (error) {
       console.error('Ошибка при сохранении задания:', error);
-      alert('Не удалось сохранить задание. Попробуйте снова.');  // PATCH /task/undefined HTTP/1.1" 405
+      alert('Не удалось сохранить задание. Попробуйте снова.');
     } finally {
       setLoading(false);
     }

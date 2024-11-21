@@ -23,10 +23,11 @@ export const getUserByWalletAddress = async (walletAddress) => {
   try {
     const response = await api.get(`/user/${walletAddress}`);
     console.log('Данные пользователя успешно получены:', response.data);
-    return response.data; // возвращает объект User
+
+    return response.data;
   } catch (error) {
     console.error(`Ошибка при получении данных пользователя для walletAddress ${walletAddress}:`, error.message);
-    throw error; // Пробрасываем ошибку для обработки на уровне вызова
+    throw error;
   }
 };
 
@@ -35,13 +36,13 @@ export const checkSubscription = async (walletAddress) => {
   console.log(`Проверка статуса подписки для walletAddress: ${walletAddress}`);
   try {
     const response = await api.get('/user/subscription-status', {
-      params: { walletAddress }, // Используем params для передачи walletAddress
+      params: { walletAddress },
     });
-    console.log('Статус подписки успешно проверен:', response.data);
-    return response.data; // возвращает объект { isActive: boolean }
+    console.log('Статус подписки успешно проверен:', response.data); //Статус подписки успешно проверен: undefined
+    return response.data; 
   } catch (error) {
     console.error(`Ошибка при проверке подписки для walletAddress ${walletAddress}:`, error.message);
-    throw error; // Пробрасываем ошибку для обработки на уровне вызова
+    throw error; 
   }
 };
 
@@ -53,20 +54,20 @@ export const createSubscription = async (walletAddress, phoneNumber) => {
       walletAddress,
       phoneNumber,
     });
-    return response.data; // Возвращаем данные из ответа
+    return response.data;
   } catch (error) {
     console.error('Ошибка при создании подписки:', error);
-    throw error; // Пробрасываем ошибку для обработки выше
+    throw error;
   }
 };
 
 export const updatePhoneNumber = async (walletAddress, phoneNumber) => {
   try {
     const response = await api.patch(`/user/${walletAddress}/phone`, { phoneNumber });
-    return response; // Возвращаем обновленные данные пользователя
+    return response;
   } catch (error) {
     console.error('Ошибка обновления номера телефона:', error.response?.data || error.message);
-    throw error; // Бросаем ошибку для обработки на уровне компонента
+    throw error;
   }
 };
 
@@ -74,12 +75,12 @@ export const updatePhoneNumber = async (walletAddress, phoneNumber) => {
 export const getUserTasks = async (walletAddress) => {
   console.log(`Получение списка заданий для walletAddress: ${walletAddress}`);
   try {
-    const response = await api.get(`/task/${walletAddress}`);
+    const response = await api.get(`/task/user/${walletAddress}`);
     console.log('Список заданий успешно получен:', response.data);
     return response.data;
   } catch (error) {
     console.error(`Ошибка при получении заданий для walletAddress ${walletAddress}:`, error.message);
-    throw error; // Пробрасываем ошибку для обработки на уровне вызова
+    throw error;
   }
 };
 
