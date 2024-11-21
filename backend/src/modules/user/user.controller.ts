@@ -1,17 +1,30 @@
-import { Controller, Post, Body, Param, Get, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get,
+         Patch, Query, NotFoundException} from '@nestjs/common';
 import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // Update the subscription status of a user by their ID
+  // Update the subscription status of a user by their WalletAddress
   @Post('subscription')
   async createSubscription(
     @Body('walletAddress') walletAddress: string,
     @Body('phoneNumber') phoneNumber: string,
   ) {
     return this.userService.createSubscription(walletAddress, phoneNumber);
+  }
+
+  // Check the subscription status of a user by their WalletAddress
+  @Get('subscription-status')
+  async getSubscriptionStatus(@Query('walletAddress') walletAddress: string): Promise<{ isActive: boolean }> {
+    if (!walletAddress) {
+      throw new NotFoundException('Wallet address is required');
+    }
+
+    const isActive = await this.userService.checkSubscriptionStatus(walletAddress);
+
+    return { isActive };
   }
 
   // Get user by Wallet Address

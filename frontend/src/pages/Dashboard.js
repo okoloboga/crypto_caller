@@ -20,7 +20,9 @@ const Dashboard = () => {
   useEffect(() => {
     if (walletAddress) {
       checkSubscriptionStatus();
-      fetchTasks();
+      if (isSubscribed) {
+        fetchTasks();
+      }
     }
   }, [walletAddress]);
 

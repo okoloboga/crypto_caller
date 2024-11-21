@@ -15,8 +15,8 @@ export class User {
   @Column({ unique: true })
   walletAddress: string;
 
-  @Column({ default: 'inactive' })
-  subscriptionStatus: string; // 'active' or 'inactive'
+  @Column({ type: 'timestamp', nullable: true })
+  subscriptionDate: Date;
 
   @Column({ default: 0 })
   points: number;

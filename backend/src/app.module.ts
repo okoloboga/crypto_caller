@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './modules/user/user.module';
 import { TaskModule } from './modules/task/task.module';
-import { SubscriptionModule } from './modules/subscription/subscription.module';
 import { PointsModule } from './modules/points/points.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { AppController } from './app.controller';
@@ -12,7 +11,6 @@ import { BullModule } from '@nestjs/bull';
   imports: [
     UserModule, 
     TaskModule, 
-    SubscriptionModule, 
     PointsModule, 
     NotificationModule, 
     BullModule.forRoot({

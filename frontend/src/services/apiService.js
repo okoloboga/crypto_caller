@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Создаем экземпляр Axios с базовым URL
 const api = axios.create({
-  baseURL: process.env.API_URL || '/api', // URL бекенда, замените на ваш
+  baseURL: process.env.API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -29,13 +29,24 @@ export const getUserByWalletAddress = async (walletAddress) => {
 };
 
 // Функция для проверки подписки
-export const checkSubscription = async () => {
-  return api.get('/subscription/status');
+export const checkSubscription = async (walletAddress) => {
+  return api.get('/user/subscription-status', {
+    walletAddress
+  });
 };
 
-// Функция для создания подписки
+
 export const createSubscription = async (walletAddress, phoneNumber) => {
-  return api.post('/subscription', { walletAddress, phoneNumber });
+  try {
+    const response = await api.post('/user/subscription', {
+      walletAddress,
+      phoneNumber,
+    });
+    return response.data; // Возвращаем данные из ответа
+  } catch (error) {
+    console.error('Ошибка при создании подписки:', error);
+    throw error; // Пробрасываем ошибку для обработки выше
+  }
 };
 
 export const updatePhoneNumber = async (walletAddress, phoneNumber) => {
@@ -49,8 +60,8 @@ export const updatePhoneNumber = async (walletAddress, phoneNumber) => {
 };
 
 // Функция для получения списка заданий пользователя
-export const getUserTasks = async () => {
-  return api.get('/task');
+export const getUserTasks = async (walletAddress) => {
+  return api.get(`/task/${walletAddress}`);
 };
 
 // Функция для создания нового задания
