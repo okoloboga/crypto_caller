@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
-import { getUserByWalletAddress, updatePhoneNumber, createSubscription } from '../services/apiService';
+import { getUserByWalletAddress, updatePhoneNumber, createSubscription,
+        checkSubscription } from '../services/apiService';
 import './SubscriptionForm.css';
 
 const SubscriptionForm = ({ onBack }) => {
@@ -11,6 +12,7 @@ const SubscriptionForm = ({ onBack }) => {
   const [newPhoneNumber, setNewPhoneNumber] = useState(''); // Для ввода нового номера телефона
   const [notification, setNotification] = useState('');
   const [isEditing, setIsEditing] = useState(false); // Режим редактирования
+  const [hasShownNotification, setHasShownNotification] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -21,11 +23,13 @@ const SubscriptionForm = ({ onBack }) => {
 
       try {
         const user = await getUserByWalletAddress(walletAddress);
+        const subscribeIsActive = await checkSubscription(walletAddress)
         if (user) {
           setPhoneNumber(user.phoneNumber || '');
-          setIsSubscribed(user.subscriptionStatus === 'active'); // Проверяем статус подписки
-        } else {
+          setIsSubscribed(subscribeIsActive); // Проверяем статус подписки
+        } else if (!hasShownNotification) {
           setNotification('Пользователь не найден.');
+          setHasShownNotification(true); // Устанавливаем, что уведомление показано
         }
       } catch (error) {
         console.error('Ошибка загрузки данных пользователя:', error);
@@ -80,7 +84,7 @@ const SubscriptionForm = ({ onBack }) => {
       showNotification('Некорректный номер телефона. Проверьте формат.');
       return;
     }
-    
+
     if (!walletAddress) {
       showNotification('Подключите TON кошелек.');
       return;
