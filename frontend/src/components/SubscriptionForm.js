@@ -70,16 +70,17 @@ const SubscriptionForm = ({ onBack }) => {
     return phoneRegex.test(phoneNumber);
   };
 
-  if (!validatePhoneNumber(newPhoneNumber)) {
-    showNotification('Некорректный номер телефона. Проверьте формат.');
-    return;
-  }
-
   const handleRegister = async () => {
     if (!newPhoneNumber) {
       showNotification('Введите новый номер телефона.');
       return;
     }
+
+    if (!validatePhoneNumber(newPhoneNumber)) {
+      showNotification('Некорректный номер телефона. Проверьте формат.');
+      return;
+    }
+    
     if (!walletAddress) {
       showNotification('Подключите TON кошелек.');
       return;
