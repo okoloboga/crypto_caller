@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { fetchUserPoints } from '../services/apiService';
+import { useTonAddress } from '@tonconnect/ui-react';
+import { getUserByWalletAddress } from '../services/apiService';
 import './PointsWidget.css';
 
 const PointsWidget = ({ isSubscribed, showNotification }) => {
+  const walletAddress = useTonAddress();
   const [points, setPoints] = useState(0); // Очки
   const [lastUpdated, setLastUpdated] = useState(null); // Время последнего обновления
 
@@ -13,7 +15,8 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
       return;
     }
     try {
-      const userPoints = await fetchUserPoints();
+      const user = await getUserByWalletAddress(walletAddress);
+      const userPoints = user.points;
       setPoints(userPoints);
       setLastUpdated(new Date()); // Устанавливаем текущее время как время обновления
     } catch (err) {

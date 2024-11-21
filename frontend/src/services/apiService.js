@@ -17,11 +17,6 @@ api.interceptors.response.use(
   }
 );
 
-// Функция для получения очков пользователя
-export const fetchUserPoints = async () => {
-  return api.get('/points');
-};
-
 // Функция для получения пользователя по Wallet Address
 export const getUserByWalletAddress = async (walletAddress) => {
   const response = await api.get(`/user/${walletAddress}`);
