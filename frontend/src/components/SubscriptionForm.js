@@ -6,12 +6,12 @@ import './SubscriptionForm.css';
 
 const SubscriptionForm = ({ onBack }) => {
   const tonConnectUI = useTonConnectUI();
-  const walletAddress = useTonAddress(); // Получаем walletAddress
+  const walletAddress = useTonAddress();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [newPhoneNumber, setNewPhoneNumber] = useState(''); // Для ввода нового номера телефона
+  const [newPhoneNumber, setNewPhoneNumber] = useState('');
   const [notification, setNotification] = useState('');
-  const [isEditing, setIsEditing] = useState(false); // Режим редактирования
+  const [isEditing, setIsEditing] = useState(false);
   const [hasShownNotification, setHasShownNotification] = useState(false);
 
   useEffect(() => {
@@ -26,10 +26,10 @@ const SubscriptionForm = ({ onBack }) => {
         const subscribeIsActive = await checkSubscription(walletAddress)
         if (user) {
           setPhoneNumber(user.phoneNumber || '');
-          setIsSubscribed(subscribeIsActive); // Проверяем статус подписки
+          setIsSubscribed(subscribeIsActive);
         } else if (!hasShownNotification) {
           setNotification('Пользователь не найден.');
-          setHasShownNotification(true); // Устанавливаем, что уведомление показано
+          setHasShownNotification(true);
         }
       } catch (error) {
         console.error('Ошибка загрузки данных пользователя:', error);
@@ -57,10 +57,10 @@ const SubscriptionForm = ({ onBack }) => {
     }
 
     try {
-      await updatePhoneNumber(walletAddress, newPhoneNumber); // Вызываем функцию для обновления номера
-      setPhoneNumber(newPhoneNumber); // Обновляем номер телефона в состоянии
-      setNewPhoneNumber(''); // Сбрасываем ввод нового номера
-      setIsEditing(false); // Выходим из режима редактирования
+      await updatePhoneNumber(walletAddress, newPhoneNumber);
+      setPhoneNumber(newPhoneNumber);
+      setNewPhoneNumber('');
+      setIsEditing(false);
       showNotification('Номер телефона успешно обновлен.');
     } catch (error) {
       console.error('Ошибка обновления номера телефона:', error);
@@ -69,7 +69,6 @@ const SubscriptionForm = ({ onBack }) => {
   };
 
   const validatePhoneNumber = (phoneNumber) => {
-    // Регулярное выражение для проверки номера (пример: российский номер)
     const phoneRegex = /^(\+7|7|8)?[\s-]?(\d{3})[\s-]?(\d{3})[\s-]?(\d{2})[\s-]?(\d{2})$/;
     return phoneRegex.test(phoneNumber);
   };
@@ -91,7 +90,7 @@ const SubscriptionForm = ({ onBack }) => {
     }
   
     const txSubscription = {
-      validUntil: Math.floor(Date.now() / 1000) + 60, // 60 sec
+      validUntil: Math.floor(Date.now() / 1000) + 60, 
       messages: [
         {
           address: process.env.TON_WALLET,
@@ -102,7 +101,7 @@ const SubscriptionForm = ({ onBack }) => {
   
     try {
       // Отправляем транзакцию
-      await tonConnectUI.sendTransaction(txSubscription);
+      await tonConnectUI.sendTransaction(txSubscription); // TypeError: n.sendTransaction is not a function
       showNotification('Транзакция выполнена успешно.');
   
       // Вызываем функцию для регистрации подписки

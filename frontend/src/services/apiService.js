@@ -19,16 +19,32 @@ api.interceptors.response.use(
 
 // Функция для получения пользователя по Wallet Address
 export const getUserByWalletAddress = async (walletAddress) => {
-  const response = await api.get(`/user/${walletAddress}`);
-  return response.data; // возвращает объект User
+  console.log(`Получение данных пользователя для walletAddress: ${walletAddress}`);
+  try {
+    const response = await api.get(`/user/${walletAddress}`);
+    console.log('Данные пользователя успешно получены:', response.data);
+    return response.data; // возвращает объект User
+  } catch (error) {
+    console.error(`Ошибка при получении данных пользователя для walletAddress ${walletAddress}:`, error.message);
+    throw error; // Пробрасываем ошибку для обработки на уровне вызова
+  }
 };
 
 // Функция для проверки подписки
 export const checkSubscription = async (walletAddress) => {
-  return api.get('/user/subscription-status', {
-    walletAddress
-  });
+  console.log(`Проверка статуса подписки для walletAddress: ${walletAddress}`);
+  try {
+    const response = await api.get('/user/subscription-status', {
+      params: { walletAddress }, // Используем params для передачи walletAddress
+    });
+    console.log('Статус подписки успешно проверен:', response.data);
+    return response.data; // возвращает объект { isActive: boolean }
+  } catch (error) {
+    console.error(`Ошибка при проверке подписки для walletAddress ${walletAddress}:`, error.message);
+    throw error; // Пробрасываем ошибку для обработки на уровне вызова
+  }
 };
+
 
 
 export const createSubscription = async (walletAddress, phoneNumber) => {
@@ -56,22 +72,54 @@ export const updatePhoneNumber = async (walletAddress, phoneNumber) => {
 
 // Функция для получения списка заданий пользователя
 export const getUserTasks = async (walletAddress) => {
-  return api.get(`/task/${walletAddress}`);
+  console.log(`Получение списка заданий для walletAddress: ${walletAddress}`);
+  try {
+    const response = await api.get(`/task/${walletAddress}`);
+    console.log('Список заданий успешно получен:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`Ошибка при получении заданий для walletAddress ${walletAddress}:`, error.message);
+    throw error; // Пробрасываем ошибку для обработки на уровне вызова
+  }
 };
 
 // Функция для создания нового задания
 export const createTask = async (taskData) => {
-  return api.post('/task', taskData);
+  console.log('Создание нового задания с данными:', taskData);
+  try {
+    const response = await api.post('/task', taskData);
+    console.log('Задание успешно создано:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Ошибка при создании задания:', error.message);
+    throw error;
+  }
 };
 
 // Функция для обновления существующего задания
 export const updateTask = async (taskId, updates) => {
-  return api.patch(`/task/${taskId}`, updates);
+  console.log(`Обновление задания с ID ${taskId}. Обновляемые данные:`, updates);
+  try {
+    const response = await api.patch(`/task/${taskId}`, updates);
+    console.log('Задание успешно обновлено:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`Ошибка при обновлении задания с ID ${taskId}:`, error.message);
+    throw error;
+  }
 };
 
 // Функция для удаления задания
 export const deleteTask = async (taskId) => {
-  return api.delete(`/task/${taskId}`);
+  console.log(`Удаление задания с ID ${taskId}`);
+  try {
+    const response = await api.delete(`/task/${taskId}`);
+    console.log(`Задание с ID ${taskId} успешно удалено.`);
+    return response.data;
+  } catch (error) {
+    console.error(`Ошибка при удалении задания с ID ${taskId}:`, error.message);
+    throw error;
+  }
 };
 
 export default api;

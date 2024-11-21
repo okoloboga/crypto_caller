@@ -6,7 +6,7 @@ import './PointsWidget.css';
 const PointsWidget = ({ isSubscribed, showNotification }) => {
   const walletAddress = useTonAddress();
   const [points, setPoints] = useState(0); // Очки
-  const [lastUpdated, setLastUpdated] = useState(null); // Время последнего обновления
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   // Функция для загрузки очков
   const loadPoints = async () => {
@@ -15,10 +15,10 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
       return;
     }
     try {
-      const user = await getUserByWalletAddress(walletAddress);
+      const user = await getUserByWalletAddress(walletAddress); // TypeError: undefined has no properties
       const userPoints = user.points;
       setPoints(userPoints);
-      setLastUpdated(new Date()); // Устанавливаем текущее время как время обновления
+      setLastUpdated(new Date());
     } catch (err) {
       console.error('Ошибка при загрузке очков:', err);
     }
@@ -28,8 +28,8 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
   useEffect(() => {
     if (isSubscribed) {
       loadPoints();
-      const interval = setInterval(loadPoints, 60000); // Обновление каждые 60 секунд
-      return () => clearInterval(interval); // Очищаем интервал при размонтировании
+      const interval = setInterval(loadPoints, 60000);
+      return () => clearInterval(interval);
     }
   }, [isSubscribed]);
 

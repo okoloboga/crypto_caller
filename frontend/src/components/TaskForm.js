@@ -9,7 +9,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
   // Обработчик сохранения задания
   const handleSave = async () => {
     if (disabled) {
-      onDisabledAction(); // Действие при заблокированной подписке
+      onDisabledAction();
       return;
     }
 
@@ -21,16 +21,14 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
     setLoading(true);
     try {
       if (task) {
-        // Если задание редактируется
         await updateTask(task.id, form);
       } else {
-        // Если создаётся новое задание
         await createTask(form);
       }
-      onSave(); // Обновляем список заданий после успешного действия
+      onSave();
     } catch (error) {
       console.error('Ошибка при сохранении задания:', error);
-      alert('Не удалось сохранить задание. Попробуйте снова.');
+      alert('Не удалось сохранить задание. Попробуйте снова.');  // PATCH /task/undefined HTTP/1.1" 405
     } finally {
       setLoading(false);
     }
@@ -38,11 +36,11 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
 
   // Обработчик удаления задания
   const handleDelete = async () => {
-    if (!task) return; // Удалять можно только существующее задание
+    if (!task) return;
     setLoading(true);
     try {
       await deleteTask(task.id);
-      onSave(); // Обновляем список заданий после успешного удаления
+      onSave();
     } catch (error) {
       console.error('Ошибка при удалении задания:', error);
       alert('Не удалось удалить задание. Попробуйте снова.');
@@ -56,7 +54,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
       <select
         value={form.currencyPair}
         onChange={(e) => setForm({ ...form, currencyPair: e.target.value })}
-        disabled={disabled || loading} // Блокируем поле при загрузке или неактивной подписке
+        disabled={disabled || loading}
       >
         <option value="">Выберите валютную пару</option>
         {currencyPairs.map((pair) => (
@@ -70,7 +68,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
         placeholder="Триггерная цена"
         value={form.targetPrice}
         onChange={(e) => setForm({ ...form, targetPrice: e.target.value })}
-        disabled={disabled || loading} // Блокируем поле при загрузке или неактивной подписке
+        disabled={disabled || loading}
       />
       <div className="task-form-buttons">
         <button onClick={handleSave} disabled={disabled || loading}>
