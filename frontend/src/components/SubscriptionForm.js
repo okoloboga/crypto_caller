@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
-import { getUserByWalletAddress, updatePhoneNumber } from '../services/apiService';
+import { initiatePayment } from '../services/tonService';
+import { getUserByWalletAddress, updatePhoneNumber, createSubscription } from '../services/apiService';
 import './SubscriptionForm.css';
 
 const SubscriptionForm = ({ onBack }) => {
@@ -63,6 +64,41 @@ const SubscriptionForm = ({ onBack }) => {
     }
   };
 
+  const handleRegister = async () => {
+    if (!newPhoneNumber) {
+      showNotification('Введите новый номер телефона.');
+      return;
+    }
+    if (!walletAddress) {
+      showNotification('Подключите TON кошелек.');
+      return;
+    }
+  
+    const txSubscription = {
+      validUntil: Math.floor(Date.now() / 1000) + 60, // 60 sec
+      messages: [
+        {
+          address: process.env.TON_WALLET,
+          amount: "1000000000", // 1 TON
+        },
+      ],
+    };
+  
+    try {
+      // Отправляем транзакцию
+      await tonConnectUi.sendTransaction(txSubscription);
+      showNotification('Транзакция выполнена успешно.');
+  
+      // Вызываем функцию для регистрации подписки
+      await createSubscription(walletAddress, newPhoneNumber);
+      setIsSubscribed(true);
+      showNotification('Подписка успешно активирована.');
+    } catch (error) {
+      console.error('Ошибка активации подписки:', error);
+      showNotification('Ошибка активации. Попробуйте снова.');
+    }
+  };
+  
   const handleCancel = () => {
     setNewPhoneNumber(''); // Сбрасываем ввод
     setIsEditing(false); // Выходим из режима редактирования
@@ -91,7 +127,16 @@ const SubscriptionForm = ({ onBack }) => {
         )
       ) : (
         <div>
-          <p>Подписка не активна.</p>
+          <h4>Регистрация</h4>
+          <p>Что бы пользоваться сервисом необходимо ввести номер телефона и оплатить подписку. Номер телефона будет использован для оповещении о срабатывании тригера. Стоимость подписки - 1 TON в месяц</p>
+          <input
+            type="text"
+            value={newPhoneNumber}
+            onChange={(e) => setNewPhoneNumber(e.target.value)}
+            placeholder="Введите номер телефона"
+          />
+          <button onClick={handleRegister}>Оплатить</button>
+          <button onClick={handleCancel}>Отменить</button>
         </div>
       )}
       <button onClick={onBack}>Назад</button>
