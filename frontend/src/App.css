@@ -19,7 +19,7 @@ body {
   
   .app-container {
     width: 100%;
-    max-width: 400px; /* Ограничение для мобильных */
+    max-width: 500px; /* Ограничение для мобильных */
     margin: 0 auto;
     padding: 16px;
     box-sizing: border-box;

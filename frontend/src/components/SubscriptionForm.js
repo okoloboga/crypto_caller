@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTonAddress } from '@tonconnect/ui-react';
+import { useTonAddress, tonConnectUi } from '@tonconnect/ui-react';
 import { getUserByWalletAddress, updatePhoneNumber, createSubscription } from '../services/apiService';
 import './SubscriptionForm.css';
 
