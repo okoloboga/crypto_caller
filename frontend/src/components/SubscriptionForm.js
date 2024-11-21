@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useTonAddress, tonConnectUi } from '@tonconnect/ui-react';
+import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 import { getUserByWalletAddress, updatePhoneNumber, createSubscription } from '../services/apiService';
 import './SubscriptionForm.css';
 
 const SubscriptionForm = ({ onBack }) => {
+  const tonConnectUI = useTonConnectUI();
   const walletAddress = useTonAddress(); // Получаем walletAddress
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -85,7 +86,7 @@ const SubscriptionForm = ({ onBack }) => {
   
     try {
       // Отправляем транзакцию
-      await tonConnectUi.sendTransaction(txSubscription);
+      await tonConnectUI.sendTransaction(txSubscription);
       showNotification('Транзакция выполнена успешно.');
   
       // Вызываем функцию для регистрации подписки
