@@ -64,6 +64,17 @@ const SubscriptionForm = ({ onBack }) => {
     }
   };
 
+  const validatePhoneNumber = (phoneNumber) => {
+    // Регулярное выражение для проверки номера (пример: российский номер)
+    const phoneRegex = /^(\+7|7|8)?[\s-]?(\d{3})[\s-]?(\d{3})[\s-]?(\d{2})[\s-]?(\d{2})$/;
+    return phoneRegex.test(phoneNumber);
+  };
+
+  if (!validatePhoneNumber(newPhoneNumber)) {
+    showNotification('Некорректный номер телефона. Проверьте формат.');
+    return;
+  }
+
   const handleRegister = async () => {
     if (!newPhoneNumber) {
       showNotification('Введите новый номер телефона.');
@@ -98,14 +109,9 @@ const SubscriptionForm = ({ onBack }) => {
       showNotification('Ошибка активации. Попробуйте снова.');
     }
   };
-  
-  const handleCancel = () => {
-    setNewPhoneNumber(''); // Сбрасываем ввод
-    setIsEditing(false); // Выходим из режима редактирования
-  };
 
   return (
-    <div>
+    <div className="subscription-form">
       {isSubscribed ? (
         isEditing ? (
           <div>
@@ -117,7 +123,6 @@ const SubscriptionForm = ({ onBack }) => {
               placeholder="Введите новый номер телефона"
             />
             <button onClick={handleSave}>Сохранить</button>
-            <button onClick={handleCancel}>Отменить</button>
           </div>
         ) : (
           <div>
@@ -136,7 +141,6 @@ const SubscriptionForm = ({ onBack }) => {
             placeholder="Введите номер телефона"
           />
           <button onClick={handleRegister}>Оплатить</button>
-          <button onClick={handleCancel}>Отменить</button>
         </div>
       )}
       <button onClick={onBack}>Назад</button>
