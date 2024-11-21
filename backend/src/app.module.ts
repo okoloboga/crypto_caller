@@ -5,6 +5,7 @@ import { TaskModule } from './modules/task/task.module';
 import { SubscriptionModule } from './modules/subscription/subscription.module';
 import { PointsModule } from './modules/points/points.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { AppController } from './app.controller';
 import { BullModule } from '@nestjs/bull';
 
 @Module({
@@ -35,5 +36,6 @@ import { BullModule } from '@nestjs/bull';
       synchronize: true,
     }),
   ],
+  controllers: [AppController], // Добавляем контроллер сюда
 })
 export class AppModule {}

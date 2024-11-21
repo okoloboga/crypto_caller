@@ -8,6 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const logger = new Logger('Bootstrap');
+  app.setGlobalPrefix('api');
   app.useGlobalFilters(new AllExceptionsFilter());
 
   // Прослушиваем порт 3000 (по умолчанию)
