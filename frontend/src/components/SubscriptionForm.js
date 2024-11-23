@@ -5,7 +5,7 @@ import { getUserByWalletAddress, updatePhoneNumber, createSubscription,
 import './SubscriptionForm.css';
 
 const SubscriptionForm = ({ onBack }) => {
-  const tonConnectUI = useTonConnectUI();
+  const [tonConnectUI, setOptions] = useTonConnectUI();
   const walletAddress = useTonAddress();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
