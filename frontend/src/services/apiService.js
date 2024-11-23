@@ -25,7 +25,7 @@ export const getUserByWalletAddress = async (walletAddress) => {
     const response = await api.get(`/user/${walletAddress}`);
     console.log('Данные пользователя успешно получены:', response);
 
-    return response.data;
+    return response;
   } catch (error) {
     console.error(`Ошибка при получении данных пользователя для walletAddress ${walletAddress}:`, error.message);
     throw error;
@@ -40,7 +40,7 @@ export const checkSubscription = async (walletAddress) => {
       params: { walletAddress },
     });
     console.log('Статус подписки успешно проверен:', response);
-    return response.data; 
+    return response; 
   } catch (error) {
     console.error(`Ошибка при проверке подписки для walletAddress ${walletAddress}:`, error.message);
     throw error; 
