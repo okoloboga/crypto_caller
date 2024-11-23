@@ -1,5 +1,6 @@
 import { Controller, Post, Body, Param, Get,
-         Patch, Query, NotFoundException} from '@nestjs/common';
+         Patch, Query, BadRequestException, 
+         InternalServerErrorException} from '@nestjs/common';
 import { UserService } from './user.service';
 
 @Controller('user')
@@ -19,12 +20,18 @@ export class UserController {
   @Get('subscription-status')
   async getSubscriptionStatus(@Query('walletAddress') walletAddress: string): Promise<{ isActive: boolean }> {
     if (!walletAddress) {
-      throw new NotFoundException('Wallet address is required');
+      throw new BadRequestException('Wallet address is required');
     }
 
-    const isActive = await this.userService.checkSubscriptionStatus(walletAddress);
+    try {
+      const isActive = await this.userService.checkSubscriptionStatus(walletAddress);
 
-    return { isActive };
+      // Гарантируем возврат объекта с булевым значением
+      return { isActive: isActive || false };
+    } catch (error) {
+      console.error(`Ошибка получения статуса подписки для ${walletAddress}:`, error);
+      throw new InternalServerErrorException('Ошибка получения статуса подписки');
+    }
   }
 
   // Get user by Wallet Address

@@ -38,7 +38,7 @@ export const checkSubscription = async (walletAddress) => {
     const response = await api.get('/user/subscription-status', {
       params: { walletAddress },
     });
-    console.log('Статус подписки успешно проверен:', response.data); //Статус подписки успешно проверен: undefined
+    console.log('Статус подписки успешно проверен:', response.data);
     return response.data; 
   } catch (error) {
     console.error(`Ошибка при проверке подписки для walletAddress ${walletAddress}:`, error.message);
@@ -46,17 +46,19 @@ export const checkSubscription = async (walletAddress) => {
   }
 };
 
-
-
-export const createSubscription = async (walletAddress, phoneNumber) => {
+// Функция для создания подписки
+export const createSubscription = async (walletAddress, phoneNumber, signedChallenge) => {
+  console.log(`Создание подписки для walletAddress: ${walletAddress}`);
   try {
     const response = await api.post('/user/subscription', {
       walletAddress,
       phoneNumber,
+      signedChallenge,
     });
+    console.log('Подписка успешно создана:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Ошибка при создании подписки:', error);
+    console.error(`Ошибка при создании подписки для walletAddress ${walletAddress}:`, error.message);
     throw error;
   }
 };
@@ -124,3 +126,20 @@ export const deleteTask = async (taskId) => {
 };
 
 export default api;
+
+// Функция для получения challenge
+export const getChallenge = async (walletAddress) => {
+  console.log(`Запрос challenge для walletAddress: ${walletAddress}`);
+  try {
+    const response = await api.get('/user/challenge', {
+      params: { walletAddress },
+    });
+    console.log('Challenge успешно получен:', response.data);
+    return response.data.challenge; // Предполагаем, что сервер возвращает challenge
+  } catch (error) {
+    console.error(`Ошибка при запросе challenge для walletAddress ${walletAddress}:`, error.message);
+    throw error;
+  }
+};
+
+

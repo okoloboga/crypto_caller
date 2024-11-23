@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 import { getUserByWalletAddress, updatePhoneNumber, createSubscription,
-        checkSubscription } from '../services/apiService';
+        checkSubscription, getChallenge } from '../services/apiService';
 import './SubscriptionForm.css';
 
 const SubscriptionForm = ({ onBack }) => {
@@ -23,7 +23,7 @@ const SubscriptionForm = ({ onBack }) => {
 
       try {
         const user = await getUserByWalletAddress(walletAddress);
-        const subscribeIsActive = await checkSubscription(walletAddress)
+        const subscribeIsActive = await checkSubscription(walletAddress);
         if (user) {
           setPhoneNumber(user.phoneNumber || '');
           setIsSubscribed(subscribeIsActive);
@@ -39,6 +39,18 @@ const SubscriptionForm = ({ onBack }) => {
 
     fetchUserData();
   }, [walletAddress]);
+
+  const ensureWalletConnected = async () => {
+    // Проверяем подключение кошелька
+    if (!tonConnectUI.wallet) {
+      try {
+        await tonConnectUI.connectWallet(); // Запрашиваем подключение
+      } catch (error) {
+        console.error('Ошибка подключения кошелька:', error);
+        throw new Error('Кошелек не подключен.');
+      }
+    }
+  };
 
   const showNotification = (message) => {
     setNotification(message);
@@ -88,9 +100,9 @@ const SubscriptionForm = ({ onBack }) => {
       showNotification('Подключите TON кошелек.');
       return;
     }
-  
+
     const txSubscription = {
-      validUntil: Math.floor(Date.now() / 1000) + 60, 
+      validUntil: Math.floor(Date.now() / 1000) + 60,
       messages: [
         {
           address: process.env.TON_WALLET,
@@ -98,14 +110,20 @@ const SubscriptionForm = ({ onBack }) => {
         },
       ],
     };
-  
+
     try {
+      // Убедимся, что кошелек подключен
+      await ensureWalletConnected();
+
       // Отправляем транзакцию
-      await tonConnectUI.sendTransaction(txSubscription); // TypeError: n.sendTransaction is not a function
+      await tonConnectUI.sendTransaction(txSubscription);
       showNotification('Транзакция выполнена успешно.');
-  
+
+      const challenge = await getChallenge(walletAddress);
+      const signedChallenge = await tonConnectUI.signMessage({ message: challenge });
+
       // Вызываем функцию для регистрации подписки
-      await createSubscription(walletAddress, newPhoneNumber);
+      await createSubscription(walletAddress, newPhoneNumber, signedChallenge);
       setIsSubscribed(true);
       showNotification('Подписка успешно активирована.');
     } catch (error) {
@@ -137,7 +155,7 @@ const SubscriptionForm = ({ onBack }) => {
       ) : (
         <div>
           <h4>Регистрация</h4>
-          <p>Что бы пользоваться сервисом необходимо ввести номер телефона и оплатить подписку. Номер телефона будет использован для оповещении о срабатывании тригера. Стоимость подписки - 1 TON в месяц</p>
+          <p>Чтобы пользоваться сервисом, необходимо ввести номер телефона и оплатить подписку. Номер телефона будет использован для оповещений о срабатывании триггера. Стоимость подписки — 1 TON в месяц.</p>
           <input
             type="text"
             value={newPhoneNumber}

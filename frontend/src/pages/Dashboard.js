@@ -15,7 +15,7 @@ const Dashboard = () => {
   const [currentTask, setCurrentTask] = useState(null);
   const [currencyPairs] = useState(['BTC/USDT', 'ETH/USDT', 'TON/USDT']);
   const [notification, setNotification] = useState('');
-  const [currentScreen, setCurrentScreen] = useState('dashboard'); // Управляет текущим экраном
+  const [currentScreen, setCurrentScreen] = useState('dashboard');
 
   useEffect(() => {
     if (walletAddress) {

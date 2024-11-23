@@ -14,11 +14,13 @@ export class UserService {
   async findOne(walletAddress: string): Promise<User | null> {
     console.log(`Ищем пользователя с walletAddress: ${walletAddress}`);
     const user = await this.userRepository.findOne({ where: { walletAddress } });
-    if (user) {
-      console.log(`Пользователь найден:`, user);
-    } else {
+
+    if (!user) {
       console.log(`Пользователь с walletAddress ${walletAddress} не найден.`);
+      return null;
     }
+
+    console.log(`Пользователь найден:`, user);
     return user;
   }
 
@@ -87,28 +89,36 @@ export class UserService {
 
   // Check subscription status
   async checkSubscriptionStatus(walletAddress: string): Promise<boolean> {
-    console.log(`Проверяем статус подписки для walletAddress: ${walletAddress}`);
-    const user = await this.userRepository.findOne({ where: { walletAddress } });
+    try {
+      console.log(`Проверяем статус подписки для walletAddress: ${walletAddress}`);
 
-    if (!user) {
-      console.log(`Пользователь с walletAddress ${walletAddress} не найден.`);
-      return false;
+      const user = await this.userRepository.findOne({ where: { walletAddress } });
+
+      if (!user) {
+        console.log(`Пользователь с walletAddress ${walletAddress} не найден.`);
+        return false;
+      }
+
+      if (!user.subscriptionDate) {
+        console.log(`У пользователя нет даты подписки.`);
+        return false;
+      }
+
+      const subscriptionDate = new Date(user.subscriptionDate);
+      const currentDate = new Date();
+      const daysDifference = Math.floor(
+        (currentDate.getTime() - subscriptionDate.getTime()) / (1000 * 60 * 60 * 24),
+      );
+
+      console.log(`Дата подписки: ${subscriptionDate}, Текущая дата: ${currentDate}, Разница дней: ${daysDifference}`);
+
+      const isActive = daysDifference <= 30;
+      console.log(`Статус подписки активен: ${isActive}`);
+      return isActive;
+    } catch (error) {
+      console.error(`Ошибка проверки подписки для walletAddress ${walletAddress}:`, error);
+      return false; // В случае ошибки возвращаем false
     }
-
-    if (!user.subscriptionDate) {
-      console.log(`У пользователя нет даты подписки.`);
-      return false;
-    }
-
-    const subscriptionDate = new Date(user.subscriptionDate);
-    const currentDate = new Date();
-    const daysDifference = Math.floor(
-      (currentDate.getTime() - subscriptionDate.getTime()) / (1000 * 60 * 60 * 24),
-    );
-
-    console.log(`Дата подписки: ${subscriptionDate}, Текущая дата: ${currentDate}, Разница дней: ${daysDifference}`);
-    const isActive = daysDifference <= 30;
-    console.log(`Статус подписки активен: ${isActive}`);
-    return isActive;
   }
+
 }

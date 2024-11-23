@@ -3,11 +3,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './modules/user/user.module';
 import { TaskModule } from './modules/task/task.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { ChallengeModule } from './modules/challenge/challenge.module';
 import { AppController } from './app.controller';
 import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
+    ChallengeModule,
     UserModule, 
     TaskModule, 
     NotificationModule, 
