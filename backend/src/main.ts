@@ -2,9 +2,17 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import { AllExceptionsFilter } from './shared/exceptions/all-exceptions.filter';
+import { readFileSync } from 'fs';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // Опции HTTPS
+  const httpsOptions = {
+    key: readFileSync('/etc/letsencrypt/live/caller.ruble.website/privkey.pem'),
+    cert: readFileSync('/etc/letsencrypt/live/caller.ruble.website/fullchain.pem'),
+  };
+
+  // Создание приложения с поддержкой HTTPS
+  const app = await NestFactory.create(AppModule, { httpsOptions });
 
   const logger = new Logger('Bootstrap');
 
@@ -16,14 +24,14 @@ async function bootstrap() {
 
   // Включаем поддержку CORS
   app.enableCors({
-    origin: 'http://localhost:3000', // Указываем разрешённый фронтенд
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Методы, которые разрешены
-    credentials: true, // Если нужно использовать куки или токены
+    origin: ['https://caller.ruble.website', 'http://localhost:3000'], // Разрешённые домены
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Разрешённые методы
+    credentials: true, // Если требуются куки/авторизация
   });
 
   // Запускаем приложение на порту 3000
   await app.listen(3000);
-  logger.log('Application is running on: http://localhost:3000');
+  logger.log('Application is running on: https://caller.ruble.website');
 }
 
 bootstrap();
