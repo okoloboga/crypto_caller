@@ -20,6 +20,8 @@ services:
     depends_on:
       - postgres
       - redis
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro 
     networks:
       - default  # Добавьте подключение к сети
 
