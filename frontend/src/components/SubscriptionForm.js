@@ -89,6 +89,10 @@ const SubscriptionForm = ({ onBack }) => {
       showNotification('Некорректный номер телефона. Проверьте формат.');
       return;
     }
+
+    if (!walletAddress) {
+      throw new Error('Кошелёк не подключён.');
+    }
   
     try {
       // Проверяем, подключён ли кошелёк
@@ -98,13 +102,15 @@ const SubscriptionForm = ({ onBack }) => {
         validUntil: Math.floor(Date.now() / 1000) + 60,
         messages: [
           {
-            address: process.env.TON_WALLET,
+            address: process.env.TON_WALLET || 'UQCZKiq-ubTdwsm66E1WvN7nc9YObaL7pTjCM1ULZ6pPF_8tcd',
             amount: "1000000", // 0.001 TON
           },
         ],
       };
   
       // Отправляем транзакцию
+      console.log('Подключенный кошелек:', walletAddress);
+      console.log('tonConnectUI:', tonConnectUI);
       await tonConnectUI.sendTransaction(txSubscription);
       showNotification('Транзакция выполнена успешно.');
   
