@@ -16,23 +16,21 @@ export class UserController {
     return this.userService.createSubscription(walletAddress, phoneNumber);
   }
 
-  // Check the subscription status of a user by their WalletAddress
   @Get('subscription-status')
-  async getSubscriptionStatus(@Query('walletAddress') walletAddress: string): Promise<{ isActive: boolean }> {
+  async getSubscriptionStatus(@Query('walletAddress') walletAddress: string): Promise<boolean> {
     if (!walletAddress) {
       throw new BadRequestException('Wallet address is required');
     }
-
+  
     try {
-      const isActive = await this.userService.checkSubscriptionStatus(walletAddress);
-
-      // Гарантируем возврат объекта с булевым значением
-      return { isActive: isActive || false };
+      // Возвращаем результат напрямую, без обёртки в объект
+      return await this.userService.checkSubscriptionStatus(walletAddress);
     } catch (error) {
       console.error(`Ошибка получения статуса подписки для ${walletAddress}:`, error);
       throw new InternalServerErrorException('Ошибка получения статуса подписки');
     }
   }
+  
 
   // Get user by Wallet Address
   @Get(':walletAddress')
