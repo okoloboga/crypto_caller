@@ -23,7 +23,7 @@ services:
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro 
     networks:
-      - default  # Добавьте подключение к сети
+      - default
 
   # Сервис для Postgres
   postgres:
