@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Создаем экземпляр Axios с базовым URL
 const api = axios.create({
-  baseURL: process.env.API_URL,
+  baseURL: process.env.API_URL || 'http://localhost:3001/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -21,6 +21,7 @@ api.interceptors.response.use(
 export const getUserByWalletAddress = async (walletAddress) => {
   console.log(`Получение данных пользователя для walletAddress: ${walletAddress}`);
   try {
+    console.log(api.defaults.baseURL);
     const response = await api.get(`/user/${walletAddress}`);
     console.log('Данные пользователя успешно получены:', response.data);
 
