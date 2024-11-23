@@ -38,7 +38,7 @@ export const checkSubscription = async (walletAddress) => {
     const response = await api.get('/user/subscription-status', {
       params: { walletAddress },
     });
-    console.log('Статус подписки успешно проверен:', response.data);
+    console.log('Статус подписки успешно проверен:', response);
     return response.data; 
   } catch (error) {
     console.error(`Ошибка при проверке подписки для walletAddress ${walletAddress}:`, error.message);
