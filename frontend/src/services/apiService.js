@@ -23,7 +23,7 @@ export const getUserByWalletAddress = async (walletAddress) => {
   try {
     console.log(api.defaults.baseURL);
     const response = await api.get(`/user/${walletAddress}`);
-    console.log('Данные пользователя успешно получены:', response.data);
+    console.log('Данные пользователя успешно получены:', response);
 
     return response.data;
   } catch (error) {
