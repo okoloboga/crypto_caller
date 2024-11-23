@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Создаем экземпляр Axios с базовым URL
 const api = axios.create({
-  baseURL: process.env.API_URL || 'https://backend:3000/api',
+  baseURL: process.env.API_URL || 'https://caller.ruble.website/api',
   headers: {
     'Content-Type': 'application/json',
   },
