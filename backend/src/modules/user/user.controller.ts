@@ -39,7 +39,7 @@ export class UserController {
     const user = await this.userService.findOne(walletAddress);
   
     if (!user) {
-      return { message: `User not found.` };
+      return false;
     }
     return user;
   }
