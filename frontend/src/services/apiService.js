@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Создаем экземпляр Axios с базовым URL
 const api = axios.create({
-  baseURL: process.env.API_URL || 'http://localhost:3001/api',
+  baseURL: process.env.API_URL || 'http://backend:3000/api',
   headers: {
     'Content-Type': 'application/json',
   },
