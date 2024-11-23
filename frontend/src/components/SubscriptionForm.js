@@ -40,15 +40,9 @@ const SubscriptionForm = ({ onBack }) => {
     fetchUserData();
   }, [walletAddress]);
 
-  const ensureWalletConnected = async () => {
-    // Проверяем подключение кошелька
-    if (!tonConnectUI.wallet) {
-      try {
-        await tonConnectUI.connectWallet(); // Запрашиваем подключение
-      } catch (error) {
-        console.error('Ошибка подключения кошелька:', error);
-        throw new Error('Кошелек не подключен.');
-      }
+  const ensureWalletConnected = () => {
+    if (!walletAddress) {
+      throw new Error('Кошелек не подключен.');
     }
   };
 
@@ -90,38 +84,33 @@ const SubscriptionForm = ({ onBack }) => {
       showNotification('Введите новый номер телефона.');
       return;
     }
-
+  
     if (!validatePhoneNumber(newPhoneNumber)) {
       showNotification('Некорректный номер телефона. Проверьте формат.');
       return;
     }
-
-    if (!walletAddress) {
-      showNotification('Подключите TON кошелек.');
-      return;
-    }
-
-    const txSubscription = {
-      validUntil: Math.floor(Date.now() / 1000) + 60,
-      messages: [
-        {
-          address: process.env.TON_WALLET,
-          amount: "1000000", // 0.001 TON
-        },
-      ],
-    };
-
+  
     try {
-      // Убедимся, что кошелек подключен
-      await ensureWalletConnected();
-
+      // Проверяем, подключён ли кошелёк
+      ensureWalletConnected();
+  
+      const txSubscription = {
+        validUntil: Math.floor(Date.now() / 1000) + 60,
+        messages: [
+          {
+            address: process.env.TON_WALLET,
+            amount: "1000000", // 0.001 TON
+          },
+        ],
+      };
+  
       // Отправляем транзакцию
       await tonConnectUI.sendTransaction(txSubscription);
       showNotification('Транзакция выполнена успешно.');
-
+  
       const challenge = await getChallenge(walletAddress);
       const signedChallenge = await tonConnectUI.signMessage({ message: challenge });
-
+  
       // Вызываем функцию для регистрации подписки
       await createSubscription(walletAddress, newPhoneNumber, signedChallenge);
       setIsSubscribed(true);
@@ -131,6 +120,7 @@ const SubscriptionForm = ({ onBack }) => {
       showNotification('Ошибка активации. Попробуйте снова.');
     }
   };
+  
 
   return (
     <div className="subscription-form">
