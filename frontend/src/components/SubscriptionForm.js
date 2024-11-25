@@ -80,10 +80,11 @@ const SubscriptionForm = ({ onBack }) => {
     const phoneRegex = /^(\+7|7|8)?[\s-]?(\d{3})[\s-]?(\d{3})[\s-]?(\d{2})[\s-]?(\d{2})$/;
     return phoneRegex.test(phoneNumber);
   };
-  
+
   const connectWalletWithProof = async (challenge) => {
+    console.log('Запуск connectWalletWithProof');
     try {
-      // Настраиваем параметры подключения с `tonProof`
+      console.log('Настройка параметров подключения с tonProof...');
       tonConnectUI.setConnectRequestParameters({
         state: 'ready',
         value: {
@@ -92,32 +93,37 @@ const SubscriptionForm = ({ onBack }) => {
           },
         },
       });
-  
+      console.log('Параметры подключения настроены. Открытие модального окна...');
+
       // Открываем модальное окно для подключения кошелька
       await tonConnectUI.openModal();
-  
+      console.log('Модальное окно успешно открыто.');
+
       // Проверяем, подключен ли кошелек
+      console.log('Проверка подключения кошелька...');
       const account = tonConnectUI.account;
       if (!account) {
         throw new Error('Кошелек не подключен.');
       }
-  
-      // Получаем `TON Proof`
+      console.log('Кошелек подключен:', account);
+
+      // Получаем TON Proof
+      console.log('Попытка получить TON Proof...');
       const tonProof = account.tonProof;
       if (!tonProof) {
         throw new Error('TON Proof не предоставлен кошельком.');
       }
-  
-      console.log('Полученный TON Proof:', tonProof);
-  
-      return tonProof.proof; // Возвращаем `TON Proof` в base64
+
+      console.log('TON Proof успешно получен:', tonProof);
+      return tonProof.proof; // Возвращаем proof в base64
     } catch (error) {
-      console.error('Ошибка получения TON Proof:', error);
+      console.error('Ошибка в connectWalletWithProof:', error);
       throw error;
     }
-  };  
+  };
 
   const handleRegister = async () => {
+    console.log('Запуск handleRegister');
     if (!newPhoneNumber) {
       showNotification('Введите новый номер телефона.');
       return;
@@ -135,6 +141,7 @@ const SubscriptionForm = ({ onBack }) => {
     try {
       ensureWalletConnected();
       showNotification('Начинаем процесс регистрации...');
+      console.log('Подключённый кошелек:', walletAddress);
   
       const txSubscription = {
         validUntil: Math.floor(Date.now() / 1000) + 60,
@@ -147,20 +154,24 @@ const SubscriptionForm = ({ onBack }) => {
         ],
       };
   
-      console.log('Подключенный кошелек:', walletAddress);
-      console.log('tonConnectUI:', tonConnectUI);
-  
+      console.log('Отправка транзакции...');
       await tonConnectUI.sendTransaction(txSubscription);
+      console.log('Транзакция успешно выполнена.');
       showNotification('Транзакция успешно выполнена.');
   
-      showNotification('Получение challenge для подписания...');
+      console.log('Получение challenge...');
       const challenge = await getChallenge(walletAddress);
+      console.log('Полученный challenge:', challenge);
+      showNotification('Получение challenge для подписания...');
   
-      showNotification('Подключение кошелька с TON Proof...');
+      console.log('Запуск connectWalletWithProof с challenge:', challenge);
       const tonProof = await connectWalletWithProof(challenge);
+      console.log('Полученный TON Proof:', tonProof);
+      showNotification('Подключение кошелька с TON Proof...');
   
-      showNotification('Верификация TON Proof...');
+      console.log('Проверка TON Proof на сервере...');
       const isValid = await verifyChallenge(walletAddress, tonProof);
+      console.log('Результат проверки TON Proof:', isValid);
   
       if (!isValid) {
         throw new Error('TON Proof не прошёл проверку.');
@@ -168,12 +179,13 @@ const SubscriptionForm = ({ onBack }) => {
   
       showNotification('TON Proof успешно проверен.');
   
-      showNotification('Регистрация подписки на сервере...');
+      console.log('Регистрация подписки на сервере...');
       await createSubscription(walletAddress, newPhoneNumber, tonProof);
       setIsSubscribed(true);
+      console.log('Подписка успешно активирована.');
       showNotification('Подписка успешно активирована.');
     } catch (error) {
-      console.error('Ошибка активации подписки:', error);
+      console.error('Ошибка в handleRegister:', error);
       showNotification('Ошибка активации. Попробуйте снова.');
     }
   };
