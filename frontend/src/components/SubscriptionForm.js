@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TonConnect } from '@tonconnect/sdk';
-import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
+import { useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { getUserByWalletAddress, updatePhoneNumber, createSubscription,
         checkSubscription, getChallenge, verifyChallenge } from '../services/apiService';
 import './SubscriptionForm.css';
@@ -8,6 +8,7 @@ import './SubscriptionForm.css';
 const SubscriptionForm = ({ onBack }) => {
   const [tonConnectUI, setOptions] = useTonConnectUI();
   const tonConnect = new TonConnect();
+  const wallet = useTonWallet();
   const walletAddress = useTonAddress();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -88,9 +89,7 @@ const SubscriptionForm = ({ onBack }) => {
       tonConnectUI.setConnectRequestParameters({
         state: 'ready',
         value: {
-          tonProof: {
-            payload: challenge, // Ваш challenge от сервера
-          },
+          tonProof: challenge,
         },
       });
       
@@ -99,15 +98,24 @@ const SubscriptionForm = ({ onBack }) => {
       // Проверяем подключение
       const account = tonConnectUI.account;
       console.log('Подключение кошелька...', account);
-      if (!account) {
-        throw new Error('Кошелек не подключен.');
-      }
-  
-      // Извлекаем подписанный TON Proof
-      const tonProof = account.tonProof;
+
+      console.log('Получение TON Proof... ', wallet.connectItems.tonProof);
+      const tonProof = wallet.connectItems.tonProof;
+      
       if (!tonProof) {
         throw new Error('TON Proof не предоставлен кошельком.');
       }
+      
+      // // Проверяем, что кошелек подключен
+      // if (!account) {
+      //   throw new Error('Кошелек не подключен.');
+      // }
+      
+      // // Извлекаем подписанный TON Proof
+      // const tonProof = account.tonProof;
+      // if (!tonProof) {
+      //   throw new Error('TON Proof не предоставлен кошельком.');
+      // }
   
       console.log('TON Proof успешно получен:', tonProof);
       return tonProof; // Возвращаем полный объект tonProof
