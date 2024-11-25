@@ -20,9 +20,9 @@ export class ChallengeController {
 
   // Эндпоинт для проверки challenge
   @Post('verify')
-  verifyTonProof(
-    @Body() verifyDto: { walletAddress: string; tonProof: string },
-  ): { valid: boolean } {
+  async verifyTonProof(
+    @Body() verifyDto: { walletAddress: string; tonProof: any }, // `tonProof` должен быть объектом
+  ): Promise<{ valid: boolean }> {
     const { walletAddress, tonProof } = verifyDto;
 
     if (!walletAddress || !tonProof) {
@@ -31,7 +31,8 @@ export class ChallengeController {
     }
 
     try {
-      const isValid = this.challengeService.verifyTonProof(walletAddress, tonProof);
+      this.logger.log(`Начало проверки TON Proof для walletAddress: ${walletAddress}`);
+      const isValid = await this.challengeService.verifyTonProof(walletAddress, tonProof);
 
       if (isValid) {
         this.logger.log(`TON Proof verification successful for walletAddress: ${walletAddress}`);
@@ -41,7 +42,7 @@ export class ChallengeController {
 
       return { valid: isValid };
     } catch (error) {
-      this.logger.error('Ошибка проверки TON Proof:', error.message);
+      this.logger.error(`Ошибка проверки TON Proof для walletAddress: ${walletAddress}`, error.message);
       throw new BadRequestException('Ошибка проверки TON Proof.');
     }
   }

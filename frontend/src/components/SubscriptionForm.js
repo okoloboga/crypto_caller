@@ -84,37 +84,36 @@ const SubscriptionForm = ({ onBack }) => {
   const connectWalletWithProof = async (challenge) => {
     console.log('Запуск connectWalletWithProof');
     try {
-      // Логируем challenge
-      console.log('Переданный challenge:', challenge);
+      // Настройка параметров подключения с tonProof
+      tonConnectUI.setConnectRequestParameters({
+        state: 'ready',
+        value: {
+          tonProof: {
+            payload: challenge, // Ваш challenge от сервера
+          },
+        },
+      });
   
-      // Проверяем, подключён ли кошелек
-      if (!tonConnectUI.connected) {
+      // Проверяем подключение
+      const account = tonConnectUI.account;
+      if (!account) {
         throw new Error('Кошелек не подключен.');
       }
   
-      // Проверяем наличие аккаунта
-      const account = tonConnectUI.account;
-      console.log('Полученный аккаунт:', account);
-  
-      if (!account) {
-        throw new Error('Кошелек подключен, но аккаунт недоступен.');
-      }
-  
-      // Проверяем наличие TON Proof
+      // Извлекаем подписанный TON Proof
       const tonProof = account.tonProof;
       if (!tonProof) {
-        console.error('TON Proof отсутствует в аккаунте:', account);
         throw new Error('TON Proof не предоставлен кошельком.');
       }
   
       console.log('TON Proof успешно получен:', tonProof);
-      return tonProof.proof; // Возвращаем proof в base64
+      return tonProof; // Возвращаем полный объект tonProof
     } catch (error) {
-      console.error('Ошибка в connectWalletWithProof:', error);
+      console.error('Ошибка получения TON Proof:', error);
       throw error;
     }
-  };  
-
+  };
+  
   const handleRegister = async () => {
     console.log('Запуск handleRegister');
     if (!newPhoneNumber) {
@@ -182,7 +181,6 @@ const SubscriptionForm = ({ onBack }) => {
       showNotification('Ошибка активации. Попробуйте снова.');
     }
   };
-  
 
   return (
     <div className="subscription-form">
