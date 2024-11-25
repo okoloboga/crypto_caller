@@ -105,17 +105,15 @@ const SubscriptionForm = ({ onBack }) => {
 
       console.log('Получение wallet', wallet);
       console.log(wallet.connectItems?.tonProof);
-      
+
       if (wallet.connectItems?.tonProof && !('error' in wallet.connectItems.tonProof)) {
         const tonProof = wallet.connectItems.tonProof;
-      }
-      
-      if (!tonProof) {
+        console.log('TON Proof успешно получен:', tonProof);
+        return tonProof;
+      } else {
         throw new Error('TON Proof не предоставлен кошельком.');
       }
   
-      console.log('TON Proof успешно получен:', tonProof);
-      return tonProof; // Возвращаем полный объект tonProof
     } catch (error) {
       console.error('Ошибка получения TON Proof:', error);
       throw error;
