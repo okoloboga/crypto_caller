@@ -94,7 +94,7 @@ const SubscriptionForm = ({ onBack }) => {
         },
       });
       
-      console.log('Параметры подключения установлены:', tonConnectUI.setConnectRequestParameters);
+      console.log('Параметры подключение установлено:', tonConnectUI);
 
       // Проверяем подключение
       const account = tonConnectUI.account;
