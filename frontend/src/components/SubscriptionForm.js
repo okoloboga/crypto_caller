@@ -7,7 +7,7 @@ import './SubscriptionForm.css';
 
 const SubscriptionForm = ({ onBack }) => {
   const [tonConnectUI, setOptions] = useTonConnectUI();
-  const tonConnect = new TonConnect(tonConnectUI);
+  const tonConnect = new TonConnect();
   const walletAddress = useTonAddress();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -81,20 +81,34 @@ const SubscriptionForm = ({ onBack }) => {
     return phoneRegex.test(phoneNumber);
   };
 
-  const signMessage = async (message) => {
+  const connectWalletWithProof = async (challenge) => {
     try {
-      const response = await tonConnect.connectWallet();
-      if (!response) {
+      // Проверяем, подключён ли кошелек через useTonConnectUI
+      if (!tonConnectUI || !walletAddress) {
         throw new Error('Кошелек не подключен.');
       }
   
-      const signedMessage = await tonConnect.signMessage(message);
-      return signedMessage; // Возвращаем подписанное сообщение
+      console.log('Кошелек уже подключён:', walletAddress);
+  
+      // Проверяем наличие TON Proof
+      const tonProof = tonConnectUI.getProof({
+        payload: challenge,
+      });
+  
+      if (!tonProof) {
+        throw new Error('TON Proof не предоставлен кошельком.');
+      }
+  
+      console.log('Полученный TON Proof:', tonProof);
+  
+      return tonProof; // Возвращаем proof в base64
     } catch (error) {
-      console.error('Ошибка подписания сообщения:', error);
+      console.error('Ошибка получения TON Proof:', error);
       throw error;
     }
   };
+  
+  
 
   const handleRegister = async () => {
     if (!newPhoneNumber) {
@@ -112,7 +126,6 @@ const SubscriptionForm = ({ onBack }) => {
     }
   
     try {
-
       ensureWalletConnected();
       showNotification('Начинаем процесс регистрации...');
   
@@ -133,23 +146,23 @@ const SubscriptionForm = ({ onBack }) => {
       await tonConnectUI.sendTransaction(txSubscription);
       showNotification('Транзакция успешно выполнена.');
   
-      showNotification('Получение challenge для подписи...');
+      showNotification('Получение challenge для подписания...');
       const challenge = await getChallenge(walletAddress);
   
-      const signedChallenge = await signMessage(challenge);
-      showNotification('Challenge успешно подписан.');
+      showNotification('Подключение кошелька с TON Proof...');
+      const tonProof = await connectWalletWithProof(challenge);
   
-      showNotification('Верификация подписи challenge...');
-      const isValid = await verifyChallenge(walletAddress, signedChallenge, tonConnectUI.wallet.publicKey);
+      showNotification('Верификация TON Proof...');
+      const isValid = await verifyChallenge(walletAddress, tonProof);
   
       if (!isValid) {
-        throw new Error('Подпись challenge не прошла проверку.');
+        throw new Error('TON Proof не прошёл проверку.');
       }
   
-      showNotification('Подпись challenge успешно проверена.');
+      showNotification('TON Proof успешно проверен.');
   
       showNotification('Регистрация подписки на сервере...');
-      await createSubscription(walletAddress, newPhoneNumber, signedChallenge);
+      await createSubscription(walletAddress, newPhoneNumber, tonProof);
       setIsSubscribed(true);
       showNotification('Подписка успешно активирована.');
     } catch (error) {
@@ -157,8 +170,6 @@ const SubscriptionForm = ({ onBack }) => {
       showNotification('Ошибка активации. Попробуйте снова.');
     }
   };
-  
-  
   
 
   return (

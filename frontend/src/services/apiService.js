@@ -149,12 +149,11 @@ export const getChallenge = async (walletAddress) => {
 
 
 
-export const verifyChallenge = async (walletAddress, signedChallenge, publicKey) => {
+export const verifyChallenge = async (walletAddress, tonProof) => {
   try {
     const response = await api.post('/challenge/verify', {
       walletAddress,
-      signedChallenge,
-      publicKey,
+      tonProof
     });
 
     console.log('Полный ответ от сервера:', response);
