@@ -126,21 +126,33 @@ export const deleteTask = async (taskId) => {
   }
 };
 
-export default api;
 
 // Функция для получения challenge
 export const getChallenge = async (walletAddress) => {
-  console.log(`Запрос challenge для walletAddress: ${walletAddress}`);
   try {
-    const response = await api.get('/user/challenge', {
+    const response = await api.get('/challenge/generate', {
       params: { walletAddress },
     });
-    console.log('Challenge успешно получен:', response.data);
-    return response.data.challenge; // Предполагаем, что сервер возвращает challenge
+    return response.data.challenge;
   } catch (error) {
     console.error(`Ошибка при запросе challenge для walletAddress ${walletAddress}:`, error.message);
     throw error;
   }
 };
+
+export const verifyChallenge = async (walletAddress, signedChallenge, publicKey) => {
+  try {
+    const response = await api.post('/challenge/verify', {
+      walletAddress,
+      signedChallenge,
+      publicKey,
+    });
+    return response.data.valid;
+  } catch (error) {
+    console.error(`Ошибка при проверке challenge для walletAddress ${walletAddress}:`, error.message);
+    throw error;
+  }
+};
+
 
 
