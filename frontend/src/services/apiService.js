@@ -133,12 +133,19 @@ export const getChallenge = async (walletAddress) => {
     const response = await api.get('/challenge/generate', {
       params: { walletAddress },
     });
+    console.log('Полный ответ от сервера:', response);
+
+    if (!response.data || !response.data.challenge) {
+      throw new Error('Некорректная структура ответа от сервера.');
+    }
+
     return response.data.challenge;
   } catch (error) {
     console.error(`Ошибка при запросе challenge для walletAddress ${walletAddress}:`, error.message);
     throw error;
   }
 };
+
 
 export const verifyChallenge = async (walletAddress, signedChallenge, publicKey) => {
   try {
