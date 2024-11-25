@@ -82,39 +82,37 @@ const SubscriptionForm = ({ onBack }) => {
     return phoneRegex.test(phoneNumber);
   };
 
+  const refreshPayload = async () => {
+    
+    tonConnectUI.setConnectRequestParameters({ state: "loading" });
+    const challenge = await getChallenge(walletAddress);
+
+    if (challenge) {
+      tonConnectUI.setConnectRequestParameters({
+        state: "ready",
+        value: { tonProof: challenge },
+      });
+    } else {
+      tonConnectUI.setConnectRequestParameters(null);
+    };
+  };
+
   const connectWalletWithProof = async (challenge) => {
     console.log('Запуск connectWalletWithProof с challenge:', challenge);
     try {
-      tonConnectUI.setConnectRequestParameters({
-        state: 'ready',
-        value: {
-          tonProof: challenge,
-        },
-      });
+
+      await refreshPayload();
+
+      console.log('Получение wallet', wallet);
+      console.log(wallet.connectItems?.tonProof);
       
-      console.log('Параметры подключение установлено:', tonConnectUI);
-
-      // Проверяем подключение
-      const account = tonConnectUI.account;
-      console.log('Подключение кошелька...', account);
-
-      console.log('Получение TON Proof... ', wallet);
-      const tonProof = wallet.connectItems.tonProof;
+      if (wallet.connectItems?.tonProof && !('error' in wallet.connectItems.tonProof)) {
+        const tonProof = wallet.connectItems.tonProof;
+      }
       
       if (!tonProof) {
         throw new Error('TON Proof не предоставлен кошельком.');
       }
-      
-      // // Проверяем, что кошелек подключен
-      // if (!account) {
-      //   throw new Error('Кошелек не подключен.');
-      // }
-      
-      // // Извлекаем подписанный TON Proof
-      // const tonProof = account.tonProof;
-      // if (!tonProof) {
-      //   throw new Error('TON Proof не предоставлен кошельком.');
-      // }
   
       console.log('TON Proof успешно получен:', tonProof);
       return tonProof; // Возвращаем полный объект tonProof
@@ -160,19 +158,6 @@ const SubscriptionForm = ({ onBack }) => {
       await tonConnectUI.sendTransaction(txSubscription);
       console.log('Транзакция успешно выполнена.');
       showNotification('Транзакция успешно выполнена.');
-  
-      console.log('Получение challenge...');
-      tonConnectUI.setConnectRequestParameters({ state: "loading" });
-      const challenge = await getChallenge(walletAddress);
-
-      if (challenge) {
-        tonConnectUI.setConnectRequestParameters({
-          state: "ready",
-          value: { tonProof: challenge },
-        });
-      } else {
-        tonConnectUI.setConnectRequestParameters(null);
-      }
   
       const tonProof = await connectWalletWithProof(challenge);
       console.log('Полученный TON Proof:', tonProof);
