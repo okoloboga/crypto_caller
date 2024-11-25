@@ -154,6 +154,13 @@ export const verifyChallenge = async (walletAddress, signedChallenge, publicKey)
       signedChallenge,
       publicKey,
     });
+
+    console.log('Полный ответ от сервера:', response);
+
+    if (!response.data || !response.valid || !response.data.valid) {
+      throw new Error('Некорректная структура ответа от сервера.');
+    }
+
     return response.data.valid;
   } catch (error) {
     console.error(`Ошибка при проверке challenge для walletAddress ${walletAddress}:`, error.message);
