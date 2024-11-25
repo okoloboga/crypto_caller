@@ -100,6 +100,7 @@ const SubscriptionForm = ({ onBack }) => {
   
       const txSubscription = {
         validUntil: Math.floor(Date.now() / 1000) + 60,
+        network: 'testnet',
         messages: [
           {
             address: process.env.TON_WALLET || 'UQCZKiq-ubTdwsm66E1WvN7nc9YObaL7pTjCM1ULZ6pPF_8tcd',
