@@ -127,15 +127,16 @@ export const deleteTask = async (taskId) => {
 };
 
 
-// Функция для получения challenge
 export const getChallenge = async (walletAddress) => {
   try {
     const response = await api.get('/challenge/generate', {
       params: { walletAddress },
     });
+
     console.log('Полный ответ от сервера:', response);
 
-    if (!response.data || !response.challenge || !response.data.challenge) {
+    // Доступ к challenge в response.data
+    if (!response.challenge) {
       throw new Error('Некорректная структура ответа от сервера.');
     }
 
@@ -145,6 +146,7 @@ export const getChallenge = async (walletAddress) => {
     throw error;
   }
 };
+
 
 
 export const verifyChallenge = async (walletAddress, signedChallenge, publicKey) => {

@@ -28,7 +28,7 @@ export class ChallengeController {
     }
 
     try {
-      const isValid = this.challengeService.verifyChallenge(walletAddress, signedChallenge, publicKey);
+    const isValid = this.challengeService.verifyChallenge(walletAddress, signedChallenge, publicKey);
       return { valid: isValid };
     } catch (error) {
       console.error('Ошибка проверки подписи challenge:', error.message);
