@@ -82,10 +82,9 @@ const SubscriptionForm = ({ onBack }) => {
     return phoneRegex.test(phoneNumber);
   };
 
-  const refreshPayload = async () => {
+  const refreshPayload = async (challenge) => {
     
     tonConnectUI.setConnectRequestParameters({ state: "loading" });
-    const challenge = await getChallenge(walletAddress);
 
     if (challenge) {
       tonConnectUI.setConnectRequestParameters({
@@ -101,7 +100,7 @@ const SubscriptionForm = ({ onBack }) => {
     console.log('Запуск connectWalletWithProof с challenge:', challenge);
     try {
 
-      await refreshPayload();
+      await refreshPayload(challenge);
 
       console.log('Получение wallet', wallet);
       console.log(wallet.connectItems?.tonProof);
@@ -156,7 +155,8 @@ const SubscriptionForm = ({ onBack }) => {
       await tonConnectUI.sendTransaction(txSubscription);
       console.log('Транзакция успешно выполнена.');
       showNotification('Транзакция успешно выполнена.');
-  
+
+      const challenge = await getChallenge(walletAddress);
       const tonProof = await connectWalletWithProof(challenge);
       console.log('Полученный TON Proof:', tonProof);
   
