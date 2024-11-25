@@ -103,7 +103,7 @@ const SubscriptionForm = ({ onBack }) => {
         network: 'testnet',
         messages: [
           {
-            address: process.env.TON_WALLET || 'UQCZKiq-ubTdwsm66E1WvN7nc9YObaL7pTjCM1ULZ6pPF_8tcd',
+            address: process.env.TON_WALLET || '0QC7IwY6zozwv_neAK1VJsBWcv_M-yd8nC_HVmB_DLVQmkY7',
             amount: "1000000", // 0.001 TON
           },
         ],
