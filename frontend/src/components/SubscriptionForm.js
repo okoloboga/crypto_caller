@@ -82,9 +82,9 @@ const SubscriptionForm = ({ onBack }) => {
   };
 
   const connectWalletWithProof = async (challenge) => {
-    console.log('Запуск connectWalletWithProof');
+    console.log('Запуск connectWalletWithProof без модального окна');
     try {
-      console.log('Настройка параметров подключения с tonProof...');
+      // Устанавливаем параметры подключения
       tonConnectUI.setConnectRequestParameters({
         state: 'ready',
         value: {
@@ -93,27 +93,19 @@ const SubscriptionForm = ({ onBack }) => {
           },
         },
       });
-      console.log('Параметры подключения настроены. Открытие модального окна...');
-
-      // Открываем модальное окно для подключения кошелька
-      await tonConnectUI.openModal();
-      console.log('Модальное окно успешно открыто.');
-
-      // Проверяем, подключен ли кошелек
+  
+      // Проверяем подключение
       console.log('Проверка подключения кошелька...');
       const account = tonConnectUI.account;
       if (!account) {
         throw new Error('Кошелек не подключен.');
       }
-      console.log('Кошелек подключен:', account);
-
-      // Получаем TON Proof
-      console.log('Попытка получить TON Proof...');
+  
       const tonProof = account.tonProof;
       if (!tonProof) {
         throw new Error('TON Proof не предоставлен кошельком.');
       }
-
+  
       console.log('TON Proof успешно получен:', tonProof);
       return tonProof.proof; // Возвращаем proof в base64
     } catch (error) {
@@ -121,6 +113,7 @@ const SubscriptionForm = ({ onBack }) => {
       throw error;
     }
   };
+  
 
   const handleRegister = async () => {
     console.log('Запуск handleRegister');
