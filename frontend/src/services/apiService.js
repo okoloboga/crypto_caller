@@ -135,11 +135,11 @@ export const getChallenge = async (walletAddress) => {
     });
     console.log('Полный ответ от сервера:', response);
 
-    if (!response.data || !response.data.challenge) {
+    if (!response.data || !response.challenge || !response.data.challenge) {
       throw new Error('Некорректная структура ответа от сервера.');
     }
 
-    return response.data.challenge;
+    return response.challenge;
   } catch (error) {
     console.error(`Ошибка при запросе challenge для walletAddress ${walletAddress}:`, error.message);
     throw error;
