@@ -83,9 +83,8 @@ const SubscriptionForm = ({ onBack }) => {
   };
 
   const connectWalletWithProof = async (challenge) => {
-    console.log('Запуск connectWalletWithProof');
+    console.log('Запуск connectWalletWithProof с challenge:', challenge);
     try {
-      // Настройка параметров подключения с tonProof
       tonConnectUI.setConnectRequestParameters({
         state: 'ready',
         value: {
@@ -163,16 +162,21 @@ const SubscriptionForm = ({ onBack }) => {
       showNotification('Транзакция успешно выполнена.');
   
       console.log('Получение challenge...');
+      tonConnectUI.setConnectRequestParameters({ state: "loading" });
       const challenge = await getChallenge(walletAddress);
-      console.log('Полученный challenge:', challenge);
-      showNotification('Получение challenge для подписания...');
+
+      if (challenge) {
+        tonConnectUI.setConnectRequestParameters({
+          state: "ready",
+          value: { tonProof: challenge },
+        });
+      } else {
+        tonConnectUI.setConnectRequestParameters(null);
+      }
   
-      console.log('Запуск connectWalletWithProof с challenge:', challenge);
       const tonProof = await connectWalletWithProof(challenge);
       console.log('Полученный TON Proof:', tonProof);
-      showNotification('Подключение кошелька с TON Proof...');
   
-      console.log('Проверка TON Proof на сервере...');
       const isValid = await verifyChallenge(walletAddress, tonProof);
       console.log('Результат проверки TON Proof:', isValid);
   
