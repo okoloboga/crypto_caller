@@ -1,6 +1,7 @@
 {
     "url": "https://caller.ruble.website",
     "name": "RUBLE Caller",
-    "iconUrl": "https://caller.ruble.website/icon.png"
+    "iconUrl": "https://caller.ruble.website/icon.png",
+    "networks": ["mainnet", "testnet"] 
   }
   
