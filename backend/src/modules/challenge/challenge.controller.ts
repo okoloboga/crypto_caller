@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Query, Body, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Query, Body, 
+         Logger, BadRequestException } from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
 
 @Controller('challenge')
 export class ChallengeController {
+  private readonly logger = new Logger(ChallengeController.name);
   constructor(private readonly challengeService: ChallengeService) {}
 
   // Эндпоинт для генерации challenge
@@ -18,21 +20,29 @@ export class ChallengeController {
 
   // Эндпоинт для проверки challenge
   @Post('verify')
-  verifyChallenge(
-    @Body() verifyDto: { walletAddress: string; signedChallenge: string; publicKey: string },
+  verifyTonProof(
+    @Body() verifyDto: { walletAddress: string; tonProof: string },
   ): { valid: boolean } {
-    const { walletAddress, signedChallenge, publicKey } = verifyDto;
+    const { walletAddress, tonProof } = verifyDto;
 
-    if (!walletAddress || !signedChallenge || !publicKey) {
+    if (!walletAddress || !tonProof) {
+      this.logger.warn('Missing required parameters in verify request');
       throw new BadRequestException('Missing required parameters');
     }
 
     try {
-    const isValid = this.challengeService.verifyChallenge(walletAddress, signedChallenge, publicKey);
+      const isValid = this.challengeService.verifyTonProof(walletAddress, tonProof);
+
+      if (isValid) {
+        this.logger.log(`TON Proof verification successful for walletAddress: ${walletAddress}`);
+      } else {
+        this.logger.warn(`TON Proof verification failed for walletAddress: ${walletAddress}`);
+      }
+
       return { valid: isValid };
     } catch (error) {
-      console.error('Ошибка проверки подписи challenge:', error.message);
-      throw new BadRequestException('Ошибка проверки подписи.');
+      this.logger.error('Ошибка проверки TON Proof:', error.message);
+      throw new BadRequestException('Ошибка проверки TON Proof.');
     }
   }
 }
