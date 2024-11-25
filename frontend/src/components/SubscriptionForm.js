@@ -80,35 +80,42 @@ const SubscriptionForm = ({ onBack }) => {
     const phoneRegex = /^(\+7|7|8)?[\s-]?(\d{3})[\s-]?(\d{3})[\s-]?(\d{2})[\s-]?(\d{2})$/;
     return phoneRegex.test(phoneNumber);
   };
-
+  
   const connectWalletWithProof = async (challenge) => {
     try {
-      // Проверяем, подключён ли кошелек через useTonConnectUI
-      if (!tonConnectUI || !walletAddress) {
+      // Настраиваем параметры подключения с `tonProof`
+      tonConnectUI.setConnectRequestParameters({
+        state: 'ready',
+        value: {
+          tonProof: {
+            payload: challenge, // Ваш challenge
+          },
+        },
+      });
+  
+      // Открываем модальное окно для подключения кошелька
+      await tonConnectUI.openModal();
+  
+      // Проверяем, подключен ли кошелек
+      const account = tonConnectUI.account;
+      if (!account) {
         throw new Error('Кошелек не подключен.');
       }
   
-      console.log('Кошелек уже подключён:', walletAddress);
-  
-      // Проверяем наличие TON Proof
-      const tonProof = tonConnectUI.getProof({
-        payload: challenge,
-      });
-  
+      // Получаем `TON Proof`
+      const tonProof = account.tonProof;
       if (!tonProof) {
         throw new Error('TON Proof не предоставлен кошельком.');
       }
   
       console.log('Полученный TON Proof:', tonProof);
   
-      return tonProof; // Возвращаем proof в base64
+      return tonProof.proof; // Возвращаем `TON Proof` в base64
     } catch (error) {
       console.error('Ошибка получения TON Proof:', error);
       throw error;
     }
-  };
-  
-  
+  };  
 
   const handleRegister = async () => {
     if (!newPhoneNumber) {
