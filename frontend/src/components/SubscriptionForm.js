@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { TonConnect } from '@tonconnect/sdk';
 import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 import { getUserByWalletAddress, updatePhoneNumber, createSubscription,
         checkSubscription, getChallenge, verifyChallenge } from '../services/apiService';
@@ -6,6 +7,7 @@ import './SubscriptionForm.css';
 
 const SubscriptionForm = ({ onBack }) => {
   const [tonConnectUI, setOptions] = useTonConnectUI();
+  const tonconnect = new TonConnect(tonConnectUI);
   const walletAddress = useTonAddress();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -79,6 +81,21 @@ const SubscriptionForm = ({ onBack }) => {
     return phoneRegex.test(phoneNumber);
   };
 
+  const signMessage = async (message) => {
+    try {
+      const response = await tonConnect.connectWallet();
+      if (!response) {
+        throw new Error('Кошелек не подключен.');
+      }
+  
+      const signedMessage = await tonConnect.signMessage(message);
+      return signedMessage; // Возвращаем подписанное сообщение
+    } catch (error) {
+      console.error('Ошибка подписания сообщения:', error);
+      throw error;
+    }
+  };
+
   const handleRegister = async () => {
     if (!newPhoneNumber) {
       showNotification('Введите новый номер телефона.');
@@ -95,13 +112,10 @@ const SubscriptionForm = ({ onBack }) => {
     }
   
     try {
-      // Проверяем подключение кошелька
+
       ensureWalletConnected();
-  
-      // Уведомляем пользователя о начале процесса
       showNotification('Начинаем процесс регистрации...');
   
-      // Шаг 1: Отправка транзакции
       const txSubscription = {
         validUntil: Math.floor(Date.now() / 1000) + 60,
         network: 'testnet',
@@ -119,15 +133,12 @@ const SubscriptionForm = ({ onBack }) => {
       await tonConnectUI.sendTransaction(txSubscription);
       showNotification('Транзакция успешно выполнена.');
   
-      // Шаг 2: Получение challenge от сервера
       showNotification('Получение challenge для подписи...');
       const challenge = await getChallenge(walletAddress);
   
-      // Шаг 3: Подписание challenge
-      const signedChallenge = await tonConnectUI.signMessage({ message: challenge });
+      const signedChallenge = await signMessage(challenge);
       showNotification('Challenge успешно подписан.');
   
-      // Шаг 4: Проверка подписанного Challenge на сервере
       showNotification('Верификация подписи challenge...');
       const isValid = await verifyChallenge(walletAddress, signedChallenge, tonConnectUI.wallet.publicKey);
   
@@ -137,7 +148,6 @@ const SubscriptionForm = ({ onBack }) => {
   
       showNotification('Подпись challenge успешно проверена.');
   
-      // Шаг 5: Регистрация подписки на сервере
       showNotification('Регистрация подписки на сервере...');
       await createSubscription(walletAddress, newPhoneNumber, signedChallenge);
       setIsSubscribed(true);

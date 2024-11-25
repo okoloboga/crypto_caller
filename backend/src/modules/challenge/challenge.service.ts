@@ -1,17 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { randomBytes } from 'crypto';
+import { sign } from 'tweetnacl'; // tweetnacl для Ed25519
+import { Buffer } from 'buffer'; // Убедитесь, что Buffer доступен
 
 @Injectable()
 export class ChallengeService {
-  private readonly logger = new Logger(ChallengeService.name); // Инициализация логгера
+  private readonly logger = new Logger(ChallengeService.name); // Логгирование
   private challenges = new Map<string, { challenge: string; validUntil: number }>();
 
   generateChallenge(walletAddress: string): string {
-    const challenge = randomBytes(32).toString('hex');
-    const validUntil = Date.now() + 5 * 60 * 1000; // 5 минут
+    const challenge = randomBytes(32).toString('hex'); // Генерация случайного challenge
+    const validUntil = Date.now() + 5 * 60 * 1000; // Валидность 5 минут
     this.challenges.set(walletAddress, { challenge, validUntil });
 
-    // Логгируем процесс
     this.logger.log(`Generated challenge for walletAddress ${walletAddress}: ${challenge}`);
     return challenge;
   }
@@ -24,6 +25,7 @@ export class ChallengeService {
       throw new Error('Challenge expired or not found.');
     }
 
+    // Вызов функции валидации подписи
     const isValid = verifySignature({
       signature: signedChallenge,
       publicKey,
@@ -41,8 +43,19 @@ export class ChallengeService {
   }
 }
 
-// Пример функции валидации подписи (замени на реальную библиотеку TON SDK)
+// Реализация валидации подписи
 function verifySignature({ signature, publicKey, message }: { signature: string; publicKey: string; message: string }): boolean {
-  // Логика проверки подписи
-  return true; // Пример: вернуть true для упрощения
+  try {
+    const signatureBuffer = Buffer.from(signature, 'base64'); // Подпись в формате base64
+    const publicKeyBuffer = Buffer.from(publicKey, 'hex'); // Публичный ключ в формате hex
+    const messageBuffer = Buffer.from(message, 'utf-8'); // Сообщение в UTF-8
+
+    // Проверка подписи через tweetnacl
+    const isValid = sign.detached.verify(messageBuffer, signatureBuffer, publicKeyBuffer);
+
+    return isValid;
+  } catch (error) {
+    console.error('Ошибка при проверке подписи:', error);
+    return false;
+  }
 }
