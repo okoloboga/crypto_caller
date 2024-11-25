@@ -82,27 +82,28 @@ const SubscriptionForm = ({ onBack }) => {
   };
 
   const connectWalletWithProof = async (challenge) => {
-    console.log('Запуск connectWalletWithProof без модального окна');
+    console.log('Запуск connectWalletWithProof');
     try {
-      // Устанавливаем параметры подключения
-      tonConnectUI.setConnectRequestParameters({
-        state: 'ready',
-        value: {
-          tonProof: {
-            payload: challenge, // Ваш challenge
-          },
-        },
-      });
+      // Логируем challenge
+      console.log('Переданный challenge:', challenge);
   
-      // Проверяем подключение
-      console.log('Проверка подключения кошелька...');
-      const account = tonConnectUI.account;
-      if (!account) {
+      // Проверяем, подключён ли кошелек
+      if (!tonConnectUI.connected) {
         throw new Error('Кошелек не подключен.');
       }
   
+      // Проверяем наличие аккаунта
+      const account = tonConnectUI.account;
+      console.log('Полученный аккаунт:', account);
+  
+      if (!account) {
+        throw new Error('Кошелек подключен, но аккаунт недоступен.');
+      }
+  
+      // Проверяем наличие TON Proof
       const tonProof = account.tonProof;
       if (!tonProof) {
+        console.error('TON Proof отсутствует в аккаунте:', account);
         throw new Error('TON Proof не предоставлен кошельком.');
       }
   
@@ -112,8 +113,7 @@ const SubscriptionForm = ({ onBack }) => {
       console.error('Ошибка в connectWalletWithProof:', error);
       throw error;
     }
-  };
-  
+  };  
 
   const handleRegister = async () => {
     console.log('Запуск handleRegister');
