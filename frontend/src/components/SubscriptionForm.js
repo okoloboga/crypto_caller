@@ -93,7 +93,10 @@ const SubscriptionForm = ({ onBack }) => {
           },
         },
       });
-  
+      
+      console.log('Параметры подключения установлены:', tonConnectUI.connectRequestParameters);
+      console.log('Подключение кошелька...', account);
+
       // Проверяем подключение
       const account = tonConnectUI.account;
       if (!account) {
