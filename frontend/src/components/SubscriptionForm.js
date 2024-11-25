@@ -99,7 +99,7 @@ const SubscriptionForm = ({ onBack }) => {
       const account = tonConnectUI.account;
       console.log('Подключение кошелька...', account);
 
-      console.log('Получение TON Proof... ', wallet.connectItems.tonProof);
+      console.log('Получение TON Proof... ', wallet);
       const tonProof = wallet.connectItems.tonProof;
       
       if (!tonProof) {
