@@ -17,7 +17,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
     }
   }, [task]);
 
-  const isNewTask = !form.currencyPair && !form.targetPrice;
+  const isNewTask = (form.currencyPair == '' && form.targetPrice == '');
 
   // Обработчик сохранения задания
   const handleSave = async () => {
