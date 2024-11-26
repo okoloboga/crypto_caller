@@ -86,9 +86,9 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
       />
       <div className="task-form-buttons">
         <button onClick={handleSave} disabled={disabled || loading}>
-          {isNewTask ? 'Сохранить изменения' : 'Сохранить'}
+          {isNewTask ? 'Сохранить' : 'Сохранить изменения'}
         </button>
-        {isNewTask && (
+        {!isNewTask && (
           <button onClick={handleDelete} disabled={loading}>
             Удалить
           </button>
