@@ -157,7 +157,7 @@ export const verifyChallenge = async (account, tonProof) => {
     });
 
     console.log(response.headers['content-type']); 
-    
+
     if (response && response.valid !== undefined) {
       console.log(response.valid); // Проверяем доступ к valid
     } else {
@@ -170,7 +170,7 @@ export const verifyChallenge = async (account, tonProof) => {
 
     return response.valid;
   } catch (error) {
-    console.error(`Ошибка при проверке challenge для walletAddress ${walletAddress}:`, error.message);
+    console.error(`Ошибка при проверке challenge для account.address ${account.address}:`, error.message);
     throw error;
   }
 };
