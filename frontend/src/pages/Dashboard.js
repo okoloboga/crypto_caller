@@ -38,6 +38,9 @@ const Dashboard = () => {
   const fetchTasks = async () => {
     try {
       const fetchedTasks = await getUserTasks(walletAddress);
+
+      console.log(`Tasks: ${fetchedTasks}`)
+
       setTasks(fetchedTasks);
     } catch (error) {
       console.error('Ошибка загрузки заданий:', error);
