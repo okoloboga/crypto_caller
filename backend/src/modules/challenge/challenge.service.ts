@@ -29,8 +29,51 @@ export class ChallengeService {
     return challenge;
   }
 
+  async verifyTonProof(account, proof) {
+    const payload = {
+					address: account.address,
+					public_key: account.publicKey,
+					proof: {
+						...proof,
+						state_init: account.walletStateInit
+					}
+	  }
 
-  async verifyTonProof(account: any, tonProof: any): Promise<boolean> {
+    this.logger.log(`Verifying TON Proof. Payload: ${JSON.stringify(payload, null, 2)}`);
+
+    const stateInit = loadStateInit(Cell.fromBase64(payload.proof.state_init).beginParse())
+
+    this.logger.log(`stateInit: ${JSON.stringify(stateInit, null, 2)}`)
+
+	  const client = new TonClient4({
+		  endpoint: 'https://mainnet-v4.tonhubapi.com'
+	  })
+	  const masterAt = await client.getLastBlock()
+	  const result = await client.runMethod(masterAt.last.seqno, Address.parse(payload.address), 'get_public_key', [])
+	  const publicKey = Buffer.from(result.reader.readBigNumber().toString(16).padStart(64, '0'), 'hex')
+
+    this.logger.log(`publicKey: ${publicKey}`)
+
+	  if (!publicKey) {
+		  return false
+	  }
+	  const wantedPublicKey = Buffer.from(payload.public_key, 'hex')
+	  if (!publicKey.equals(wantedPublicKey)) {
+		  return false
+	  }
+	  const wantedAddress = Address.parse(payload.address)
+	  const address = contractAddress(wantedAddress.workChain, stateInit)
+	  if (!address.equals(wantedAddress)) {
+		  return false
+	  }
+	  const now = Math.floor(Date.now() / 1000)
+	  if (now - (60 * 15) > payload.proof.timestamp) {
+		  return false
+	  }
+    return true
+  }
+
+  async verifyTonProof_test(account: any, tonProof: any): Promise<boolean> {
 
     this.logger.log(`Account Data: ${JSON.stringify(account, null, 2)}: address: ${account.address}`)
 
@@ -103,7 +146,6 @@ export class ChallengeService {
 
         // 3. Получение и парсинг state_init из аккаунта
         const stateInit = loadStateInit(Cell.fromBase64(account.walletStateInit).beginParse());
-        this.logger.log(`stateInit: ${JSON.stringify(stateInit, null, 2)}`)
 
         // 4. Проверка публичного ключа
         const publicKeyFromContract = Buffer.from(account.publicKey, 'hex');
