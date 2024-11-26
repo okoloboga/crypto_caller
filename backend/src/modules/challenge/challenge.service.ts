@@ -36,7 +36,7 @@ export class ChallengeService {
       const { timestamp, domain, payload, signature, state_init } = proof;
 
       // 1. Проверка домена
-      if (domain.value !== 'your-app-domain.com') {
+      if (domain.value !== 'caller.ruble.website') {
         this.logger.warn('Домен не совпадает.');
         return false;
       }
