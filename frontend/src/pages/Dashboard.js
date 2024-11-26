@@ -20,11 +20,14 @@ const Dashboard = () => {
   useEffect(() => {
     if (walletAddress) {
       checkSubscriptionStatus();
-      if (isSubscribed) {
-        fetchTasks();
-      }
     }
   }, [walletAddress]);
+
+  useEffect(() => {
+    if (walletAddress && isSubscribed) {
+      fetchTasks();
+    }
+  }, [walletAddress, isSubscribed]);
 
   const checkSubscriptionStatus = async () => {
     try {
@@ -32,6 +35,7 @@ const Dashboard = () => {
       setIsSubscribed(subscriptionStatus);
     } catch (error) {
       console.error('Ошибка проверки подписки:', error);
+      setIsSubscribed(false); // При ошибке ставим флаг в false
     }
   };
 
@@ -74,7 +78,7 @@ const Dashboard = () => {
           } else if (!isSubscribed) {
             showNotification('Купи подписку, чтобы создать задание.');
           } else {
-            setCurrentTask({ currencyPair: '', targetPrice: '' });
+            setCurrentTask(null); // Здесь обнуляем currentTask для нового задания
           }
         }}
         className="create-task-button"

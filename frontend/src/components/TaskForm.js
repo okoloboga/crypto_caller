@@ -59,7 +59,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
         onChange={(e) => setForm({ ...form, currencyPair: e.target.value })}
         disabled={disabled || loading}
       >
-        <option value="">Выберите валютную пару</option>
+        <option value="">Выбери валюту</option>
         {currencyPairs.map((pair) => (
           <option key={pair} value={pair}>
             {pair}
