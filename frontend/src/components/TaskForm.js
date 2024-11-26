@@ -9,6 +9,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    console.log(`Task: ${task}`)
     if (task) {
       setForm(task); // Если задача существует, то устанавливаем ее в форму для редактирования
     } else {
