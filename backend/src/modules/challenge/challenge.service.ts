@@ -103,10 +103,10 @@ export class ChallengeService {
 
         // 3. Получение и парсинг state_init из аккаунта
         const stateInit = loadStateInit(Cell.fromBase64(account.walletStateInit).beginParse());
-        this.logger.log(`stateInit: ${stateInit}`)
+        this.logger.log(`stateInit: ${JSON.stringify(stateInit, null, 2)}`)
 
         // 4. Проверка публичного ключа
-        const publicKeyFromContract = Buffer.from(account.public_key, 'hex');
+        const publicKeyFromContract = Buffer.from(account.publicKey, 'hex');
         this.logger.log(`publicKey: ${publicKeyFromContract}`)
 
         if (!publicKeyFromContract) {
