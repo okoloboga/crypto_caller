@@ -82,7 +82,7 @@ const Dashboard = () => {
           } else if (!isSubscribed) {
             showNotification('Купи подписку, чтобы создать задание.');
           } else {
-            setCurrentTask(null); // Здесь обнуляем currentTask для нового задания
+            setCurrentTask({ currencyPair: '', targetPrice: '' }); // Устанавливаем пустой объект для нового задания
           }
         }}
         className="create-task-button"
