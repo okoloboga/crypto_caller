@@ -161,7 +161,7 @@ export const verifyChallenge = async (account, tonProof) => {
     if (response && response.valid !== undefined) {
       console.log(response.valid); // Проверяем доступ к valid
     } else {
-      console.log('Полный ответ от сервера:', response.valid);
+      console.log('Полный ответ от сервера:', response);
     }
 
     if (!response.valid) {
