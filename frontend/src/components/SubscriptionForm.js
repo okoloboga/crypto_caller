@@ -150,18 +150,18 @@ const SubscriptionForm = ({ onBack }) => {
           },
         ],
       };
+
+      const challenge = await getChallenge(walletAddress);
+      const tonProof = await connectWalletWithProof(challenge);
+      console.log('Полученный TON Proof:', tonProof, 'Для кошелька:', walletAddress);
   
+      const isValid = await verifyChallenge(walletAddress, tonProof);
+      console.log('Результат проверки TON Proof:', isValid);
+
       console.log('Отправка транзакции...');
       await tonConnectUI.sendTransaction(txSubscription);
       console.log('Транзакция успешно выполнена.');
       showNotification('Транзакция успешно выполнена.');
-
-      const challenge = await getChallenge(walletAddress);
-      const tonProof = await connectWalletWithProof(challenge);
-      console.log('Полученный TON Proof:', tonProof);
-  
-      const isValid = await verifyChallenge(walletAddress, tonProof);
-      console.log('Результат проверки TON Proof:', isValid);
   
       if (!isValid) {
         throw new Error('TON Proof не прошёл проверку.');

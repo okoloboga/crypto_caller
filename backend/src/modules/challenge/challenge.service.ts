@@ -24,6 +24,9 @@ export class ChallengeService {
   }
 
   async verifyTonProof(walletAddress: string, tonProof: any): Promise<boolean> {
+
+    this.logger.log(`Verifying TON Proof for walletAddress: ${walletAddress}, TON Proof: ${tonProof}`);
+    
     try {
       const challengeData = this.challenges.get(walletAddress);
 
