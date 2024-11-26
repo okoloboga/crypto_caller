@@ -102,7 +102,7 @@ export class ChallengeService {
         }
 
         // 3. Получение и парсинг state_init из аккаунта
-        const stateInit = loadStateInit(Cell.fromBase64(payload.proof.state_init).beginParse());
+        const stateInit = loadStateInit(Cell.fromBase64(account.walletStateInit).beginParse());
 
         // 4. Проверка публичного ключа
         const publicKeyFromContract = Buffer.from(payload.public_key, 'hex');

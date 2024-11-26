@@ -162,10 +162,6 @@ export const verifyChallenge = async (account, tonProof) => {
       console.log('Полный ответ от сервера:', response);
     }
 
-    if (!response.valid) {
-      throw new Error('Некорректная структура ответа от сервера.');
-    }
-
     return response.valid;
   } catch (error) {
     console.error(`Ошибка при проверке challenge для account.address ${account.address}:`, error.message);
