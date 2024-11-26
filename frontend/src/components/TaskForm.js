@@ -8,6 +8,14 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
   const [form, setForm] = useState(task || { currencyPair: '', targetPrice: '' });
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (task) {
+      setForm(task); // Если задача существует, то устанавливаем ее в форму для редактирования
+    } else {
+      setForm({ currencyPair: '', targetPrice: '' }); // Если это новое задание, пустые поля
+    }
+  }, [task]);
+
   // Обработчик сохранения задания
   const handleSave = async () => {
     if (disabled) {
