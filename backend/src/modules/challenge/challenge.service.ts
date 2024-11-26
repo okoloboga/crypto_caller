@@ -17,11 +17,18 @@ export class ChallengeService {
   generateChallenge(walletAddress: string): string {
     const challenge = randomBytes(32).toString('hex'); // Генерация случайного challenge
     const validUntil = Date.now() + 5 * 60 * 1000; // Валидность 5 минут
-    this.challenges.set(walletAddress, { challenge, validUntil });
-
+    
+    const challengeData = { challenge, validUntil };
+    
+    // Проверка содержимого перед добавлением
+    this.logger.log('Challenge data:', challengeData);
+    
+    this.challenges.set(walletAddress, challengeData);
+  
     this.logger.log(`Generated challenge for walletAddress ${walletAddress}: ${challenge}`);
     return challenge;
   }
+
 
   async verifyTonProof(account: any, tonProof: any): Promise<boolean> {
 
@@ -34,14 +41,28 @@ export class ChallengeService {
         }
     }
 
-    this.logger.log(`Verifying TON Proof. Payload: ${payload}`);
+    this.logger.log(`Verifying TON Proof. Payload: ${JSON.stringify(payload, null, 2)}`);
+
 
     try {
         const challengeData = this.challenges.get(account.address);
 
-        if (!challengeData || Date.now() > challengeData.validUntil) {
-            this.logger.warn(`Challenge expired or not found for walletAddress: ${account.address}`);
-            throw new Error('Challenge expired or not found.');
+        this.logger.log(`ChallengeData: ${JSON.stringify(challengeData, null, 2)}`)
+
+        if (!challengeData) {
+          this.logger.warn(`Challenge data not found for walletAddress: ${account.address}`);
+          throw new Error('Challenge not found.');
+        }
+
+        if (!challengeData.challenge || !challengeData.validUntil) {
+          this.logger.warn(`Invalid challenge data for walletAddress: ${account.address}`);
+          throw new Error('Challenge data is invalid or incomplete.');
+        }
+
+        // Дальше, проверка истечения времени
+        if (Date.now() > challengeData.validUntil) {
+          this.logger.warn(`Challenge expired for walletAddress: ${account.address}`);
+          throw new Error('Challenge expired.');
         }
 
         const { proof } = tonProof;
