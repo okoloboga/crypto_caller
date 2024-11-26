@@ -103,17 +103,22 @@ export class ChallengeService {
 
         // 3. Получение и парсинг state_init из аккаунта
         const stateInit = loadStateInit(Cell.fromBase64(account.walletStateInit).beginParse());
+        this.logger.log(`stateInit: ${stateInit}`)
 
         // 4. Проверка публичного ключа
-        const publicKeyFromContract = Buffer.from(payload.public_key, 'hex');
+        const publicKeyFromContract = Buffer.from(account.public_key, 'hex');
+        this.logger.log(`publicKey: ${publicKeyFromContract}`)
+
         if (!publicKeyFromContract) {
             this.logger.warn('Публичный ключ не найден.');
             return false;
         }
 
         // 5. Получение адреса из state_init и сравнение его с переданным
-        const wantedAddress = Address.parse(payload.address);
+        const wantedAddress = Address.parse(account.address);
         const address = contractAddress(wantedAddress.workChain, stateInit);
+        this.logger.log(`wantedAddress: ${wantedAddress}; address: ${address}`)
+
         if (!address.equals(wantedAddress)) {
             this.logger.warn('Адрес в state_init не совпадает с переданным.');
             return false;
@@ -122,6 +127,8 @@ export class ChallengeService {
         // 6. Проверка подписи
         const message = this.assembleMessage(account.address, domain.value, timestamp, payload);
         const isSignatureValid = this.verifySignature(publicKeyFromContract, signature, message);
+        this.logger.log(`message: ${message}; isSignatureValid: ${isSignatureValid}`)
+
         if (!isSignatureValid) {
             this.logger.warn('Подпись не прошла проверку.');
             return false;
