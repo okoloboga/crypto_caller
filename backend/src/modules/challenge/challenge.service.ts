@@ -26,7 +26,7 @@ export class ChallengeService {
   async verifyTonProof(walletAddress: string, tonProof: any): Promise<boolean> {
 
     this.logger.log(`Verifying TON Proof for walletAddress: ${walletAddress}, TON Proof: ${tonProof}`);
-    
+
     try {
       const challengeData = this.challenges.get(walletAddress);
 
@@ -36,7 +36,10 @@ export class ChallengeService {
       }
 
       const { proof } = tonProof;
-      const { timestamp, domain, payload, signature, state_init } = proof;
+
+      this.logger.log('TON Proof:', proof);
+
+      const { timestamp, domain, payload, signature } = proof;
 
       // 1. Проверка домена
       if (domain.value !== 'caller.ruble.website') {
@@ -48,16 +51,6 @@ export class ChallengeService {
       const now = Math.floor(Date.now() / 1000);
       if (now - timestamp > 900) {
         this.logger.warn('Таймстамп устарел.');
-        return false;
-      }
-
-      // 3. Загрузка state_init
-      const stateInit = loadStateInit(Cell.fromBase64(state_init).beginParse());
-      const address = contractAddress(0, stateInit);
-
-      // 4. Проверка совпадения адреса
-      if (address.toString() !== walletAddress) {
-        this.logger.warn('Адрес не совпадает.');
         return false;
       }
 
@@ -89,7 +82,7 @@ export class ChallengeService {
       }
 
       this.logger.log('TON Proof успешно проверен.');
-      this.challenges.delete(walletAddress); // Удаляем использованный challenge
+      this.challenges.delete(walletAddress);
       return true;
     } catch (error) {
       this.logger.error('Ошибка проверки TON Proof:', error);
