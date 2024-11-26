@@ -156,8 +156,6 @@ export const verifyChallenge = async (account, tonProof) => {
       tonProof
     });
 
-    console.log(response.headers['content-type']); 
-
     if (response && response.valid !== undefined) {
       console.log(response.valid); // Проверяем доступ к valid
     } else {

@@ -32,6 +32,8 @@ export class ChallengeService {
 
   async verifyTonProof(account: any, tonProof: any): Promise<boolean> {
 
+    this.logger.log(`Account Data: ${JSON.stringify(account, null, 2)}: address: ${account.address}`)
+
     const payload = {
         address: account.address,
         public_key: account.publicKey,
