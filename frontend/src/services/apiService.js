@@ -149,14 +149,20 @@ export const getChallenge = async (walletAddress) => {
 
 
 
-export const verifyChallenge = async (walletAddress, tonProof) => {
+export const verifyChallenge = async (account, tonProof) => {
   try {
     const response = await api.post('/challenge/verify', {
-      walletAddress,
+      account,
       tonProof
     });
 
-    console.log('Полный ответ от сервера:', response);
+    console.log(response.headers['content-type']); 
+    
+    if (response && response.valid !== undefined) {
+      console.log(response.valid); // Проверяем доступ к valid
+    } else {
+      console.log('Полный ответ от сервера:', response.valid);
+    }
 
     if (!response.valid) {
       throw new Error('Некорректная структура ответа от сервера.');

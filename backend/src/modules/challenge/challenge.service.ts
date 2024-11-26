@@ -23,91 +23,101 @@ export class ChallengeService {
     return challenge;
   }
 
-  async verifyTonProof(walletAddress: string, tonProof: any): Promise<boolean> {
+  async verifyTonProof(account: any, tonProof: any): Promise<boolean> {
 
-    this.logger.log(`Verifying TON Proof for walletAddress: ${walletAddress}, TON Proof: ${tonProof}`);
+    const payload = {
+        address: account.address,
+        public_key: account.publicKey,
+        proof: {
+            ...tonProof,
+            state_init: account.walletStateInit
+        }
+    }
+
+    this.logger.log(`Verifying TON Proof. Payload: ${payload}`);
 
     try {
-      const challengeData = this.challenges.get(walletAddress);
+        const challengeData = this.challenges.get(account.address);
 
-      if (!challengeData || Date.now() > challengeData.validUntil) {
-        this.logger.warn(`Challenge expired or not found for walletAddress: ${walletAddress}`);
-        throw new Error('Challenge expired or not found.');
-      }
+        if (!challengeData || Date.now() > challengeData.validUntil) {
+            this.logger.warn(`Challenge expired or not found for walletAddress: ${account.address}`);
+            throw new Error('Challenge expired or not found.');
+        }
 
-      const { proof } = tonProof;
+        const { proof } = tonProof;
 
-      if (!proof) {
-        this.logger.error('Proof is missing in the received TON Proof');
-        throw new Error('Missing proof in the received TON Proof');
-      }
+        if (!proof) {
+            this.logger.error('Proof is missing in the received TON Proof');
+            throw new Error('Missing proof in the received TON Proof');
+        }
 
-      this.logger.log('TON Proof:', proof);
+        const { timestamp, domain, signature, payload } = proof;
 
-      const { timestamp, domain, signature, payload } = proof;
+        if (!timestamp || !domain || !signature || !payload) {
+            this.logger.error('Недостаточно данных для проверки proof');
+            return false;
+        }
 
-      if (!timestamp || !domain || !signature || !payload) {
-        this.logger.error('Недостаточно данных для проверки proof');
-        return false;
-      }
+        if (typeof timestamp !== 'number') {
+            this.logger.error('Неверный формат timestamp');
+            return false;
+        }
 
-      if (typeof timestamp !== 'number') {
-        this.logger.error('Неверный формат timestamp');
-        return false;
-      }
-      
-      this.logger.log(`Proof details: timestamp=${timestamp}, domain=${domain.value}, signature=${signature}, payload=${payload}`);
-      
-      // 1. Проверка домена
-      if (domain.value !== 'caller.ruble.website') {
-        this.logger.warn('Домен не совпадает.');
-        return false;
-      }
+        this.logger.log(`Proof details: timestamp=${timestamp}, domain=${domain.value}, signature=${signature}, payload=${payload}`);
 
-      // 2. Проверка таймстампа
-      const now = Math.floor(Date.now() / 1000);
-      if (now - timestamp > 900) {
-        this.logger.warn('Таймстамп устарел.');
-        return false;
-      }
+        // 1. Проверка домена
+        if (domain.value !== 'caller.ruble.website') {
+            this.logger.warn('Домен не совпадает.');
+            return false;
+        }
 
-      // 5. Получение публичного ключа из смарт-контракта
-      const masterAt = await this.client.getLastBlock();
-      const result = await this.client.runMethod(
-        masterAt.last.seqno,
-        Address.parse(walletAddress),
-        'get_public_key',
-        [],
-      );
+        // 2. Проверка таймстампа
+        const now = Math.floor(Date.now() / 1000);
+        if (now - timestamp > 900) {
+            this.logger.warn('Таймстамп устарел.');
+            return false;
+        }
 
-      this.logger.log('Полученный результат публичного ключа:', result);
+        // 3. Получение и парсинг state_init из аккаунта
+        const stateInit = loadStateInit(Cell.fromBase64(payload.proof.state_init).beginParse());
 
-      const publicKey = Buffer.from(result.reader.readBigNumber().toString(16).padStart(64, '0'), 'hex');
+        // 4. Проверка публичного ключа
+        const publicKeyFromContract = Buffer.from(payload.public_key, 'hex');
+        if (!publicKeyFromContract) {
+            this.logger.warn('Публичный ключ не найден.');
+            return false;
+        }
 
-      // 6. Сборка сообщения
-      const message = this.assembleMessage(walletAddress, domain.value, timestamp, payload);
+        // 5. Получение адреса из state_init и сравнение его с переданным
+        const wantedAddress = Address.parse(payload.address);
+        const address = contractAddress(wantedAddress.workChain, stateInit);
+        if (!address.equals(wantedAddress)) {
+            this.logger.warn('Адрес в state_init не совпадает с переданным.');
+            return false;
+        }
 
-      // 7. Проверка подписи
-      const isSignatureValid = this.verifySignature(publicKey, signature, message);
-      if (!isSignatureValid) {
-        this.logger.warn('Подпись не прошла проверку.');
-        return false;
-      }
+        // 6. Проверка подписи
+        const message = this.assembleMessage(account.address, domain.value, timestamp, payload);
+        const isSignatureValid = this.verifySignature(publicKeyFromContract, signature, message);
+        if (!isSignatureValid) {
+            this.logger.warn('Подпись не прошла проверку.');
+            return false;
+        }
 
-      // 8. Проверка challenge
-      if (payload !== challengeData.challenge) {
-        this.logger.warn('Challenge в TON Proof не совпадает с оригинальным.');
-        return false;
-      }
+        // 7. Проверка challenge
+        if (payload !== challengeData.challenge) {
+            this.logger.warn('Challenge в TON Proof не совпадает с оригинальным.');
+            return false;
+        }
 
-      this.logger.log('TON Proof успешно проверен.');
-      this.challenges.delete(walletAddress);
-      return true;
+        this.logger.log('TON Proof успешно проверен.');
+        this.challenges.delete(account.address);
+        return true;
     } catch (error) {
-      this.logger.error('Ошибка проверки TON Proof:', error);
-      return false;
+        this.logger.error('Ошибка проверки TON Proof:', error);
+        return false;
     }
-  }
+}
 
   private assembleMessage(walletAddress: string, domain: string, timestamp: number, payload: string): Buffer {
     const addressBuffer = Address.parse(walletAddress).hash
