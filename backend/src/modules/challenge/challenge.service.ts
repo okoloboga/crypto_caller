@@ -37,10 +37,27 @@ export class ChallengeService {
 
       const { proof } = tonProof;
 
+      if (!proof) {
+        this.logger.error('Proof is missing in the received TON Proof');
+        throw new Error('Missing proof in the received TON Proof');
+      }
+
       this.logger.log('TON Proof:', proof);
 
-      const { timestamp, domain, payload, signature } = proof;
+      const { timestamp, domain, signature, payload } = proof;
 
+      if (!timestamp || !domain || !signature || !payload) {
+        this.logger.error('Недостаточно данных для проверки proof');
+        return false;
+      }
+
+      if (typeof timestamp !== 'number') {
+        this.logger.error('Неверный формат timestamp');
+        return false;
+      }
+      
+      this.logger.log(`Proof details: timestamp=${timestamp}, domain=${domain.value}, signature=${signature}, payload=${payload}`);
+      
       // 1. Проверка домена
       if (domain.value !== 'caller.ruble.website') {
         this.logger.warn('Домен не совпадает.');
@@ -62,6 +79,8 @@ export class ChallengeService {
         'get_public_key',
         [],
       );
+
+      this.logger.log('Полученный результат публичного ключа:', result);
 
       const publicKey = Buffer.from(result.reader.readBigNumber().toString(16).padStart(64, '0'), 'hex');
 

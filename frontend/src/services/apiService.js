@@ -158,11 +158,11 @@ export const verifyChallenge = async (walletAddress, tonProof) => {
 
     console.log('Полный ответ от сервера:', response);
 
-    if (!response.data || !response.valid || !response.data.valid) {
+    if (!response.valid) {
       throw new Error('Некорректная структура ответа от сервера.');
     }
 
-    return response.data.valid;
+    return response.valid;
   } catch (error) {
     console.error(`Ошибка при проверке challenge для walletAddress ${walletAddress}:`, error.message);
     throw error;

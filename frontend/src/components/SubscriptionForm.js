@@ -157,18 +157,18 @@ const SubscriptionForm = ({ onBack }) => {
   
       const isValid = await verifyChallenge(walletAddress, tonProof);
       console.log('Результат проверки TON Proof:', isValid);
-
-      console.log('Отправка транзакции...');
-      await tonConnectUI.sendTransaction(txSubscription);
-      console.log('Транзакция успешно выполнена.');
-      showNotification('Транзакция успешно выполнена.');
   
       if (!isValid) {
         throw new Error('TON Proof не прошёл проверку.');
       }
   
       showNotification('TON Proof успешно проверен.');
-  
+      
+      console.log('Отправка транзакции...');
+      await tonConnectUI.sendTransaction(txSubscription);
+      console.log('Транзакция успешно выполнена.');
+      showNotification('Транзакция успешно выполнена.');
+
       console.log('Регистрация подписки на сервере...');
       await createSubscription(walletAddress, newPhoneNumber, tonProof);
       setIsSubscribed(true);
