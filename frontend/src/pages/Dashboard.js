@@ -45,7 +45,11 @@ const Dashboard = () => {
 
       console.log(`Tasks: ${fetchedTasks}`)
 
-      setTasks(fetchedTasks);
+      if (fetchedTasks == undefined) {
+        console.log('Заданий нет');
+      } else {
+        setTasks(fetchedTasks)
+      };
     } catch (error) {
       console.error('Ошибка загрузки заданий:', error);
     }
