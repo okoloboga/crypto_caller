@@ -17,6 +17,8 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
     }
   }, [task]);
 
+  const isNewTask = !form.currencyPair && !form.targetPrice;
+
   // Обработчик сохранения задания
   const handleSave = async () => {
     if (disabled) {
@@ -84,9 +86,9 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
       />
       <div className="task-form-buttons">
         <button onClick={handleSave} disabled={disabled || loading}>
-          {task ? 'Сохранить изменения' : 'Сохранить'}
+          {isNewTask ? 'Сохранить изменения' : 'Сохранить'}
         </button>
-        {task && (
+        {isNewTask && (
           <button onClick={handleDelete} disabled={loading}>
             Удалить
           </button>
