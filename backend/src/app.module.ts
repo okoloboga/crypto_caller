@@ -30,7 +30,7 @@ import { BullModule } from '@nestjs/bull';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      entities: [__dirname + '/modules/**/entity{.ts,.js}'],
+      entities: [__dirname + '/modules/**/*.entity{.ts,.js}'],
       synchronize: true,
     }),
   ],
