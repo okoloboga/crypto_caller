@@ -92,8 +92,8 @@ export const createTask = async (taskData) => {
   console.log('Создание нового задания с данными:', taskData);
   try {
     const response = await api.post('/task', taskData);
-    console.log('Задание успешно создано:', response.data);
-    return response.data;
+    console.log('Задание успешно создано:', response);
+    return response;
   } catch (error) {
     console.error('Ошибка при создании задания:', error.message);
     throw error;

@@ -30,8 +30,16 @@ export class TaskService {
   }
 
   async getTasksByUser(walletAddress: string): Promise<Task[]> {
-    return this.taskRepository.find({ where: { user: { walletAddress } } });
+    console.log('Getting tasks for walletAddress:', walletAddress);
+  
+    return this.taskRepository
+      .createQueryBuilder('task')  // Задаем псевдоним для таблицы "task"
+      .innerJoinAndSelect('task.user', 'user')  // Делаем join с таблицей пользователя
+      .where('user.walletAddress = :walletAddress', { walletAddress })  // Условие поиска по walletAddress
+      .getMany();  // Получаем все задачи, удовлетворяющие условию
   }
+  
+  
   async executeTask(taskId: number): Promise<void> {
     const task = await this.taskRepository.findOne({ where: { id: taskId } });
 

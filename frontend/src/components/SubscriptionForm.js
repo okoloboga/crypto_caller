@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TonConnect } from '@tonconnect/sdk';
 import { useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { getUserByWalletAddress, updatePhoneNumber, createSubscription,
-        checkSubscription, getChallenge, verifyChallenge } from '../services/apiService';
+         checkSubscription, getChallenge, verifyChallenge } from '../services/apiService';
 import './SubscriptionForm.css';
 
 const SubscriptionForm = ({ onBack }) => {
