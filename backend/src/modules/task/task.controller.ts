@@ -18,7 +18,7 @@ export class TaskController {
     console.log('targetPrice:', targetPrice);
 
     try {
-      const task = await this.taskService.createTask({ walletAddress } as any, currencyPair, targetPrice);
+      const task = await this.taskService.createTask(walletAddress, currencyPair, targetPrice);
       console.log('Задание успешно создано:', task);
       return task;
     } catch (error) {

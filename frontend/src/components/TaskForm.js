@@ -9,7 +9,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    console.log(`Task: ${task}`)
+    console.log(`Task: ${JSON.stringify(task, null, 2)}`);
     if (task) {
       setForm(task); // Если задача существует, то устанавливаем ее в форму для редактирования
     } else {
@@ -34,7 +34,6 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
     setLoading(true);
     try {
       const taskData = { walletAddress, ...form };
-      console.log(`New Task data: ${taskData}`);
       if (!isNewTask) {
         await updateTask(task.id, taskData);
       } else {
