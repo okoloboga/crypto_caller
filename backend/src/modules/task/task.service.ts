@@ -19,10 +19,9 @@ export class TaskService {
     private readonly okxApiService: OkxApiService,
   ) {}
 
-  async createTask(walletAddress: string, currencyPair: string, targetPrice: number): Promise<Task> {
-    console.log(`Creating new task with data: walletAddress=${walletAddress}, currencyPair=${currencyPair}, targetPrice=${targetPrice}`);
+  async createTask(walletAddress: string, currencyPair: string, targetPrice: number, isPriceAbove: boolean): Promise<Task> {
+    console.log(`Creating new task with data: walletAddress=${walletAddress}, currencyPair=${currencyPair}, targetPrice=${targetPrice}, isPriceAbove=${isPriceAbove}`);
     
-    // Проверяем, существует ли уже задание с таким же walletAddress и currencyPair
     const existingTask = await this.taskRepository.findOne({ where: { walletAddress, currencyPair } });
     if (existingTask) {
       console.log('Task with the same walletAddress and currencyPair already exists.');
@@ -34,6 +33,7 @@ export class TaskService {
         walletAddress,
         currencyPair,
         targetPrice,
+        isPriceAbove,
       });
       console.log('Task object before saving:', task);
   
@@ -59,8 +59,7 @@ export class TaskService {
       throw new BadRequestException('Error creating task. Please check the data.');
     }
   }
-
-  
+    
   async updateTask(id: number, updates: Partial<Task>): Promise<Task> {
     try {
       const existingTask = await this.taskRepository.findOne({ where: { id } });
@@ -145,23 +144,30 @@ export class TaskService {
     const tasks = await this.taskRepository.find();
   
     for (const task of tasks) {
-      const currentPrice = await this.okxApiService.getCurrentPrice(task.currencyPair);
+      try {
+        
+        const currentPrice = await this.okxApiService.getCurrentPrice(task.currencyPair);
   
-      if (
-        (task.isPriceAbove && currentPrice >= task.targetPrice) || 
-        (!task.isPriceAbove && currentPrice <= task.targetPrice)
-      ) {
-        const user = await this.userRepository.findOne({
-          where: { walletAddress: task.walletAddress },
-        });
+        if (
+          (task.isPriceAbove && currentPrice >= task.targetPrice) || 
+          (!task.isPriceAbove && currentPrice <= task.targetPrice)
+        ) {
+          const user = await this.userRepository.findOne({ where: { walletAddress: task.walletAddress } });
   
-        if (user && user.phoneNumber) {
-          await this.notificationService.makeCall(user.phoneNumber, task.id);
+          if (user && user.phoneNumber) {
+            await this.notificationService.makeCall(user.phoneNumber, task.id);
+          }
+  
+          await this.taskRepository.remove(task);
+          
+          user.taskIds = user.taskIds.filter((taskId) => taskId !== task.id);
+          await this.userRepository.save(user);
         }
-  
-        await this.taskRepository.remove(task);
+      } catch (error) {
+        console.error('Error while processing task:', error.message);
       }
     }
   }
+  
   
 }

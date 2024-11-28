@@ -11,14 +11,16 @@ export class TaskController {
     @Body('walletAddress') walletAddress: string,
     @Body('currencyPair') currencyPair: string,
     @Body('targetPrice') targetPrice: number,
+    @Body('isPriceAbove') isPriceAbove: boolean,
   ) {
     console.log('Создание задания:');
     console.log('walletAddress:', walletAddress);
     console.log('currencyPair:', currencyPair);
     console.log('targetPrice:', targetPrice);
+    console.log('isPriceAbove:', isPriceAbove);
 
     try {
-      const task = await this.taskService.createTask(walletAddress, currencyPair, targetPrice);
+      const task = await this.taskService.createTask(walletAddress, currencyPair, targetPrice, isPriceAbove);
       console.log('Задание успешно создано:', task);
       return task;
     } catch (error) {

@@ -6,13 +6,15 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { ChallengeModule } from './modules/challenge/challenge.module';
 import { AppController } from './app.controller';
 import { BullModule } from '@nestjs/bull';
+import { PriceMonitorModule } from './modules/price-monitor/price-monitor.module';
 
 @Module({
   imports: [
     ChallengeModule,
     UserModule, 
     TaskModule, 
-    NotificationModule, 
+    NotificationModule,
+    PriceMonitorModule, 
     BullModule.forRoot({
       redis: {
         host: 'localhost',
@@ -20,8 +22,7 @@ import { BullModule } from '@nestjs/bull';
       },
     }),
     BullModule.registerQueue(
-      { name: 'price-monitor' }, // Очередь для мониторинга цен
-      { name: 'points-accumulation' }, // Очередь для начисления баллов
+      { name: 'price-monitor' },
     ),
     TypeOrmModule.forRoot({
       type: 'postgres',
