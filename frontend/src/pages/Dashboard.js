@@ -13,7 +13,7 @@ const Dashboard = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [currentTask, setCurrentTask] = useState(null);
-  const [currencyPairs] = useState(['BTC/USDT', 'ETH/USDT', 'TON/USDT']);
+  const [currencyPairs] = useState(['BTC-USD', 'ETH-USD', 'TON-USD']);
   const [notification, setNotification] = useState('');
   const [currentScreen, setCurrentScreen] = useState('dashboard');
 

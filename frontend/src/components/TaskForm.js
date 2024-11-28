@@ -19,7 +19,6 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
 
   const isNewTask = !task?.id;
 
-  // Save task handler
   const handleSave = async () => {
     if (disabled) {
       onDisabledAction();

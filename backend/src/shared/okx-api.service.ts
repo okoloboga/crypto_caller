@@ -14,7 +14,8 @@ export class OkxApiService {
     }
 
     try {
-      const url = `https://www.okx.com/api/v5/market/ticker?instId=${currencyPair}`;
+      const currencyPairSwap = currencyPair + '-SWAP';
+      const url = `https://www.okx.com/api/v5/market/ticker?instId=${currencyPairSwap}`;
       const headers = {
         'OK-API-KEY': process.env.OKX_API_KEY,
         'OK-API-SIGN': process.env.OKX_API_SECRET,
@@ -25,16 +26,16 @@ export class OkxApiService {
         this.httpService.get(url, { headers })
       );
 
-      this.logger.log(`Response for ${currencyPair}: from OKX: ${JSON.stringify(response.data)}`);
+      this.logger.log(`Response for ${currencyPairSwap}: from OKX: ${JSON.stringify(response.data)}`);
 
       const data = response.data.data;
 
-      this.logger.log(`Data for ${currencyPair}: ${JSON.stringify(data)}`);
-      
+      this.logger.log(`Data for ${currencyPairSwap}: ${JSON.stringify(data)}`);
+
       if (data && data[0] && data[0].last) {
         return parseFloat(data[0].last);
       } else {
-        this.logger.warn(`No price data found for pair: ${currencyPair}`);
+        this.logger.warn(`No price data found for pair: ${currencyPairSwap}`);
         return null;
       }
     } catch (error) {
