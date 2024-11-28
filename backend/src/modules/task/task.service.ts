@@ -20,20 +20,30 @@ export class TaskService {
   ) {}
 
   async createTask(walletAddress: string, currencyPair: string, targetPrice: number): Promise<Task> {
-    console.log(`Создание нового задания: ${JSON.stringify({ walletAddress, currencyPair, targetPrice })}`);
+    console.log(`Creating new task with data: walletAddress=${walletAddress}, currencyPair=${currencyPair}, targetPrice=${targetPrice}`);
+    
+    // Проверяем, существует ли уже задание с таким же walletAddress и currencyPair
+    const existingTask = await this.taskRepository.findOne({ where: { walletAddress, currencyPair } });
+    if (existingTask) {
+      console.log('Task with the same walletAddress and currencyPair already exists.');
+      throw new BadRequestException('Task with the same walletAddress and currencyPair already exists.');
+    }
+  
     try {
       const task = this.taskRepository.create({
         walletAddress,
         currencyPair,
         targetPrice,
       });
-
+      console.log('Task object before saving:', task);
+      
       return await this.taskRepository.save(task);
     } catch (error) {
-      throw new BadRequestException('Ошибка при создании задачи. Пожалуйста, проверьте данные.');
+      console.error('Error creating task:', error.message);
+      throw new BadRequestException('Error creating task. Please check the data.');
     }
-  }
-
+  }  
+  
   async updateTask(id: number, updates: Partial<Task>): Promise<Task> {
     try {
       const existingTask = await this.taskRepository.findOne({ where: { id } });
@@ -99,7 +109,7 @@ export class TaskService {
   }
   
   async checkTasksForPriceTriggers(): Promise<void> {
-    const tasks = await this.taskRepository.find({ where: { isActive: true } });
+    const tasks = await this.taskRepository.find();
   
     for (const task of tasks) {
       const currentPrice = await this.okxApiService.getCurrentPrice(task.currencyPair);

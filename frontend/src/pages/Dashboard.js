@@ -42,14 +42,12 @@ const Dashboard = () => {
   const fetchTasks = async () => {
     try {
       const fetchedTasks = await getUserTasks(walletAddress);
-
-      console.log(`Tasks: ${fetchedTasks}`)
-
-      if (fetchedTasks == undefined) {
+      console.log(`Tasks: ${fetchedTasks}`);
+      if (fetchedTasks === undefined) {
         console.log('No tasks available');
       } else {
-        setTasks(fetchedTasks)
-      };
+        setTasks(fetchedTasks);
+      }
     } catch (error) {
       console.error('Error loading tasks:', error);
     }
@@ -64,10 +62,14 @@ const Dashboard = () => {
     setTimeout(() => setNotification(''), 3000);
   };
 
+  const handleSave = async () => {
+    // После сохранения обновим задачи и закроем форму
+    await fetchTasks();
+    setCurrentTask(null); // Закрыть форму после сохранения
+  };
+
   if (currentScreen === 'subscription') {
-    return (
-      <SubscriptionForm onBack={handleBackToDashboard} />
-    );
+    return <SubscriptionForm onBack={handleBackToDashboard} />;
   }
 
   return (
@@ -94,8 +96,8 @@ const Dashboard = () => {
         <TaskForm
           task={currentTask}
           currencyPairs={currencyPairs}
-          onSave={fetchTasks}
-          onCancel={() => setCurrentTask(null)}
+          onSave={handleSave}  // Обновленный обработчик для закрытия формы
+          onCancel={() => setCurrentTask(null)}  // Закрытие формы при отмене
         />
       ) : (
         <TaskList tasks={tasks} onEdit={setCurrentTask} onDelete={deleteTask} />

@@ -74,7 +74,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
       />
       <div className="task-form-buttons">
         <button onClick={handleSave} disabled={disabled || loading}>
-          {isNewTask ? 'Save' : 'Save Changes'}
+          Save Changes
         </button>
         <button onClick={onCancel} disabled={loading}>
           Cancel

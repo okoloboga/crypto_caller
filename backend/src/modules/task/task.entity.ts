@@ -9,9 +9,6 @@ export class Task {
   @Column()
   currencyPair: string;
 
-  @Column({ default: true })
-  isActive: boolean;
-
   @Column('decimal')
   targetPrice: number;
 

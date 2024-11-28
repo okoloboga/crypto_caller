@@ -7,7 +7,7 @@ const TaskList = ({ tasks, onEdit, onDelete, isDisabled, onDisabledAction }) => 
       {tasks.length > 0 ? (
         tasks.map((task) => (
           <div key={task.id} className="task-item">
-            <p>{task.pair}: {task.targetPrice}</p>
+            <p>{task.currencyPair}: {task.targetPrice}</p>
             <button
               onClick={() => (isDisabled ? onDisabledAction() : onEdit(task))}
               disabled={isDisabled}
