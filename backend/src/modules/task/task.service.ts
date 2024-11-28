@@ -24,7 +24,7 @@ export class TaskService {
     try {
       const task = this.taskRepository.create({
         walletAddress,
-        pair: currencyPair,
+        currencyPair,
         targetPrice,
       });
 
@@ -102,7 +102,7 @@ export class TaskService {
     const tasks = await this.taskRepository.find({ where: { isActive: true } });
   
     for (const task of tasks) {
-      const currentPrice = await this.okxApiService.getCurrentPrice(task.pair);
+      const currentPrice = await this.okxApiService.getCurrentPrice(task.currencyPair);
   
       if (
         (task.isPriceAbove && currentPrice >= task.targetPrice) || 

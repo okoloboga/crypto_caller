@@ -7,7 +7,7 @@ export class Task {
   id: number;
 
   @Column()
-  pair: string;
+  currencyPair: string;
 
   @Column({ default: true })
   isActive: boolean;

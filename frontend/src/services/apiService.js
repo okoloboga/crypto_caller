@@ -105,8 +105,8 @@ export const updateTask = async (taskId, updates) => {
   console.log(`Updating task with ID ${taskId}. Updated data:`, updates);
   try {
     const response = await api.patch(`/task/${taskId}`, updates);
-    console.log('Task successfully updated:', response.data);
-    return response.data;
+    console.log('Task successfully updated:', response);
+    return response;
   } catch (error) {
     console.error(`Error updating task with ID ${taskId}:`, error.message);
     throw error;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
-import { createTask, updateTask, deleteTask } from '../services/apiService';
+import { createTask, updateTask } from '../services/apiService';
 import './TaskForm.css';
 
 const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledAction }) => {
@@ -33,31 +33,19 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
 
     setLoading(true);
     try {
-      const taskData = { walletAddress, ...form };
+      console.log('Form:', JSON.stringify(form, null, 2));
+      console.log('Task:', JSON.stringify(task, null, 2));
       if (!isNewTask) {
+        const taskData = { ...form };
         await updateTask(task.id, taskData);
       } else {
+        const taskData = { walletAddress, ...form };
         await createTask(taskData);
       }
       onSave();
     } catch (error) {
       console.error('Error saving task:', error);
       alert('Failed to save the task. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Delete task handler
-  const handleDelete = async () => {
-    if (!task) return;
-    setLoading(true);
-    try {
-      await deleteTask(task.id);
-      onSave();
-    } catch (error) {
-      console.error('Error deleting task:', error);
-      alert('Failed to delete the task. Please try again.');
     } finally {
       setLoading(false);
     }
