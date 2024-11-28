@@ -11,8 +11,10 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
   useEffect(() => {
     console.log(`Task: ${JSON.stringify(task, null, 2)}`);
     if (task) {
+      // Если есть task, то обновляем состояние формы с данными задачи
       setForm(task);
     } else {
+      // Если нет task, инициализируем пустую форму
       setForm({ currencyPair: '', targetPrice: '' });
     }
   }, [task]);
@@ -55,10 +57,11 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
     <div className="task-form">
       <select
         placeholder="Currency Pair"
-        value={form.currencyPair}
+        value={form.currencyPair || ''}
         onChange={(e) => setForm({ ...form, currencyPair: e.target.value })}
         disabled={disabled || loading}
       >
+        <option value="" disabled>Currency Pair</option> {/* Значение по умолчанию */}
         {currencyPairs.map((pair) => (
           <option key={pair} value={pair}>
             {pair}

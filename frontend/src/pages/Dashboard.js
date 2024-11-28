@@ -63,9 +63,8 @@ const Dashboard = () => {
   };
 
   const handleSave = async () => {
-    // После сохранения обновим задачи и закроем форму
     await fetchTasks();
-    setCurrentTask(null); // Закрыть форму после сохранения
+    setCurrentTask(null);
   };
 
   if (currentScreen === 'subscription') {

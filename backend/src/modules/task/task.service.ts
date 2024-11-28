@@ -36,13 +36,30 @@ export class TaskService {
         targetPrice,
       });
       console.log('Task object before saving:', task);
-      
-      return await this.taskRepository.save(task);
+  
+      const savedTask = await this.taskRepository.save(task);
+      console.log('Task successfully created:', savedTask);
+  
+      const user = await this.userRepository.findOne({ where: { walletAddress } });
+      if (!user) {
+        console.log(`User with walletAddress ${walletAddress} not found.`);
+        throw new Error(`User with walletAddress ${walletAddress} not found.`);
+      }
+  
+      const updatedTaskIds = [...(user.taskIds || []), savedTask.id];
+      user.taskIds = updatedTaskIds;
+  
+      await this.userRepository.save(user);
+      console.log(`User task list updated: ${updatedTaskIds}`);
+  
+      return savedTask;
+  
     } catch (error) {
-      console.error('Error creating task:', error.message);
+      console.error('Error creating task or updating user task list:', error.message);
       throw new BadRequestException('Error creating task. Please check the data.');
     }
-  }  
+  }
+
   
   async updateTask(id: number, updates: Partial<Task>): Promise<Task> {
     try {
@@ -67,12 +84,26 @@ export class TaskService {
       if (!task) {
         throw new NotFoundException(`Задача с id ${id} не найдена.`);
       }
-
+  
       await this.taskRepository.delete(id);
+  
+      const user = await this.userRepository.findOne({ where: { walletAddress: task.walletAddress } });
+      if (!user) {
+        console.log(`User with walletAddress ${task.walletAddress} not found.`);
+        throw new Error(`User with walletAddress ${task.walletAddress} not found.`);
+      }
+  
+      user.taskIds = user.taskIds.filter((taskId) => taskId !== id);
+  
+      // Сохраняем обновленного пользователя
+      await this.userRepository.save(user);
+      console.log(`User's task list updated after deletion: ${user.taskIds}`);
+      
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
+      console.error('Error during task deletion or user update:', error.message);
       throw new BadRequestException('Ошибка при удалении задачи.');
     }
   }
