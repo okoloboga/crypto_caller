@@ -46,9 +46,8 @@ services:
       - "6379:6379"
     networks:
       - default
-    volumes:
-      - ./redis.conf:/usr/local/etc/redis/redis.conf
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    sysctls:
+    - vm.overcommit_memory=1
   bot:
     build: ./bot
     environment:
