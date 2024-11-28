@@ -46,8 +46,7 @@ services:
       - "6379:6379"
     networks:
       - default
-    sysctls:
-    - vm.overcommit_memory=1
+
   bot:
     build: ./bot
     environment:
