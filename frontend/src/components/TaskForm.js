@@ -67,10 +67,10 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
     <div className="task-form">
       <select
         value={form.currencyPair}
+        placeholder="Currency Pair"
         onChange={(e) => setForm({ ...form, currencyPair: e.target.value })}
         disabled={disabled || loading}
       >
-        <option value="">Select Currency</option>
         {currencyPairs.map((pair) => (
           <option key={pair} value={pair}>
             {pair}
@@ -88,11 +88,6 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
         <button onClick={handleSave} disabled={disabled || loading}>
           {isNewTask ? 'Save' : 'Save Changes'}
         </button>
-        {!isNewTask && (
-          <button onClick={handleDelete} disabled={loading}>
-            Delete
-          </button>
-        )}
         <button onClick={onCancel} disabled={loading}>
           Cancel
         </button>
