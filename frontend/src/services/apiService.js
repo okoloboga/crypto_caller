@@ -79,8 +79,8 @@ export const getUserTasks = async (walletAddress) => {
   console.log(`Получение списка заданий для walletAddress: ${walletAddress}`);
   try {
     const response = await api.get(`/task/user/${walletAddress}`);
-    console.log('Список заданий успешно получен:', response.data);
-    return response.data;
+    console.log('Список заданий успешно получен:', response);
+    return response;
   } catch (error) {
     console.error(`Ошибка при получении заданий для walletAddress ${walletAddress}:`, error.message);
     throw error;
