@@ -17,7 +17,7 @@ import { PriceMonitorModule } from './modules/price-monitor/price-monitor.module
     PriceMonitorModule, 
     BullModule.forRoot({
       redis: {
-        host: 'localhost',
+        host: 'redis',
         port: 6379,
       },
     }),
@@ -35,6 +35,6 @@ import { PriceMonitorModule } from './modules/price-monitor/price-monitor.module
       synchronize: true
     }),
   ],
-  controllers: [AppController], // Добавляем контроллер сюда
+  controllers: [AppController],
 })
 export class AppModule {}

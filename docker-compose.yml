@@ -46,7 +46,7 @@ services:
       - "6379:6379"
     networks:
       - default
-  
+    command: ["sh", "-c", "sysctl -w vm.overcommit_memory=1 && redis-server"]
   bot:
     build: ./bot
     environment:
