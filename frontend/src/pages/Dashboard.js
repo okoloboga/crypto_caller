@@ -42,7 +42,6 @@ const Dashboard = () => {
   const fetchTasks = async () => {
     try {
       const fetchedTasks = await getUserTasks(walletAddress);
-      console.log(`Tasks: ${fetchedTasks}`);
       if (fetchedTasks === undefined) {
         console.log('No tasks available');
       } else {

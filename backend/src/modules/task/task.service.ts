@@ -93,9 +93,11 @@ export class TaskService {
         throw new Error(`User with walletAddress ${task.walletAddress} not found.`);
       }
   
-      user.taskIds = user.taskIds.filter((taskId) => taskId !== id);
-  
-      // Сохраняем обновленного пользователя
+      const updatedTaskIds = user.taskIds.filter((taskId) => taskId !== id);
+      user.taskIds = updatedTaskIds;
+
+      console.log(`User's task list after deletion: ${user.taskIds} = ${updatedTaskIds}`);
+
       await this.userRepository.save(user);
       console.log(`User's task list updated after deletion: ${user.taskIds}`);
       
