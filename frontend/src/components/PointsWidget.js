@@ -5,26 +5,26 @@ import './PointsWidget.css';
 
 const PointsWidget = ({ isSubscribed, showNotification }) => {
   const walletAddress = useTonAddress();
-  const [points, setPoints] = useState(0); // Очки
+  const [points, setPoints] = useState(0); // Points
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  // Функция для загрузки очков
+  // Function to load points
   const loadPoints = async () => {
     if (!isSubscribed) {
-      showNotification('Оформи подписку, чтобы зарабатывать RUBLE.');
+      showNotification('Subscribe to start earning RUBLE.');
       return;
     }
     try {
-      const user = await getUserByWalletAddress(walletAddress); // TypeError: undefined has no properties
+      const user = await getUserByWalletAddress(walletAddress);
       const userPoints = user.points;
       setPoints(userPoints);
       setLastUpdated(new Date());
     } catch (err) {
-      console.error('Ошибка при загрузке очков:', err);
+      console.error('Error loading points:', err);
     }
   };
 
-  // Автоматическое обновление очков каждые 60 секунд
+  // Automatic points update every 60 seconds
   useEffect(() => {
     if (isSubscribed) {
       loadPoints();
@@ -38,12 +38,12 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
       className={`points-widget ${!isSubscribed ? 'blocked' : ''}`}
       onClick={() => {
         if (!isSubscribed) {
-          showNotification('чтобы зарабатывать RUBLE.');
+          showNotification('to start earning RUBLE.');
         }
       }}
     >
       {isSubscribed && lastUpdated && (
-        <p>Последнее обновление: {lastUpdated.toLocaleTimeString()}</p>
+        <p>Last updated: {lastUpdated.toLocaleTimeString()}</p>
       )}
       <div className="progress-container" style={{ position: 'relative', display: 'inline-block' }}>
         <progress value={points} max={50}></progress>

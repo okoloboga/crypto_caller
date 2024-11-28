@@ -4,12 +4,12 @@ import './Header.css';
 
 const Header = ({ onNavigate }) => {
     const walletAddress = useTonAddress();
-    const [notification, setNotification] = useState(''); // Для уведомлений
+    const [notification, setNotification] = useState('');
 
     const handleClick = () => {
         if (!walletAddress) {
-            setNotification('Подключи Кошелек'); // Устанавливаем уведомление
-            setTimeout(() => setNotification(''), 3000); // Очищаем уведомление через 3 секунды
+            setNotification('Connect Wallet');
+            setTimeout(() => setNotification(''), 3000);
         } else {
             onNavigate('subscription');
         }

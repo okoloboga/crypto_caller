@@ -20,7 +20,7 @@ const SubscriptionForm = ({ onBack }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       if (!walletAddress) {
-        setNotification('Подключите TON кошелек.');
+        setNotification('Connect your TON wallet.');
         return;
       }
 
@@ -31,12 +31,12 @@ const SubscriptionForm = ({ onBack }) => {
           setPhoneNumber(user.phoneNumber || '');
           setIsSubscribed(subscribeIsActive);
         } else if (!hasShownNotification) {
-          setNotification('Пользователь не найден.');
+          setNotification('User not found.');
           setHasShownNotification(true);
         }
       } catch (error) {
-        console.error('Ошибка загрузки данных пользователя:', error);
-        setNotification('Ошибка загрузки данных.');
+        console.error('Error loading user data:', error);
+        setNotification('Error loading data.');
       }
     };
 
@@ -45,7 +45,7 @@ const SubscriptionForm = ({ onBack }) => {
 
   const ensureWalletConnected = () => {
     if (!walletAddress) {
-      throw new Error('Кошелек не подключен.');
+      throw new Error('Wallet is not connected.');
     }
   };
 
@@ -56,12 +56,12 @@ const SubscriptionForm = ({ onBack }) => {
 
   const handleSave = async () => {
     if (!newPhoneNumber) {
-      showNotification('Введите новый номер телефона.');
+      showNotification('Please enter a new phone number.');
       return;
     }
 
     if (!walletAddress) {
-      showNotification('Подключите TON кошелек.');
+      showNotification('Connect your TON wallet.');
       return;
     }
 
@@ -70,10 +70,10 @@ const SubscriptionForm = ({ onBack }) => {
       setPhoneNumber(newPhoneNumber);
       setNewPhoneNumber('');
       setIsEditing(false);
-      showNotification('Номер телефона успешно обновлен.');
+      showNotification('Phone number updated successfully.');
     } catch (error) {
-      console.error('Ошибка обновления номера телефона:', error);
-      showNotification('Ошибка обновления. Попробуйте снова.');
+      console.error('Error updating phone number:', error);
+      showNotification('Update failed. Please try again.');
     }
   };
 
@@ -97,48 +97,48 @@ const SubscriptionForm = ({ onBack }) => {
   };
 
   const connectWalletWithProof = async (challenge) => {
-    console.log('Запуск connectWalletWithProof с challenge:', challenge);
+    console.log('Starting connectWalletWithProof with challenge:', challenge);
     try {
 
       await refreshPayload(challenge);
 
-      console.log('Получение wallet', wallet);
+      console.log('Getting wallet', wallet);
       console.log(wallet.connectItems?.tonProof);
 
       if (wallet.connectItems?.tonProof && !('error' in wallet.connectItems.tonProof)) {
         const tonProof = wallet.connectItems.tonProof;
-        console.log('TON Proof успешно получен:', tonProof);
+        console.log('TON Proof successfully received:', tonProof);
         return tonProof;
       } else {
-        throw new Error('TON Proof не предоставлен кошельком.');
+        throw new Error('TON Proof not provided by wallet.');
       }
   
     } catch (error) {
-      console.error('Ошибка получения TON Proof:', error);
+      console.error('Error obtaining TON Proof:', error);
       throw error;
     }
   };
   
   const handleRegister = async () => {
-    console.log('Запуск handleRegister');
+    console.log('Starting handleRegister');
     if (!newPhoneNumber) {
-      showNotification('Введите новый номер телефона.');
+      showNotification('Please enter a new phone number.');
       return;
     }
   
     if (!validatePhoneNumber(newPhoneNumber)) {
-      showNotification('Некорректный номер телефона. Проверьте формат.');
+      showNotification('Invalid phone number. Please check the format.');
       return;
     }
   
     if (!walletAddress) {
-      throw new Error('Кошелёк не подключён.');
+      throw new Error('Wallet is not connected.');
     }
   
     try {
       ensureWalletConnected();
-      showNotification('Начинаем процесс регистрации...');
-      console.log('Подключённый кошелек:', walletAddress);
+      showNotification('Starting the registration process...');
+      console.log('Connected wallet:', walletAddress);
   
       const txSubscription = {
         validUntil: Math.floor(Date.now() / 1000) + 60,
@@ -153,30 +153,30 @@ const SubscriptionForm = ({ onBack }) => {
 
       const challenge = await getChallenge(wallet.account.address);
       const tonProof = await connectWalletWithProof(challenge);
-      console.log('Полученный TON Proof:', tonProof, 'Для кошелька:', wallet.account.address);
+      console.log('Received TON Proof:', tonProof, 'For wallet:', wallet.account.address);
   
       const isValid = await verifyChallenge(wallet.account, tonProof);
-      console.log('Результат проверки TON Proof:', isValid);
+      console.log('TON Proof verification result:', isValid);
   
       if (!isValid || isValid === false) {
-        throw new Error('TON Proof не прошёл проверку.');
+        throw new Error('TON Proof failed verification.');
       }
   
-      showNotification('TON Proof успешно проверен.');
+      showNotification('TON Proof successfully verified.');
       
-      console.log('Отправка транзакции...');
+      console.log('Sending transaction...');
       await tonConnectUI.sendTransaction(txSubscription);
-      console.log('Транзакция успешно выполнена.');
-      showNotification('Транзакция успешно выполнена.');
+      console.log('Transaction completed successfully.');
+      showNotification('Transaction completed successfully.');
 
-      console.log('Регистрация подписки на сервере...');
+      console.log('Registering subscription on the server...');
       await createSubscription(walletAddress, newPhoneNumber, tonProof);
       setIsSubscribed(true);
-      console.log('Подписка успешно активирована.');
-      showNotification('Подписка успешно активирована.');
+      console.log('Subscription successfully activated.');
+      showNotification('Subscription successfully activated.');
     } catch (error) {
-      console.error('Ошибка в handleRegister:', error);
-      showNotification('Ошибка активации. Попробуйте снова.');
+      console.error('Error in handleRegister:', error);
+      showNotification('Activation failed. Please try again.');
     }
   };
 
@@ -185,35 +185,35 @@ const SubscriptionForm = ({ onBack }) => {
       {isSubscribed ? (
         isEditing ? (
           <div>
-            <p>Редактирование номера телефона:</p>
+            <p>Editing phone number:</p>
             <input
               type="text"
               value={newPhoneNumber || phoneNumber}
               onChange={(e) => setNewPhoneNumber(e.target.value)}
-              placeholder="Введите новый номер телефона"
+              placeholder="Enter new phone number"
             />
-            <button onClick={handleSave}>Сохранить</button>
+            <button onClick={handleSave}>Save</button>
           </div>
         ) : (
           <div>
-            <p>Подписка активна на номер: {phoneNumber}</p>
-            <button onClick={() => setIsEditing(true)}>Редактировать Номер</button>
+            <p>Subscription active on number: {phoneNumber}</p>
+            <button onClick={() => setIsEditing(true)}>Edit Number</button>
           </div>
         )
       ) : (
         <div>
-          <h4>Регистрация</h4>
-          <p>Чтобы пользоваться сервисом, необходимо ввести номер телефона и оплатить подписку. Номер телефона будет использован для оповещений о срабатывании триггера. Стоимость подписки — 1 TON в месяц.</p>
+          <h4>Registration</h4>
+          <p>To use the service, you need to enter your phone number and pay for the subscription. The phone number will be used for notifications about trigger activation. The subscription costs 1 TON per month.</p>
           <input
             type="text"
             value={newPhoneNumber}
             onChange={(e) => setNewPhoneNumber(e.target.value)}
-            placeholder="Введите номер телефона"
+            placeholder="Enter phone number"
           />
-          <button onClick={handleRegister}>Оплатить</button>
+          <button onClick={handleRegister}>Pay</button>
         </div>
       )}
-      <button onClick={onBack}>Назад</button>
+      <button onClick={onBack}>Back</button>
       {notification && <p className="notification">{notification}</p>}
     </div>
   );

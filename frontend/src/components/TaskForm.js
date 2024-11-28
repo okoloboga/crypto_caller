@@ -11,15 +11,15 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
   useEffect(() => {
     console.log(`Task: ${JSON.stringify(task, null, 2)}`);
     if (task) {
-      setForm(task); // Если задача существует, то устанавливаем ее в форму для редактирования
+      setForm(task);
     } else {
-      setForm({ currencyPair: '', targetPrice: '' }); // Если это новое задание, пустые поля
+      setForm({ currencyPair: '', targetPrice: '' });
     }
   }, [task]);
 
   const isNewTask = !task?.id;
 
-  // Обработчик сохранения задания
+  // Save task handler
   const handleSave = async () => {
     if (disabled) {
       onDisabledAction();
@@ -27,7 +27,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
     }
 
     if (!form.currencyPair || !form.targetPrice) {
-      alert('Заполните все поля.');
+      alert('Please fill in all fields.');
       return;
     }
 
@@ -41,14 +41,14 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
       }
       onSave();
     } catch (error) {
-      console.error('Ошибка при сохранении задания:', error);
-      alert('Не удалось сохранить задание. Попробуйте снова.');
+      console.error('Error saving task:', error);
+      alert('Failed to save the task. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Обработчик удаления задания
+  // Delete task handler
   const handleDelete = async () => {
     if (!task) return;
     setLoading(true);
@@ -56,8 +56,8 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
       await deleteTask(task.id);
       onSave();
     } catch (error) {
-      console.error('Ошибка при удалении задания:', error);
-      alert('Не удалось удалить задание. Попробуйте снова.');
+      console.error('Error deleting task:', error);
+      alert('Failed to delete the task. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
         onChange={(e) => setForm({ ...form, currencyPair: e.target.value })}
         disabled={disabled || loading}
       >
-        <option value="">Выбери валюту</option>
+        <option value="">Select Currency</option>
         {currencyPairs.map((pair) => (
           <option key={pair} value={pair}>
             {pair}
@@ -79,22 +79,22 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
       </select>
       <input
         type="number"
-        placeholder="Триггерная цена"
+        placeholder="Trigger Price"
         value={form.targetPrice}
         onChange={(e) => setForm({ ...form, targetPrice: e.target.value })}
         disabled={disabled || loading}
       />
       <div className="task-form-buttons">
         <button onClick={handleSave} disabled={disabled || loading}>
-          {isNewTask ? 'Сохранить' : 'Сохранить изменения'}
+          {isNewTask ? 'Save' : 'Save Changes'}
         </button>
         {!isNewTask && (
           <button onClick={handleDelete} disabled={loading}>
-            Удалить
+            Delete
           </button>
         )}
         <button onClick={onCancel} disabled={loading}>
-          Отменить
+          Cancel
         </button>
       </div>
     </div>

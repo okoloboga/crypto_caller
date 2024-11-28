@@ -4,7 +4,7 @@ import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
 import Header from '../components/Header';
 import PointsWidget from '../components/PointsWidget';
-import SubscriptionForm from '../components/SubscriptionForm'; // Импорт формы подписки
+import SubscriptionForm from '../components/SubscriptionForm'; // Import subscription form
 import { getUserTasks, deleteTask, checkSubscription } from '../services/apiService';
 import './Dashboard.css';
 
@@ -34,8 +34,8 @@ const Dashboard = () => {
       const subscriptionStatus = walletAddress ? Boolean(await checkSubscription(walletAddress)) : false;
       setIsSubscribed(subscriptionStatus);
     } catch (error) {
-      console.error('Ошибка проверки подписки:', error);
-      setIsSubscribed(false); // При ошибке ставим флаг в false
+      console.error('Error checking subscription status:', error);
+      setIsSubscribed(false);
     }
   };
 
@@ -46,12 +46,12 @@ const Dashboard = () => {
       console.log(`Tasks: ${fetchedTasks}`)
 
       if (fetchedTasks == undefined) {
-        console.log('Заданий нет');
+        console.log('No tasks available');
       } else {
         setTasks(fetchedTasks)
       };
     } catch (error) {
-      console.error('Ошибка загрузки заданий:', error);
+      console.error('Error loading tasks:', error);
     }
   };
 
@@ -61,7 +61,7 @@ const Dashboard = () => {
 
   const showNotification = (message) => {
     setNotification(message);
-    setTimeout(() => setNotification(''), 3000); // Очистить уведомление через 3 секунды
+    setTimeout(() => setNotification(''), 3000);
   };
 
   if (currentScreen === 'subscription') {
@@ -78,16 +78,16 @@ const Dashboard = () => {
       <button
         onClick={() => {
           if (!walletAddress) {
-            showNotification('Подключи кошелек, чтобы создать задание.');
+            showNotification('Connect your wallet to create a task.');
           } else if (!isSubscribed) {
-            showNotification('Купи подписку, чтобы создать задание.');
+            showNotification('Buy a subscription to create a task.');
           } else {
-            setCurrentTask({ currencyPair: '', targetPrice: '' }); // Устанавливаем пустой объект для нового задания
+            setCurrentTask({ currencyPair: '', targetPrice: '' });
           }
         }}
         className="create-task-button"
       >
-        Создать задание
+        Create Task
       </button>
 
       {currentTask ? (

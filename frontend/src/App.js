@@ -4,7 +4,7 @@ import Dashboard from './pages/Dashboard';
 import './App.css';
 
 const App = () => {
-  const walletAddress = useTonAddress(); // Получаем адрес кошелька
+  const walletAddress = useTonAddress();
   console.log(`Wallet address: ${walletAddress}`);
 
   return (

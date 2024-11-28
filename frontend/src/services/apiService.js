@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Создаем экземпляр Axios с базовым URL
+// Create an Axios instance with the base URL
 const api = axios.create({
   baseURL: process.env.API_URL || 'https://caller.ruble.website/api',
   headers: {
@@ -8,58 +8,58 @@ const api = axios.create({
   },
 });
 
-// Обработка ошибок ответа API
+// Handle API response errors
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    console.error('Ошибка API:', error.response?.data || error.message);
+    console.error('API Error:', error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
 
-// Функция для получения пользователя по Wallet Address
+// Function to get user data by Wallet Address
 export const getUserByWalletAddress = async (walletAddress) => {
-  console.log(`Получение данных пользователя для walletAddress: ${walletAddress}`);
+  console.log(`Fetching user data for walletAddress: ${walletAddress}`);
   try {
     console.log(api.defaults.baseURL);
     const response = await api.get(`/user/${walletAddress}`);
-    console.log('Данные пользователя успешно получены:', response);
+    console.log('User data successfully fetched:', response);
 
     return response;
   } catch (error) {
-    console.error(`Ошибка при получении данных пользователя для walletAddress ${walletAddress}:`, error.message);
+    console.error(`Error fetching user data for walletAddress ${walletAddress}:`, error.message);
     throw error;
   }
 };
 
-// Функция для проверки подписки
+// Function to check subscription status
 export const checkSubscription = async (walletAddress) => {
-  console.log(`Проверка статуса подписки для walletAddress: ${walletAddress}`);
+  console.log(`Checking subscription status for walletAddress: ${walletAddress}`);
   try {
     const response = await api.get('/user/subscription-status', {
       params: { walletAddress },
     });
-    console.log('Статус подписки успешно проверен:', response);
+    console.log('Subscription status successfully checked:', response);
     return response; 
   } catch (error) {
-    console.error(`Ошибка при проверке подписки для walletAddress ${walletAddress}:`, error.message);
+    console.error(`Error checking subscription for walletAddress ${walletAddress}:`, error.message);
     throw error; 
   }
 };
 
-// Функция для создания подписки
+// Function to create a subscription
 export const createSubscription = async (walletAddress, phoneNumber, signedChallenge) => {
-  console.log(`Создание подписки для walletAddress: ${walletAddress}`);
+  console.log(`Creating subscription for walletAddress: ${walletAddress}`);
   try {
     const response = await api.post('/user/subscription', {
       walletAddress,
       phoneNumber,
       signedChallenge,
     });
-    console.log('Подписка успешно создана:', response.data);
+    console.log('Subscription successfully created:', response.data);
     return response.data;
   } catch (error) {
-    console.error(`Ошибка при создании подписки для walletAddress ${walletAddress}:`, error.message);
+    console.error(`Error creating subscription for walletAddress ${walletAddress}:`, error.message);
     throw error;
   }
 };
@@ -69,86 +69,85 @@ export const updatePhoneNumber = async (walletAddress, phoneNumber) => {
     const response = await api.patch(`/user/${walletAddress}/phone`, { phoneNumber });
     return response;
   } catch (error) {
-    console.error('Ошибка обновления номера телефона:', error.response?.data || error.message);
+    console.error('Error updating phone number:', error.response?.data || error.message);
     throw error;
   }
 };
 
-// Функция для получения списка заданий пользователя
+// Function to get a user's task list
 export const getUserTasks = async (walletAddress) => {
-  console.log(`Получение списка заданий для walletAddress: ${walletAddress}`);
+  console.log(`Fetching task list for walletAddress: ${walletAddress}`);
   try {
     const response = await api.get(`/task/user/${walletAddress}`);
-    console.log('Список заданий успешно получен:', response);
+    console.log('Task list successfully fetched:', response);
     return response;
   } catch (error) {
-    console.error(`Ошибка при получении заданий для walletAddress ${walletAddress}:`, error.message);
+    console.error(`Error fetching tasks for walletAddress ${walletAddress}:`, error.message);
     throw error;
   }
 };
 
-// Функция для создания нового задания
+// Function to create a new task
 export const createTask = async (taskData) => {
-  console.log('Создание нового задания с данными:', taskData);
+  console.log('Creating a new task with data:', taskData);
   try {
     const response = await api.post('/task', taskData);
-    console.log('Задание успешно создано:', response);
+    console.log('Task successfully created:', response);
     return response;
   } catch (error) {
-    console.error('Ошибка при создании задания:', error.message);
+    console.error('Error creating task:', error.message);
     throw error;
   }
 };
 
-// Функция для обновления существующего задания
+// Function to update an existing task
 export const updateTask = async (taskId, updates) => {
-  console.log(`Обновление задания с ID ${taskId}. Обновляемые данные:`, updates);
+  console.log(`Updating task with ID ${taskId}. Updated data:`, updates);
   try {
     const response = await api.patch(`/task/${taskId}`, updates);
-    console.log('Задание успешно обновлено:', response.data);
+    console.log('Task successfully updated:', response.data);
     return response.data;
   } catch (error) {
-    console.error(`Ошибка при обновлении задания с ID ${taskId}:`, error.message);
+    console.error(`Error updating task with ID ${taskId}:`, error.message);
     throw error;
   }
 };
 
-// Функция для удаления задания
+// Function to delete a task
 export const deleteTask = async (taskId) => {
-  console.log(`Удаление задания с ID ${taskId}`);
+  console.log(`Deleting task with ID ${taskId}`);
   try {
     const response = await api.delete(`/task/${taskId}`);
-    console.log(`Задание с ID ${taskId} успешно удалено.`);
+    console.log(`Task with ID ${taskId} successfully deleted.`);
     return response.data;
   } catch (error) {
-    console.error(`Ошибка при удалении задания с ID ${taskId}:`, error.message);
+    console.error(`Error deleting task with ID ${taskId}:`, error.message);
     throw error;
   }
 };
 
-
+// Function to generate a challenge
 export const getChallenge = async (walletAddress) => {
   try {
     const response = await api.get('/challenge/generate', {
       params: { walletAddress },
     });
 
-    console.log('Полный ответ от сервера:', response);
+    console.log('Full response from server:', response);
 
-    // Доступ к challenge в response.data
+    // Access challenge in response.data
     if (!response.challenge) {
-      throw new Error('Некорректная структура ответа от сервера.');
+      throw new Error('Invalid response structure from server.');
     }
 
     return response.challenge;
   } catch (error) {
-    console.error(`Ошибка при запросе challenge для walletAddress ${walletAddress}:`, error.message);
+    console.error(`Error requesting challenge for walletAddress ${walletAddress}:`, error.message);
     throw error;
   }
 };
 
-
-
+// Function to verify a challenge
 export const verifyChallenge = async (account, tonProof) => {
   try {
     const response = await api.post('/challenge/verify', {
@@ -157,17 +156,14 @@ export const verifyChallenge = async (account, tonProof) => {
     });
 
     if (response && response.valid !== undefined) {
-      console.log(response.valid); // Проверяем доступ к valid
+      console.log(response.valid); // Checking access to valid
     } else {
-      console.log('Полный ответ от сервера:', response);
+      console.log('Full response from server:', response);
     }
 
     return response.valid;
   } catch (error) {
-    console.error(`Ошибка при проверке challenge для account.address ${account.address}:`, error.message);
+    console.error(`Error verifying challenge for account.address ${account.address}:`, error.message);
     throw error;
   }
 };
-
-
-
