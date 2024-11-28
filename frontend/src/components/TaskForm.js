@@ -5,17 +5,15 @@ import './TaskForm.css';
 
 const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledAction }) => {
   const walletAddress = useTonAddress();
-  const [form, setForm] = useState(task || { currencyPair: '', targetPrice: '' });
+  const [form, setForm] = useState(task || { currencyPair: '', targetPrice: '', isPriceAbove: true }); // Добавляем isPriceAbove в стейт
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     console.log(`Task: ${JSON.stringify(task, null, 2)}`);
     if (task) {
-      // Если есть task, то обновляем состояние формы с данными задачи
       setForm(task);
     } else {
-      // Если нет task, инициализируем пустую форму
-      setForm({ currencyPair: '', targetPrice: '' });
+      setForm({ currencyPair: '', targetPrice: '', isPriceAbove: true }); // По умолчанию "Above"
     }
   }, [task]);
 
@@ -41,7 +39,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
         const taskData = { ...form };
         await updateTask(task.id, taskData);
       } else {
-        const taskData = { walletAddress, ...form };
+        const taskData = { walletAddress, ...form }; // Передаем isPriceAbove
         await createTask(taskData);
       }
       onSave();
@@ -68,6 +66,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
           </option>
         ))}
       </select>
+
       <input
         type="number"
         placeholder="Trigger Price"
@@ -75,6 +74,22 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
         onChange={(e) => setForm({ ...form, targetPrice: e.target.value })}
         disabled={disabled || loading}
       />
+
+      {/* Новый выбор для isPriceAbove */}
+      <div className="price-trigger">
+        <label>
+          Trigger when price is:
+          <select
+            value={form.isPriceAbove ? 'above' : 'below'}
+            onChange={(e) => setForm({ ...form, isPriceAbove: e.target.value === 'above' })}
+            disabled={disabled || loading}
+          >
+            <option value="above">Above Target Price</option>
+            <option value="below">Below Target Price</option>
+          </select>
+        </label>
+      </div>
+
       <div className="task-form-buttons">
         <button onClick={handleSave} disabled={disabled || loading}>
           Save

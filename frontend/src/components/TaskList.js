@@ -7,13 +7,19 @@ const TaskList = ({ tasks, onEdit, onDelete, isDisabled, onDisabledAction }) => 
       {tasks.length > 0 ? (
         tasks.map((task) => (
           <div key={task.id} className="task-item">
-            <p>{task.currencyPair}: {task.targetPrice}</p>
+            {/* Отображаем валютную пару, целевую цену и знак (плюс или минус) */}
+            <p>
+              {task.currencyPair}: {task.targetPrice}
+              {task.isPriceAbove ? ' +' : ' -'} {/* Добавляем знак */}
+            </p>
+
             <button
               onClick={() => (isDisabled ? onDisabledAction() : onEdit(task))}
               disabled={isDisabled}
             >
               Edit
             </button>
+
             <button
               onClick={() => (isDisabled ? onDisabledAction() : onDelete(task.id))}
               disabled={isDisabled}
