@@ -34,6 +34,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
     setLoading(true);
     try {
       const taskData = { walletAddress, ...form };
+      console.log(`New Task data: ${taskData}`);
       if (!isNewTask) {
         await updateTask(task.id, taskData);
       } else {

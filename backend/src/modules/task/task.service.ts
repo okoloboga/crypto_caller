@@ -20,6 +20,7 @@ export class TaskService {
   ) {}
 
   async createTask(walletAddress: string, currencyPair: string, targetPrice: number): Promise<Task> {
+    console.log(`Создание нового задания: ${JSON.stringify({ walletAddress, currencyPair, targetPrice })}`);
     try {
       const task = this.taskRepository.create({
         walletAddress,
@@ -70,7 +71,7 @@ export class TaskService {
     try {
       const tasks = await this.taskRepository.find({ where: { walletAddress } });
       if (!tasks.length) {
-        throw new NotFoundException(`Задачи для пользователя с walletAddress ${walletAddress} не найдены.`);
+        console.log(`Задачи для пользователя с walletAddress ${walletAddress} не найдены.`);
       }
       return tasks;
     } catch (error) {
