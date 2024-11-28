@@ -71,6 +71,17 @@ const Dashboard = () => {
     return <SubscriptionForm onBack={handleBackToDashboard} />;
   }
 
+  const handleDelete = async (taskId) => {
+    try {
+      await deleteTask(taskId);
+      setTasks(tasks.filter(task => task.id !== taskId));
+      showNotification('Task successfully deleted');
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      showNotification('Failed to delete task. Please try again.');
+    }
+  };
+
   return (
     <div className="dashboard">
       <Header onNavigate={setCurrentScreen} />
@@ -99,7 +110,7 @@ const Dashboard = () => {
           onCancel={() => setCurrentTask(null)}
         />
       ) : (
-        <TaskList tasks={tasks} onEdit={setCurrentTask} onDelete={deleteTask} />
+        <TaskList tasks={tasks} onEdit={setCurrentTask} onDelete={handleDelete} />
       )}
 
       {notification && <p className="notification">{notification}</p>}
