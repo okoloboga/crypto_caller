@@ -9,7 +9,7 @@ export class OkxApiService {
   constructor(private readonly httpService: HttpService) {}
 
   async getCurrentPrice(currencyPair: string): Promise<number> {
-    if (!/^[A-Z0-9]+\/[A-Z0-9]+$/.test(currencyPair)) {
+    if (!/^[A-Z0-9]+\-[A-Z0-9]+$/.test(currencyPair)) {
       throw new Error(`Invalid pair format: ${currencyPair}`);
     }
 
