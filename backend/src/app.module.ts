@@ -31,8 +31,7 @@ import { BullModule } from '@nestjs/bull';
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
       entities: [__dirname + '/modules/**/*.entity{.ts,.js}'],
-      synchronize: true,
-      logging: true,
+      synchronize: true
     }),
   ],
   controllers: [AppController], // Добавляем контроллер сюда

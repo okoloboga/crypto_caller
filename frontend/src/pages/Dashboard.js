@@ -96,8 +96,8 @@ const Dashboard = () => {
         <TaskForm
           task={currentTask}
           currencyPairs={currencyPairs}
-          onSave={handleSave}  // Обновленный обработчик для закрытия формы
-          onCancel={() => setCurrentTask(null)}  // Закрытие формы при отмене
+          onSave={handleSave}
+          onCancel={() => setCurrentTask(null)}
         />
       ) : (
         <TaskList tasks={tasks} onEdit={setCurrentTask} onDelete={deleteTask} />
