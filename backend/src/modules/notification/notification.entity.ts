@@ -17,7 +17,7 @@ export class Notification {
   createdAt: Date;
 
   @ManyToOne(() => User, (user) => user.notifications)
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: 'addressWallet' })
   user: User;
 
   @ManyToOne(() => Task, (task) => task.notifications)

@@ -1,5 +1,4 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { User } from '../user/user.entity';
 import { Notification } from '../notification/notification.entity';
 
 @Entity('tasks')
@@ -8,10 +7,10 @@ export class Task {
   id: number;
 
   @Column()
-  pair: string; // e.g., 'BTC/USDT'
+  pair: string;
 
   @Column({ default: true })
-  isActive: boolean
+  isActive: boolean;
 
   @Column('decimal')
   targetPrice: number;
@@ -19,8 +18,8 @@ export class Task {
   @Column({ default: false })
   isPriceAbove: boolean;
 
-  @ManyToOne(() => User, (user) => user.tasks, { onDelete: 'CASCADE' })
-  user: User;
+  @Column()
+  walletAddress: string;
 
   @CreateDateColumn()
   createdAt: Date;
