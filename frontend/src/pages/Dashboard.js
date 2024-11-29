@@ -4,14 +4,15 @@ import { useLanguage } from '../contexts/LanguageContext';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
 import Header from '../components/Header';
-import PointsWidget from '../components/PointsWidget';
+import PointsWidget from '../components/PointsWidget';  // Импортируем PointsWidget
 import SubscriptionForm from '../components/SubscriptionForm';
 import { getUserTasks, deleteTask, checkSubscription } from '../services/apiService';
+import { getUserByWalletAddress } from '../services/apiService';  // Функция для получения данных пользователя
 import './Dashboard.css';
 
 const Dashboard = () => {
   const walletAddress = useTonAddress();
-  const { language } = useLanguage(); // Используем текущий язык из контекста
+  const { language } = useLanguage();  // Используем текущий язык из контекста
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [currentTask, setCurrentTask] = useState(null);
@@ -19,21 +20,36 @@ const Dashboard = () => {
   const [notification, setNotification] = useState('');
   const [currentScreen, setCurrentScreen] = useState('dashboard');
 
-  // Проверка подписки при изменении адреса кошелька
+  // Состояния для очков и времени последнего обновления
+  const [points, setPoints] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
   useEffect(() => {
     if (walletAddress) {
       checkSubscriptionStatus();
+      fetchUserData();  // Получаем данные о пользователе при монтировании компонента
     }
   }, [walletAddress]);
 
-  // Проверка подписки и загрузка задач при изменении состояния подписки
   useEffect(() => {
     if (walletAddress && isSubscribed) {
       fetchTasks();
     }
   }, [walletAddress, isSubscribed]);
 
-  // Функция для проверки подписки
+  const fetchUserData = async () => {
+    try {
+      const response = await getUserByWalletAddress(walletAddress); // Запрос на сервер для получения данных пользователя
+      const userData = response.data;  // Предполагаем, что данные находятся в response.data
+
+      // Устанавливаем очки и lastUpdated в состояние
+      setPoints(userData.points);
+      setLastUpdated(new Date(userData.lastUpdated));  // Преобразуем lastUpdated в объект Date
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
   const checkSubscriptionStatus = async () => {
     try {
       const subscriptionStatus = walletAddress ? Boolean(await checkSubscription(walletAddress)) : false;
@@ -44,7 +60,6 @@ const Dashboard = () => {
     }
   };
 
-  // Функция для загрузки задач
   const fetchTasks = async () => {
     try {
       const fetchedTasks = await getUserTasks(walletAddress);
@@ -83,7 +98,6 @@ const Dashboard = () => {
     }
   };
 
-  // Обработчик кнопки создания задачи
   const handleCreateTask = () => {
     if (!walletAddress) {
       showNotification('Connect your wallet to create a task.');
@@ -101,7 +115,14 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <Header onNavigate={setCurrentScreen} />
-      <PointsWidget isSubscribed={isSubscribed} showNotification={showNotification} />
+      
+      {/* Передаем points и lastUpdated в PointsWidget */}
+      <PointsWidget 
+        isSubscribed={isSubscribed} 
+        showNotification={showNotification}
+        points={points}  // Передаем количество очков
+        lastUpdated={lastUpdated}  // Передаем время последнего обновления
+      />
 
       <button
         onClick={handleCreateTask}
