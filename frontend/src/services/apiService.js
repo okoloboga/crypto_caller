@@ -82,8 +82,8 @@ export const createSubscription = async (walletAddress, phoneNumber, signedChall
       phoneNumber,
       signedChallenge,
     });
-    console.log('Subscription successfully created:', response.data);
-    return response.data;
+    console.log('Subscription successfully created:', response);
+    return response;
   } catch (error) {
     console.error(`Error creating subscription for walletAddress ${walletAddress}:`, error.message);
     throw error;

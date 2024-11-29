@@ -24,7 +24,6 @@
     border-radius: 25px;
     margin: 16px 0;
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     transition: all 0.2s ease-in-out;
     width: 90%; /* Удобно для нажатия пальцем */
     max-width: 200px;
@@ -46,7 +45,6 @@
     margin: 10px 0;
     text-align: center;
     animation: fade-in-out 3s ease-in-out;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
   
   @keyframes fade-in-out {

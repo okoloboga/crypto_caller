@@ -20,9 +20,6 @@ export class User {
   points: number;
 
   @Column({ type: 'timestamp', nullable: true })
-  lastPointsCollectedAt: Date;
-
-  @Column({ type: 'timestamp', nullable: true })
   lastUpdated: Date;
 
   @Column('int', { array: true, nullable: true })

@@ -103,7 +103,7 @@ export class UserService {
     }
   
     user.points += pointsToAdd;
-    user.lastPointsCollectedAt = new Date();
+    user.lastUpdated = new Date();
   
     await this.userRepository.save(user);
   }

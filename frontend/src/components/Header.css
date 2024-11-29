@@ -6,7 +6,6 @@ header {
     align-items: center;
     justify-content: center;
     width: 100%;
-    box-shadow: none;
   }
   
   nav ul {
@@ -64,7 +63,6 @@ header {
     font-size: 14px;
     border-radius: 25px;
     text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     animation: fade-in-out 3s ease-in-out;
   }
   

@@ -9,7 +9,6 @@
     padding: 0px;
     background-color: #1e1e2f; /* Темный фон */
     border-radius: 25px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     color: white;
   }
   
@@ -31,7 +30,6 @@
     padding: 12px;
     margin-bottom: 10px;
     border-radius: 25px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     transition: transform 0.2s;
   }
   
@@ -60,24 +58,20 @@
   .task-item button:first-of-type {
     background: linear-gradient(90deg, #4e54c8, #8f94fb); /* Градиент голубой -> фиолетовый */
     color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
   
   .task-item button:first-of-type:active {
     transform: translateY(1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
   
   /* Кнопка удаления */
   .task-item button:last-of-type {
     background-color: #ff4e4e; /* Красный для кнопки удаления */
     color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
   
   .task-item button:last-of-type:active {
     transform: translateY(1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
   
   /* Отключенные кнопки */
@@ -86,6 +80,5 @@
     color: #7a7a9d; /* Тусклый текст */
     cursor: not-allowed;
     transform: none;
-    box-shadow: none;
   }
   

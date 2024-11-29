@@ -10,7 +10,6 @@
     margin: 16px auto;
     width: 90%;
     max-width: 400px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   }
   
   /* Текст уведомлений */
@@ -31,7 +30,6 @@
     border-radius: 25px;
     text-align: center;
     margin-top: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     animation: fade-in-out 3s ease-in-out;
   }
   
@@ -85,17 +83,14 @@
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     background: linear-gradient(90deg, #4e54c8, #8f94fb);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
   
   .subscription-form button:active {
     transform: translateY(1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
   
   .subscription-form button:last-of-type {
     background-color: #2b2b40;
-    box-shadow: none;
   }
   
   .subscription-form button:last-of-type:hover {

@@ -43,8 +43,6 @@ export class ChallengeService {
 
     const stateInit = loadStateInit(Cell.fromBase64(payload.proof.state_init).beginParse())
 
-    this.logger.log(`stateInit: ${JSON.stringify(stateInit, null, 2)}`)
-
 	  const client = new TonClient4({
 		  endpoint: 'https://mainnet-v4.tonhubapi.com'
 	  })
