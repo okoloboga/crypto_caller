@@ -1,12 +1,11 @@
-/* Общий стиль для контейнера */
 .subscription-form {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: #1e1e2f; /* Темный фон */
-    color: white; /* Белый текст */
-    border-radius: 12px;
+    background-color: #1e1e2f;
+    color: white; 
+    border-radius: 25px;
     padding: 16px;
     margin: 16px auto;
     width: 90%;
@@ -25,11 +24,11 @@
   
   /* Уведомления */
   .subscription-form .notification {
-    background-color: #4e54c8; /* Фиолетовый фон */
+    background-color: #4e54c8;
     color: white;
     font-size: 14px;
     padding: 10px 16px;
-    border-radius: 8px;
+    border-radius: 25px;
     text-align: center;
     margin-top: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -61,16 +60,16 @@
     padding: 12px 16px;
     margin: 10px 0;
     font-size: 16px;
-    border: 2px solid #4e54c8; /* Фиолетовая рамка */
-    border-radius: 8px;
-    background-color: #2b2b40; /* Темный фон для ввода */
+    border: 2px solid #4e54c8;
+    border-radius: 25px;
+    background-color: #2b2b40;
     color: white;
     outline: none;
     transition: border-color 0.2s;
   }
   
   .subscription-form input[type="text"]:focus {
-    border-color: #8f94fb; /* Голубой при фокусе */
+    border-color: #8f94fb;
   }
   
   /* Кнопки */
@@ -82,16 +81,11 @@
     font-weight: bold;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 25px;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    background: linear-gradient(90deg, #4e54c8, #8f94fb); /* Градиент голубой -> фиолетовый */
+    background: linear-gradient(90deg, #4e54c8, #8f94fb);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  }
-  
-  .subscription-form button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
   }
   
   .subscription-form button:active {
@@ -100,11 +94,11 @@
   }
   
   .subscription-form button:last-of-type {
-    background-color: #2b2b40; /* Темный серый для кнопки "Назад" */
+    background-color: #2b2b40;
     box-shadow: none;
   }
   
   .subscription-form button:last-of-type:hover {
-    background-color: #3c3c54; /* Более светлый серый при наведении */
+    background-color: #3c3c54;
   }
   

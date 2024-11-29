@@ -7,7 +7,7 @@
     color: white; /* Белый текст */
     padding: 16px;
     margin: 16px auto;
-    border-radius: 12px;
+    border-radius: 25px;
     width: 90%;
     max-width: 400px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
@@ -20,7 +20,7 @@
     margin: 10px 0;
     font-size: 16px;
     border: 2px solid #4e54c8; /* Фиолетовая рамка */
-    border-radius: 8px;
+    border-radius: 25px;
     background-color: #2b2b40; /* Темный фон */
     color: white;
     outline: none;
@@ -45,11 +45,12 @@
     margin: 10px 0;
     font-size: 16px;
     border: 2px solid #4e54c8; /* Фиолетовая рамка */
-    border-radius: 8px;
+    border-radius: 25px;
     background-color: #2b2b40; /* Темный фон */
     color: white;
     outline: none;
     transition: border-color 0.2s;
+    appearance: none;
   }
   
   .task-form input[type="number"]:focus {
@@ -78,16 +79,11 @@
     font-weight: bold;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 25px;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    background: linear-gradient(90deg, #4e54c8, #8f94fb); /* Градиент голубой -> фиолетовый */
+    background: linear-gradient(90deg, #4e54c8, #8f94fb);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  }
-  
-  .task-form-buttons button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
   }
   
   .task-form-buttons button:active {
@@ -96,23 +92,18 @@
   }
   
   .task-form-buttons button:disabled {
-    background-color: #3c3c54; /* Тусклый фон для disabled */
-    color: #7a7a9d; /* Тусклый текст */
+    background-color: #3c3c54;
+    color: #7a7a9d;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
   }
   
-  /* Кнопка удаления */
   .task-form-buttons button:nth-child(2) {
-    background-color: #ff4e4e; /* Красный для кнопки удаления */
-  }
-  
-  .task-form-buttons button:nth-child(2):hover {
-    background-color: #ff6666;
+    background-color: #ff4e4e;
   }
   
   .task-form-buttons button:nth-child(2):disabled {
-    background-color: #7a7a9d; /* Серый, если disabled */
+    background-color: #7a7a9d;
   }
   

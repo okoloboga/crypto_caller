@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
+import { useLanguage } from '../contexts/LanguageContext';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
 import Header from '../components/Header';
 import PointsWidget from '../components/PointsWidget';
-import SubscriptionForm from '../components/SubscriptionForm'; // Import subscription form
+import SubscriptionForm from '../components/SubscriptionForm';
 import { getUserTasks, deleteTask, checkSubscription } from '../services/apiService';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const walletAddress = useTonAddress();
+  const { language } = useLanguage(); // Используем текущий язык из контекста
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [currentTask, setCurrentTask] = useState(null);
@@ -98,7 +100,7 @@ const Dashboard = () => {
         }}
         className="create-task-button"
       >
-        Create Task
+        {language === 'en' ? 'Create Task' : 'Создать задачу'}
       </button>
 
       {currentTask ? (

@@ -1,13 +1,14 @@
+// src/components/SubscriptionForm.js
 import React, { useState, useEffect } from 'react';
-import { TonConnect } from '@tonconnect/sdk';
 import { useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { getUserByWalletAddress, updatePhoneNumber, createSubscription,
          checkSubscription, getChallenge, verifyChallenge } from '../services/apiService';
+import { useTranslation } from 'react-i18next'; // Импортируем хук useTranslation
 import './SubscriptionForm.css';
 
 const SubscriptionForm = ({ onBack }) => {
+  const { t } = useTranslation(); // Получаем функцию для перевода
   const [tonConnectUI, setOptions] = useTonConnectUI();
-  const tonConnect = new TonConnect();
   const wallet = useTonWallet();
   const walletAddress = useTonAddress();
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -20,7 +21,7 @@ const SubscriptionForm = ({ onBack }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       if (!walletAddress) {
-        setNotification('Connect your TON wallet.');
+        setNotification(t('connectWallet'));
         return;
       }
 
@@ -31,17 +32,17 @@ const SubscriptionForm = ({ onBack }) => {
           setPhoneNumber(user.phoneNumber || '');
           setIsSubscribed(subscribeIsActive);
         } else if (!hasShownNotification) {
-          setNotification('User not found.');
+          setNotification(t('userNotFound'));
           setHasShownNotification(true);
         }
       } catch (error) {
         console.error('Error loading user data:', error);
-        setNotification('Error loading data.');
+        setNotification(t('errorLoadingData'));
       }
     };
 
     fetchUserData();
-  }, [walletAddress]);
+  }, [walletAddress, t, hasShownNotification]);
 
   const ensureWalletConnected = () => {
     if (!walletAddress) {
@@ -56,12 +57,12 @@ const SubscriptionForm = ({ onBack }) => {
 
   const handleSave = async () => {
     if (!newPhoneNumber) {
-      showNotification('Please enter a new phone number.');
+      showNotification(t('enterPhoneNumber'));
       return;
     }
 
     if (!walletAddress) {
-      showNotification('Connect your TON wallet.');
+      showNotification(t('connectWallet'));
       return;
     }
 
@@ -70,10 +71,10 @@ const SubscriptionForm = ({ onBack }) => {
       setPhoneNumber(newPhoneNumber);
       setNewPhoneNumber('');
       setIsEditing(false);
-      showNotification('Phone number updated successfully.');
+      showNotification(t('phoneNumberUpdated'));
     } catch (error) {
       console.error('Error updating phone number:', error);
-      showNotification('Update failed. Please try again.');
+      showNotification(t('updateFailed'));
     }
   };
 
@@ -83,7 +84,6 @@ const SubscriptionForm = ({ onBack }) => {
   };
 
   const refreshPayload = async (challenge) => {
-    
     tonConnectUI.setConnectRequestParameters({ state: "loading" });
 
     if (challenge) {
@@ -118,28 +118,28 @@ const SubscriptionForm = ({ onBack }) => {
       throw error;
     }
   };
-  
+
   const handleRegister = async () => {
     console.log('Starting handleRegister');
     if (!newPhoneNumber) {
-      showNotification('Please enter a new phone number.');
+      showNotification(t('enterPhoneNumber'));
       return;
     }
-  
+
     if (!validatePhoneNumber(newPhoneNumber)) {
-      showNotification('Invalid phone number. Please check the format.');
+      showNotification(t('invalidPhoneNumber'));
       return;
     }
-  
+
     if (!walletAddress) {
       throw new Error('Wallet is not connected.');
     }
-  
+
     try {
       ensureWalletConnected();
-      showNotification('Starting the registration process...');
+      showNotification(t('registrationProcess'));
       console.log('Connected wallet:', walletAddress);
-  
+
       const txSubscription = {
         validUntil: Math.floor(Date.now() / 1000) + 60,
         network: 'testnet',
@@ -154,29 +154,29 @@ const SubscriptionForm = ({ onBack }) => {
       const challenge = await getChallenge(wallet.account.address);
       const tonProof = await connectWalletWithProof(challenge);
       console.log('Received TON Proof:', tonProof, 'For wallet:', wallet.account.address);
-  
+
       const isValid = await verifyChallenge(wallet.account, tonProof);
       console.log('TON Proof verification result:', isValid);
-  
+
       if (!isValid || isValid === false) {
         throw new Error('TON Proof failed verification.');
       }
-  
-      showNotification('TON Proof successfully verified.');
-      
+
+      showNotification(t('tonProofSuccess'));
+
       console.log('Sending transaction...');
       await tonConnectUI.sendTransaction(txSubscription);
       console.log('Transaction completed successfully.');
-      showNotification('Transaction completed successfully.');
+      showNotification(t('transactionSuccess'));
 
       console.log('Registering subscription on the server...');
       await createSubscription(walletAddress, newPhoneNumber, tonProof);
       setIsSubscribed(true);
       console.log('Subscription successfully activated.');
-      showNotification('Subscription successfully activated.');
+      showNotification(t('subscriptionActivated'));
     } catch (error) {
       console.error('Error in handleRegister:', error);
-      showNotification('Activation failed. Please try again.');
+      showNotification(t('activationFailed'));
     }
   };
 
@@ -185,35 +185,35 @@ const SubscriptionForm = ({ onBack }) => {
       {isSubscribed ? (
         isEditing ? (
           <div>
-            <p>Editing phone number:</p>
+            <p>{t('enterNewPhoneNumber')}:</p>
             <input
               type="text"
               value={newPhoneNumber || phoneNumber}
               onChange={(e) => setNewPhoneNumber(e.target.value)}
-              placeholder="Enter new phone number"
+              placeholder={t('enterNewPhoneNumber')}
             />
-            <button onClick={handleSave}>Save</button>
+            <button onClick={handleSave}>{t('save')}</button>
           </div>
         ) : (
           <div>
-            <p>Subscription active on number: {phoneNumber}</p>
-            <button onClick={() => setIsEditing(true)}>Edit Number</button>
+            <p>{t('subscriptionActive', { phoneNumber })}</p>
+            <button onClick={() => setIsEditing(true)}>{t('editNumber')}</button>
           </div>
         )
       ) : (
         <div>
-          <h4>Registration</h4>
-          <p>To use the service, you need to enter your phone number and pay for the subscription. The phone number will be used for notifications about trigger activation. The subscription costs 1 TON per month.</p>
+          <h4>{t('registrationProcess')}</h4>
+          <p>{t('subscriptionDescription')}</p>
           <input
             type="text"
             value={newPhoneNumber}
             onChange={(e) => setNewPhoneNumber(e.target.value)}
-            placeholder="Enter phone number"
+            placeholder={t('enterPhoneNumber')}
           />
-          <button onClick={handleRegister}>Pay</button>
+          <button onClick={handleRegister}>{t('payForSubscription')}</button>
         </div>
       )}
-      <button onClick={onBack}>Back</button>
+      <button onClick={onBack}>{t('back')}</button>
       {notification && <p className="notification">{notification}</p>}
     </div>
   );

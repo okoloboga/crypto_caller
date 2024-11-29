@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { getUserByWalletAddress } from '../services/apiService';
+import { useTranslation } from 'react-i18next';
 import './PointsWidget.css';
 
 const PointsWidget = ({ isSubscribed, showNotification }) => {
+  const { t } = useTranslation();
   const walletAddress = useTonAddress();
-  const [points, setPoints] = useState(0); // Points
+  const [points, setPoints] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  // Function to load points
   const loadPoints = async () => {
     if (!isSubscribed) {
-      showNotification('Subscribe to start earning RUBLE.');
+      showNotification(t('subscribeToEarn'));
       return;
     }
     try {
@@ -24,7 +25,6 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
     }
   };
 
-  // Automatic points update every 60 seconds
   useEffect(() => {
     if (isSubscribed) {
       loadPoints();
@@ -38,12 +38,12 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
       className={`points-widget ${!isSubscribed ? 'blocked' : ''}`}
       onClick={() => {
         if (!isSubscribed) {
-          showNotification('to start earning RUBLE.');
+          showNotification(t('subscribeToEarn'));
         }
       }}
     >
       {isSubscribed && lastUpdated && (
-        <p>Last updated: {lastUpdated.toLocaleTimeString()}</p>
+        <p>{t('lastUpdated', { time: lastUpdated.toLocaleTimeString() })}</p>
       )}
       <div className="progress-container" style={{ position: 'relative', display: 'inline-block' }}>
         <progress value={points} max={50}></progress>
@@ -51,7 +51,7 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
           {points} / 50
         </div>
       </div>
-      <h3>RUBLE: {isSubscribed ? points : 0}</h3>
+      <h3>{t('points')}: {isSubscribed ? points : 0}</h3>
     </div>
   );
 };
