@@ -19,7 +19,7 @@ export class User {
   @Column({ default: 0 })
   points: number;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', nullable: true })
   lastUpdated: Date;
 
   @Column('int', { array: true, nullable: true })

@@ -80,7 +80,7 @@ export class UserService {
     }
   
     // Логирование информации о пользователе
-    console.log(`User found: ${JSON.stringify(user)}`);
+    console.log(`User found: ${JSON.stringify(user, null, 2)}`);
   
     const now = Date.now();
     const lastUpdated = user.lastUpdated ? user.lastUpdated.getTime() : now;
