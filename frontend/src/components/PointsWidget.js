@@ -14,6 +14,7 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
 
   // Функция для загрузки текущих очков пользователя с сервера
   const loadPoints = async () => {
+    console.log('loadPoints called');
     if (!isSubscribed) {
       showNotification(t('subscribeToEarn'));
       return;
@@ -21,6 +22,7 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
     if (lastLoaded.current) return; // Предотвращаем повторный запрос, если данные уже загружены
     try {
       const user = await getUserByWalletAddress(walletAddress);
+      console.log('Points loaded from server:', user.points);
       setPoints(user.points);  // Получаем текущие очки
       setLastUpdated(new Date());  // Устанавливаем время последнего обновления
       lastLoaded.current = true; // Устанавливаем флаг загрузки данных
@@ -31,6 +33,7 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
 
   // Функция для плавного увеличения очков на фронтенде
   const incrementPoints = () => {
+    console.log('incrementPoints called');
     if (lastUpdated) {
       const now = Date.now();
       const timeElapsed = (now - lastUpdated.getTime()) / (1000 * 60 * 60); // Время, прошедшее с последнего обновления (в часах)
@@ -43,14 +46,17 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
         newPoints = targetPoints;
       }
 
+      console.log('New points calculated:', newPoints);
       setPoints(newPoints);
     }
   };
 
   // Функция для сбора очков и отправки на сервер
   const handleProgressBarClick = async () => {
+    console.log('handleProgressBarClick called');
     if (points > 0) {
       try {
+        console.log('Claiming points:', points);
         // Отправляем очки на сервер
         await claimPoints(walletAddress, points);  
         setPoints(0);  // Сбрасываем прогресс на фронтенде
@@ -66,12 +72,13 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
 
   // useEffect для плавного увеличения очков в реальном времени
   useEffect(() => {
+    console.log('useEffect called');
     if (isSubscribed) {
       loadPoints();  // Загружаем очки с сервера только один раз
 
       const interval = setInterval(() => {
         incrementPoints();  // Плавно увеличиваем очки, если прошло достаточно времени
-      }, 6000);  // Обновляем каждую минуту
+      }, 1000); // Обновляем каждую секунду
 
       return () => clearInterval(interval);  // Очищаем интервал при размонтировании компонента
     }

@@ -71,44 +71,54 @@ export class UserService {
   // Update points and last collected time
   async updatePoints(walletAddress: string): Promise<number> {
     const user = await this.userRepository.findOne({ where: { walletAddress } });
-  
     if (!user) {
       throw new Error(`User with walletAddress ${walletAddress} not found.`);
     }
   
+    // Логирование
+    console.log(`Updating points for walletAddress: ${walletAddress}`);
+  
     const now = Date.now();
     const lastUpdated = user.lastUpdated ? user.lastUpdated.getTime() : now;
-    const timeElapsed = (now - lastUpdated) / (1000 * 60 * 60);
+    const timeElapsed = (now - lastUpdated) / (1000 * 60 * 60); // Разница в часах
   
-    const accumulationRate = 2;
+    console.log(`Last updated: ${user.lastUpdated}, Time elapsed: ${timeElapsed} hours`);
+  
+    const accumulationRate = 2;  // Очки за 1 час
     let newPoints = user.points + timeElapsed * accumulationRate;
   
     if (newPoints > 50) {
       newPoints = 50;
     }
   
+    console.log(`New points after calculation: ${newPoints}`);
+  
     user.points = newPoints;
     user.lastUpdated = new Date();
     await this.userRepository.save(user);
   
+    console.log(`Points updated successfully for walletAddress: ${walletAddress}`);
     return newPoints;
   }
-
-  // Метод для сбора очков и сброса прогресса
+  
+  // Метод для сбора очков
   async claimPoints(walletAddress: string, pointsToAdd: number): Promise<void> {
     const user = await this.userRepository.findOne({ where: { walletAddress } });
-  
+    
     if (!user) {
       throw new Error(`User with walletAddress ${walletAddress} not found.`);
     }
+  
+    console.log(`Claiming points for walletAddress: ${walletAddress}. Points to add: ${pointsToAdd}`);
   
     user.points += pointsToAdd;
     user.lastUpdated = new Date();
   
     await this.userRepository.save(user);
+  
+    console.log(`Points claimed successfully. New points: ${user.points}`);
   }
   
-
   // Check subscription status
   async checkSubscriptionStatus(walletAddress: string): Promise<boolean> {
     try {
