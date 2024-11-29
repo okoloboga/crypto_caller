@@ -39,8 +39,9 @@ const Dashboard = () => {
 
   const fetchUserData = async () => {
     try {
-      const response = await getUserByWalletAddress(walletAddress); // Запрос на сервер для получения данных пользователя
-      const userData = response.data;  // Предполагаем, что данные находятся в response.data
+      const response = await getUserByWalletAddress(walletAddress);
+      console.log('Полученный пользователь:', response); // Запрос на сервер для получения данных пользователя
+      const userData = response;  // Предполагаем, что данные находятся в response.data
 
       // Устанавливаем очки и lastUpdated в состояние
       setPoints(userData.points);
