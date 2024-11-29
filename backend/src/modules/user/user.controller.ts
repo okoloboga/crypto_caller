@@ -56,4 +56,34 @@ export class UserController {
     }
     return user;
   }
+
+  // Обновление очков (при заходе пользователя в приложение)
+  @Get('update-points')
+  async updatePoints(@Query('walletAddress') walletAddress: string): Promise<number> {
+    if (!walletAddress) {
+      throw new BadRequestException('Wallet address is required');
+    }
+
+    try {
+      const points = await this.userService.updatePoints(walletAddress);
+      return points;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  // Сбор очков
+  @Post('claim-points')
+  async claimPoints(@Body() body: { walletAddress: string, points: number }) {
+    const { walletAddress, points } = body;
+
+    try {
+      // Вызов функции для добавления очков в базу данных
+      await this.userService.claimPoints(walletAddress, points);
+      return { message: 'Points successfully claimed and added to the user\'s account.' };
+    } catch (error) {
+      console.error('Error claiming points:', error);
+      throw new InternalServerErrorException('Error claiming points.');
+    }
+  }
 }

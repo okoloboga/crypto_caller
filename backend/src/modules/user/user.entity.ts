@@ -1,5 +1,4 @@
 // src/user/user.entity.ts
-
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Notification } from '../notification/notification.entity';
 
@@ -23,6 +22,9 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   lastPointsCollectedAt: Date;
 
+  @Column({ type: 'timestamp', nullable: true })
+  lastUpdated: Date;
+
   @Column('int', { array: true, nullable: true })
   taskIds: number[];
 
@@ -35,5 +37,3 @@ export class User {
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[];
 }
-
-

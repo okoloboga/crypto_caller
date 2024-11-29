@@ -32,6 +32,32 @@ export const getUserByWalletAddress = async (walletAddress) => {
   }
 };
 
+// Функция для обновления очков
+export const updatePoints = async (walletAddress) => {
+  try {
+    console.log(`Updating points for walletAddress: ${walletAddress}`);
+    const response = await api.post('/user/update-points', { walletAddress });
+    console.log('Points successfully updated:', response);
+    return response; // Возвращаем обновленные очки
+  } catch (error) {
+    console.error(`Error updating points for walletAddress ${walletAddress}:`, error.message);
+    throw error;
+  }
+};
+
+// Функция для сбора очков
+export const claimPoints = async (walletAddress, points) => {
+  try {
+    console.log(`Claiming points for walletAddress: ${walletAddress} with points: ${points}`);
+    const response = await api.post('/user/claim-points', { walletAddress, points });
+    console.log('Points successfully claimed and added to the user account:', response);
+    return response; // Возвращаем подтверждение успешного сбора
+  } catch (error) {
+    console.error(`Error claiming points for walletAddress ${walletAddress}:`, error.message);
+    throw error;
+  }
+};
+
 // Function to check subscription status
 export const checkSubscription = async (walletAddress) => {
   console.log(`Checking subscription status for walletAddress: ${walletAddress}`);

@@ -69,23 +69,45 @@ export class UserService {
   }
 
   // Update points and last collected time
-  async updatePoints(walletAddress: string, points: number, lastCollectedAt: Date): Promise<User> {
-    console.log(`Обновление очков и времени сбора для walletAddress: ${walletAddress}`);
+  async updatePoints(walletAddress: string): Promise<number> {
     const user = await this.userRepository.findOne({ where: { walletAddress } });
-
+  
     if (!user) {
-      console.log(`Пользователь с walletAddress ${walletAddress} не найден.`);
       throw new Error(`User with walletAddress ${walletAddress} not found.`);
     }
-
-    console.log(`Старые очки: ${user.points}, Новые очки: ${points}`);
-    user.points = points;
-    user.lastPointsCollectedAt = lastCollectedAt;
-
-    const savedUser = await this.userRepository.save(user);
-    console.log(`Очки и время сбора успешно обновлены:`, savedUser);
-    return savedUser;
+  
+    const now = Date.now();
+    const lastUpdated = user.lastUpdated ? user.lastUpdated.getTime() : now;
+    const timeElapsed = (now - lastUpdated) / (1000 * 60 * 60);
+  
+    const accumulationRate = 2;
+    let newPoints = user.points + timeElapsed * accumulationRate;
+  
+    if (newPoints > 50) {
+      newPoints = 50;
+    }
+  
+    user.points = newPoints;
+    user.lastUpdated = new Date();
+    await this.userRepository.save(user);
+  
+    return newPoints;
   }
+
+  // Метод для сбора очков и сброса прогресса
+  async claimPoints(walletAddress: string, pointsToAdd: number): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { walletAddress } });
+  
+    if (!user) {
+      throw new Error(`User with walletAddress ${walletAddress} not found.`);
+    }
+  
+    user.points += pointsToAdd;
+    user.lastPointsCollectedAt = new Date();
+  
+    await this.userRepository.save(user);
+  }
+  
 
   // Check subscription status
   async checkSubscriptionStatus(walletAddress: string): Promise<boolean> {
