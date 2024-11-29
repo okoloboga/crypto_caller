@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
-import { getUserByWalletAddress, claimPoints } from '../services/apiService';
+import { getUserByWalletAddress, claimPoints, updatePoints } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
 import './PointsWidget.css';
 
@@ -8,8 +8,8 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
   const { t } = useTranslation();
   const walletAddress = useTonAddress();
   const [points, setPoints] = useState(0);  // Текущее количество очков
-  const [targetPoints, setTargetPoints] = useState(50);  // Максимальное количество очков, которое можно накопить
   const [lastUpdated, setLastUpdated] = useState(null); // Время последнего обновления
+  const [targetPoints, setTargetPoints] = useState(50);  // Максимальное количество очков
   const lastLoaded = useRef(false);  // Флаг для проверки, были ли данные уже загружены
 
   // Функция для загрузки текущих очков пользователя с сервера
@@ -26,6 +26,9 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
       setPoints(user.points);  // Получаем текущие очки
       setLastUpdated(new Date(user.lastUpdated));  // Устанавливаем время последнего обновления
       lastLoaded.current = true; // Устанавливаем флаг загрузки данных
+
+      // Обновляем очки на сервере
+      await updatePoints(walletAddress); // Это и есть ваш вызов updatePoints для синхронизации
     } catch (err) {
       console.error('Error loading points:', err);
     }
@@ -48,6 +51,9 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
 
       console.log('New points calculated:', newPoints);
       setPoints(newPoints);
+
+      // Синхронизируем новые очки с сервером
+      updatePoints(walletAddress);  // Снова вызываем updatePoints, чтобы обновить очки на сервере
     } else {
       console.log('Last updated time is null');
     }
@@ -60,7 +66,7 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
       try {
         console.log('Claiming points:', points);
         // Отправляем очки на сервер
-        await claimPoints(walletAddress, points);  
+        await claimPoints(walletAddress, points);
         setPoints(0);  // Сбрасываем прогресс на фронтенде
         setLastUpdated(new Date());  // Обновляем время последнего сбора очков
         showNotification(t('pointsClaimed'));  // Показываем сообщение об успешном сборе очков
@@ -72,11 +78,11 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
     }
   };
 
-  // useEffect для плавного увеличения очков в реальном времени
+  // useEffect для загрузки очков при изменении подписки или адреса
   useEffect(() => {
     console.log('useEffect called');
-    if (isSubscribed) {
-      loadPoints();  // Загружаем очки с сервера только один раз
+    if (isSubscribed && walletAddress) {
+      loadPoints();  // Загружаем очки с сервера только один раз при изменении подписки
 
       const interval = setInterval(() => {
         incrementPoints();  // Плавно увеличиваем очки, если прошло достаточно времени
@@ -84,7 +90,7 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
 
       return () => clearInterval(interval);  // Очищаем интервал при размонтировании компонента
     }
-  }, [isSubscribed]);  // Загрузка и обновление при изменении подписки
+  }, [isSubscribed, walletAddress]);  // Загрузка и обновление при изменении подписки или адреса кошелька
 
   return (
     <div className="points-widget">
