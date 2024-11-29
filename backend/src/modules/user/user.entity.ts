@@ -17,7 +17,10 @@ export class User {
   subscriptionDate: Date;
 
   @Column({ type: 'float', default: 0 })
-  points: number;  
+  points: number; 
+  
+  @Column({ type: 'float', default: 0 })
+  lastPoints: number; 
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', nullable: true })
   lastUpdated: Date;

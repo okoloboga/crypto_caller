@@ -58,16 +58,22 @@ export class UserController {
   }
 
   // Обновление очков (при заходе пользователя в приложение)
+  // Обновление очков
   @Post('update-points')
-  async updatePoints(@Body() { walletAddress }: { walletAddress: string }): Promise<number> {
-    console.log(`update-points called with walletAddress: ${walletAddress}`); // Логируем вызов
+  async updatePoints(@Body() { walletAddress, newPoints }: { walletAddress: string, newPoints: number }): Promise<number> {
+    console.log(`update-points called with walletAddress: ${walletAddress} and newPoints: ${newPoints}`); // Логируем вызов
 
     if (!walletAddress) {
       throw new BadRequestException('Wallet address is required');
     }
 
+    if (newPoints === undefined) {
+      throw new BadRequestException('New points are required');
+    }
+
     try {
-      const points = await this.userService.updatePoints(walletAddress);
+      // Передаем newPoints для записи в lastPoints
+      const points = await this.userService.updatePoints(walletAddress, newPoints);
       console.log(`Points returned from updatePoints service: ${points}`); // Логируем результат
       return points;
     } catch (error) {
@@ -80,6 +86,10 @@ export class UserController {
   @Post('claim-points')
   async claimPoints(@Body() body: { walletAddress: string, points: number }) {
     const { walletAddress, points } = body;
+
+    if (!walletAddress || points === undefined || points === null) {
+      throw new BadRequestException('Wallet address and points are required');
+    }
 
     try {
       // Вызов функции для добавления очков в базу данных

@@ -19,18 +19,21 @@ const Dashboard = () => {
   const [notification, setNotification] = useState('');
   const [currentScreen, setCurrentScreen] = useState('dashboard');
 
+  // Проверка подписки при изменении адреса кошелька
   useEffect(() => {
     if (walletAddress) {
       checkSubscriptionStatus();
     }
   }, [walletAddress]);
 
+  // Проверка подписки и загрузка задач при изменении состояния подписки
   useEffect(() => {
     if (walletAddress && isSubscribed) {
       fetchTasks();
     }
   }, [walletAddress, isSubscribed]);
 
+  // Функция для проверки подписки
   const checkSubscriptionStatus = async () => {
     try {
       const subscriptionStatus = walletAddress ? Boolean(await checkSubscription(walletAddress)) : false;
@@ -41,6 +44,7 @@ const Dashboard = () => {
     }
   };
 
+  // Функция для загрузки задач
   const fetchTasks = async () => {
     try {
       const fetchedTasks = await getUserTasks(walletAddress);
@@ -68,10 +72,6 @@ const Dashboard = () => {
     setCurrentTask(null);
   };
 
-  if (currentScreen === 'subscription') {
-    return <SubscriptionForm onBack={handleBackToDashboard} />;
-  }
-
   const handleDelete = async (taskId) => {
     try {
       await deleteTask(taskId);
@@ -83,21 +83,28 @@ const Dashboard = () => {
     }
   };
 
+  // Обработчик кнопки создания задачи
+  const handleCreateTask = () => {
+    if (!walletAddress) {
+      showNotification('Connect your wallet to create a task.');
+    } else if (!isSubscribed) {
+      showNotification('Buy a subscription to create a task.');
+    } else {
+      setCurrentTask({ currencyPair: '', targetPrice: '' });
+    }
+  };
+
+  if (currentScreen === 'subscription') {
+    return <SubscriptionForm onBack={handleBackToDashboard} />;
+  }
+
   return (
     <div className="dashboard">
       <Header onNavigate={setCurrentScreen} />
       <PointsWidget isSubscribed={isSubscribed} showNotification={showNotification} />
 
       <button
-        onClick={() => {
-          if (!walletAddress) {
-            showNotification('Connect your wallet to create a task.');
-          } else if (!isSubscribed) {
-            showNotification('Buy a subscription to create a task.');
-          } else {
-            setCurrentTask({ currencyPair: '', targetPrice: '' });
-          }
-        }}
+        onClick={handleCreateTask}
         className="create-task-button"
       >
         {language === 'en' ? 'Create Task' : 'Создать задачу'}

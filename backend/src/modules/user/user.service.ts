@@ -68,61 +68,66 @@ export class UserService {
     return savedUser;
   }
 
-  // Update points and last collected time
-  async updatePoints(walletAddress: string): Promise<number> {
+  // Update points and last collected time// Обновление очков и сохранение временного прогресса в lastPoints
+  async updatePoints(walletAddress: string, newPoints: number): Promise<number> {
     console.log(`updatePoints called for walletAddress: ${walletAddress}`); // Логируем начало работы функции
-  
+
     const user = await this.userRepository.findOne({ where: { walletAddress } });
-    
+
     if (!user) {
       console.error(`User with walletAddress ${walletAddress} not found.`);  // Логируем, если пользователь не найден
       throw new Error(`User with walletAddress ${walletAddress} not found.`);
     }
-  
+
     // Логирование информации о пользователе
     console.log(`User found: ${JSON.stringify(user, null, 2)}`);
-  
+
     const now = Date.now();
     const lastUpdated = user.lastUpdated ? user.lastUpdated.getTime() : now;
     const timeElapsed = (now - lastUpdated) / (1000 * 60 * 60); // Разница в часах
-  
+
     console.log(`Last updated: ${user.lastUpdated}, Time elapsed: ${timeElapsed} hours`);
-  
+
     const accumulationRate = 2;  // Очки за 1 час
-    let newPoints = user.points + timeElapsed * accumulationRate;
-  
-    if (newPoints > 50) {
-      newPoints = 50;
+    let calculatedPoints = user.points + timeElapsed * accumulationRate;
+
+    if (calculatedPoints > 50) {
+      calculatedPoints = 50;
     }
-  
-    console.log(`New points after calculation: ${newPoints}`);
-  
-    user.points = newPoints;
-    user.lastUpdated = new Date();
+
+    console.log(`New points after calculation: ${calculatedPoints}`);
+
+    // Обновляем данные пользователя
+    user.points = calculatedPoints; // Обновляем текущие очки
+    user.lastUpdated = new Date(); // Обновляем время последнего обновления
+    user.lastPoints = newPoints; // Сохраняем временные накопленные очки в lastPoints
+
     await this.userRepository.save(user);
-  
+
     console.log(`Points updated successfully for walletAddress: ${walletAddress}`);
-    return newPoints;
+    return calculatedPoints;
   }
-  
-  
-  // Метод для сбора очков
+
+
+  // Сбор очков
   async claimPoints(walletAddress: string, pointsToAdd: number): Promise<void> {
     const user = await this.userRepository.findOne({ where: { walletAddress } });
-    
+
     if (!user) {
       throw new Error(`User with walletAddress ${walletAddress} not found.`);
     }
-  
+
     console.log(`Claiming points for walletAddress: ${walletAddress}. Points to add: ${pointsToAdd}`);
-  
+
     user.points += pointsToAdd;
     user.lastUpdated = new Date();
-  
+    user.lastPoints = 0;  // Обнуляем накопленные очки
+
     await this.userRepository.save(user);
-  
+
     console.log(`Points claimed successfully. New points: ${user.points}`);
   }
+
   
   // Check subscription status
   async checkSubscriptionStatus(walletAddress: string): Promise<boolean> {
