@@ -4,9 +4,10 @@ import { claimPoints, updatePoints } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
 import './PointsWidget.css';
 
-const PointsWidget = ({ isSubscribed, showNotification, points, lastUpdated }) => {
+const PointsWidget = ({ isSubscribed, showNotification, initialPoints, lastUpdated }) => {
   const { t } = useTranslation();
   const walletAddress = useTonAddress();
+  const [points, setPoints] = useState(initialPoints || 0);  // Текущее количество очков
   const [isActive, setIsActive] = useState(true);  // Статус активности пользователя
   const [targetPoints, setTargetPoints] = useState(50);  // Максимальное количество очков
 
