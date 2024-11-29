@@ -22,9 +22,9 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
     if (lastLoaded.current) return; // Предотвращаем повторный запрос, если данные уже загружены
     try {
       const user = await getUserByWalletAddress(walletAddress);
-      console.log('Points loaded from server:', user.points);
+      console.log('Points loaded from server:', user.points, 'Last updated:', user.lastUpdated);
       setPoints(user.points);  // Получаем текущие очки
-      setLastUpdated(new Date());  // Устанавливаем время последнего обновления
+      setLastUpdated(new Date(user.lastUpdated));  // Устанавливаем время последнего обновления
       lastLoaded.current = true; // Устанавливаем флаг загрузки данных
     } catch (err) {
       console.error('Error loading points:', err);
@@ -48,6 +48,8 @@ const PointsWidget = ({ isSubscribed, showNotification }) => {
 
       console.log('New points calculated:', newPoints);
       setPoints(newPoints);
+    } else {
+      console.log('Last updated time is null');
     }
   };
 

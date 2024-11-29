@@ -70,13 +70,17 @@ export class UserService {
 
   // Update points and last collected time
   async updatePoints(walletAddress: string): Promise<number> {
+    console.log(`updatePoints called for walletAddress: ${walletAddress}`); // Логируем начало работы функции
+  
     const user = await this.userRepository.findOne({ where: { walletAddress } });
+    
     if (!user) {
+      console.error(`User with walletAddress ${walletAddress} not found.`);  // Логируем, если пользователь не найден
       throw new Error(`User with walletAddress ${walletAddress} not found.`);
     }
   
-    // Логирование
-    console.log(`Updating points for walletAddress: ${walletAddress}`);
+    // Логирование информации о пользователе
+    console.log(`User found: ${JSON.stringify(user)}`);
   
     const now = Date.now();
     const lastUpdated = user.lastUpdated ? user.lastUpdated.getTime() : now;
@@ -100,6 +104,7 @@ export class UserService {
     console.log(`Points updated successfully for walletAddress: ${walletAddress}`);
     return newPoints;
   }
+  
   
   // Метод для сбора очков
   async claimPoints(walletAddress: string, pointsToAdd: number): Promise<void> {

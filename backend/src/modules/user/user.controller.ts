@@ -60,14 +60,18 @@ export class UserController {
   // Обновление очков (при заходе пользователя в приложение)
   @Get('update-points')
   async updatePoints(@Query('walletAddress') walletAddress: string): Promise<number> {
+    console.log(`update-points called with walletAddress: ${walletAddress}`); // Логируем вызов
+  
     if (!walletAddress) {
       throw new BadRequestException('Wallet address is required');
     }
-
+  
     try {
       const points = await this.userService.updatePoints(walletAddress);
+      console.log(`Points returned from updatePoints service: ${points}`); // Логируем результат
       return points;
     } catch (error) {
+      console.error(`Error in update-points: ${error.message}`); // Логируем ошибку
       throw new BadRequestException(error.message);
     }
   }
