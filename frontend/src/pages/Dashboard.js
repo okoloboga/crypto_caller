@@ -6,8 +6,7 @@ import TaskForm from '../components/TaskForm';
 import Header from '../components/Header';
 import PointsWidget from '../components/PointsWidget';  // Импортируем PointsWidget
 import SubscriptionForm from '../components/SubscriptionForm';
-import { getUserTasks, deleteTask, checkSubscription } from '../services/apiService';
-import { getUserByWalletAddress } from '../services/apiService';  // Функция для получения данных пользователя
+import { getUserTasks, deleteTask, checkSubscription, getUserByWalletAddress } from '../services/apiService';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -21,7 +20,8 @@ const Dashboard = () => {
   const [currentScreen, setCurrentScreen] = useState('dashboard');
 
   // Состояния для очков и времени последнего обновления
-  const [points, setPoints] = useState(0);
+  const [totalPoints, setTotalPoints] = useState(0);
+  const [lastPoints, setLastPoints] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
@@ -44,7 +44,8 @@ const Dashboard = () => {
       const userData = response;  // Предполагаем, что данные находятся в response.data
 
       // Устанавливаем очки и lastUpdated в состояние
-      setPoints(userData.points);
+      setTotalPoints(userData.points);
+      setLastPoints(userData.lastPoints);
       setLastUpdated(new Date(userData.lastUpdated));  // Преобразуем lastUpdated в объект Date
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -121,7 +122,8 @@ const Dashboard = () => {
       <PointsWidget 
         isSubscribed={isSubscribed} 
         showNotification={showNotification}
-        points={points}  // Передаем количество очков
+        totalPoints={totalPoints}
+        lastPoints={lastPoints}
         lastUpdated={lastUpdated}  // Передаем время последнего обновления
       />
 

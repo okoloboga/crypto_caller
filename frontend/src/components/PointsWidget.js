@@ -4,10 +4,11 @@ import { claimPoints, updatePoints } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
 import './PointsWidget.css';
 
-const PointsWidget = ({ isSubscribed, showNotification, initialPoints, lastUpdated }) => {
+const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints, lastUpdated }) => {
   const { t } = useTranslation();
   const walletAddress = useTonAddress();
-  const [points, setPoints] = useState(initialPoints || 0);  // Текущее количество очков
+  const [lastPoints, setLastPoints] = useState(lastPoints || 0);
+  const [totalPoints, setTotalPoints] = useState(totalPoints || 0);
   const [isActive, setIsActive] = useState(true);  // Статус активности пользователя
   const [targetPoints, setTargetPoints] = useState(50);  // Максимальное количество очков
 
@@ -23,11 +24,11 @@ const PointsWidget = ({ isSubscribed, showNotification, initialPoints, lastUpdat
   // Функция для сбора очков и отправки на сервер
   const handleProgressBarClick = async () => {
     console.log('handleProgressBarClick called');
-    if (points > 0) {
+    if (lastPoints > 0) {
       try {
-        console.log('Claiming points:', points);
+        console.log('Claiming points:', lastPoints);
         // Отправляем очки на сервер
-        await claimPoints(walletAddress, points);
+        await claimPoints(walletAddress, lastPoints);
         showNotification(t('pointsClaimed'));  // Показываем сообщение об успешном сборе очков
       } catch (error) {
         console.error('Error claiming points:', error);
@@ -58,7 +59,7 @@ const PointsWidget = ({ isSubscribed, showNotification, initialPoints, lastUpdat
 
       // Если пользователь неактивен, сохраняем промежуточные очки
       if (!isActive) {
-        saveProgressToServer(points);  // Сохраняем очки в lastPoints на сервере
+        saveProgressToServer(lastPoints);  // Сохраняем очки в lastPoints на сервере
       }
     } else {
       console.log('Last updated time is null');
@@ -74,20 +75,18 @@ const PointsWidget = ({ isSubscribed, showNotification, initialPoints, lastUpdat
 
       return () => clearInterval(interval);  // Очищаем интервал при размонтировании компонента
     }
-  }, [isSubscribed, walletAddress, points, lastUpdated]);  // Следим за изменениями
+  }, [isSubscribed, walletAddress, lastPoints, lastUpdated]);  // Следим за изменениями
 
   return (
     <div className="points-widget">
       {/* Прогресс-бар для накопления очков */}
       <div className="progress-container" onClick={handleProgressBarClick}>
-        <progress value={points} max={targetPoints}></progress>
+        <progress value={lastPoints} max={targetPoints}></progress>
         <div className="progress-overlay">
-          {points.toFixed(1)} / {targetPoints}
+          {lastPoints.toFixed(1)} / {targetPoints}
         </div>
       </div>
-
-      <h3>{t('points')}: {points.toFixed(1)}</h3>
-      <p>{t('lastUpdated')}: {lastUpdated ? new Date(lastUpdated).toLocaleString() : t('never')}</p>
+      <h3>{t('points')}: {totalPoints.toFixed(1)}</h3>
     </div>
   );
 };
