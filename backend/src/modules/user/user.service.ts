@@ -68,27 +68,26 @@ export class UserService {
     return savedUser;
   }
 
-  // Update points and last collected time// Обновление очков и сохранение временного прогресса в lastPoints
+  // Update points and last collected time
   async updatePoints(walletAddress: string, newPoints: number): Promise<number> {
-    console.log(`updatePoints called for walletAddress: ${walletAddress}`); // Логируем начало работы функции
+    console.log(`updatePoints called for walletAddress: ${walletAddress}`);
 
     const user = await this.userRepository.findOne({ where: { walletAddress } });
 
     if (!user) {
-      console.error(`User with walletAddress ${walletAddress} not found.`);  // Логируем, если пользователь не найден
+      console.error(`User with walletAddress ${walletAddress} not found.`);
       throw new Error(`User with walletAddress ${walletAddress} not found.`);
     }
 
-    // Логирование информации о пользователе
     console.log(`User found: ${JSON.stringify(user, null, 2)}`);
 
     const now = Date.now();
     const lastUpdated = user.lastUpdated ? user.lastUpdated.getTime() : now;
-    const timeElapsed = (now - lastUpdated) / (1000 * 60 * 60); // Разница в часах
+    const timeElapsed = (now - lastUpdated) / (1000 * 60); // Разница в минутах
 
-    console.log(`Last updated: ${user.lastUpdated}, Time elapsed: ${timeElapsed} hours`);
+    console.log(`Last updated: ${user.lastUpdated}, Time elapsed: ${timeElapsed} minutes`);
 
-    const accumulationRate = 2;  // Очки за 1 час
+    const accumulationRate = 0.035;  // Очки за 1 минуту
     let calculatedPoints = user.points + timeElapsed * accumulationRate;
 
     if (calculatedPoints > 50) {
@@ -97,9 +96,8 @@ export class UserService {
 
     console.log(`New points after calculation: ${calculatedPoints}`);
 
-    // Обновляем данные пользователя
-    user.points = calculatedPoints; // Обновляем текущие очки
-    user.lastUpdated = new Date(); // Обновляем время последнего обновления
+    user.points = calculatedPoints;
+    user.lastUpdated = new Date();
     user.lastPoints = newPoints; // Сохраняем временные накопленные очки в lastPoints
 
     await this.userRepository.save(user);
@@ -108,8 +106,7 @@ export class UserService {
     return calculatedPoints;
   }
 
-
-  // Сбор очков
+  // Claim points and reset progress
   async claimPoints(walletAddress: string, pointsToAdd: number): Promise<void> {
     const user = await this.userRepository.findOne({ where: { walletAddress } });
 
@@ -128,7 +125,6 @@ export class UserService {
     console.log(`Points claimed successfully. New points: ${user.points}`);
   }
 
-  
   // Check subscription status
   async checkSubscriptionStatus(walletAddress: string): Promise<boolean> {
     try {

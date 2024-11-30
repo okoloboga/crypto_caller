@@ -118,7 +118,6 @@ const Dashboard = () => {
     <div className="dashboard">
       <Header onNavigate={setCurrentScreen} />
       
-      {/* Передаем points и lastUpdated в PointsWidget */}
       <PointsWidget 
         isSubscribed={isSubscribed} 
         showNotification={showNotification}
