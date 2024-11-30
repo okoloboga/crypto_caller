@@ -31,6 +31,16 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
     };
   }, []);
 
+  useEffect(() => {
+    if (isSubscribed && walletAddress) {
+      const interval = setInterval(() => {
+        incrementPoints();  // Плавно увеличиваем очки, если прошло достаточно времени
+      }, 1000); // Обновляем каждую секунду
+  
+      return () => clearInterval(interval);  // Очищаем интервал при размонтировании компонента
+    }
+  }, [isSubscribed, walletAddress]);  // Следим только за этими изменениями
+  
   // Функция для сохранения прогресса (очков) на сервере
   const saveProgressToServer = async (newPoints) => {
     try {
@@ -47,9 +57,9 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       return; // Прерываем выполнение, если нет подписки
     }
   
-    if (lastPoints > 0) {
+    if (localLastPoints > 0) {
       try {
-        await claimPoints(walletAddress, lastPoints);
+        await claimPoints(walletAddress, localLastPoints);
         showNotification(t('pointsClaimed'));
       } catch (error) {
         console.error('Error claiming points:', error);
@@ -67,13 +77,13 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       const accumulationRate = 0.035;
 
       // Рассчитываем новые очки с учетом времени
-      const newPoints = Math.min(lastPoints + timeElapsed * accumulationRate, targetPoints);
+      const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, targetPoints);
 
       // Обновляем локальное состояние
       setLastPoints(newPoints);
 
       // Если пользователь неактивен, сохраняем промежуточные очки
-      if (!isActive && Math.abs(newPoints - lastPoints) >= 1) {
+      if (!isActive && Math.abs(newPoints - localLastPoints) >= 1) {
         saveProgressToServer(newPoints);  // Сохраняем очки в lastPoints на сервере
       }
     } else {
