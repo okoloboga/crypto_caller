@@ -10,7 +10,8 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
   const [localLastPoints, setLastPoints] = useState(lastPoints);
   const [localTotalPoints, setTotalPoints] = useState(totalPoints);
   const [isActive, setIsActive] = useState(true);  // Статус активности пользователя
-  
+  const maxPoints = 50;
+
   useEffect(() => {
     const handleUserActivity = () => {
       setIsActive(true);  // Пользователь активен
@@ -76,7 +77,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       const accumulationRate = 0.035;
 
       // Рассчитываем новые очки с учетом времени
-      const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, 50);
+      const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
 
       // Обновляем локальное состояние
       setLastPoints(newPoints);
@@ -105,9 +106,9 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
     <div className="points-widget">
       {/* Прогресс-бар для накопления очков */}
       <div className="progress-container" onClick={handleProgressBarClick}>
-        <progress value={localLastPoints.toFixed(3)} max={50}></progress>
+        <progress value={localLastPoints.toFixed(3)} max={maxPoints}></progress>
         <div className="progress-overlay">
-          {localLastPoints.toFixed(3)} / 50
+          {localLastPoints.toFixed(3)} / {maxPoints}
         </div>
       </div>
       <h3>{t('points')}: {localTotalPoints.toFixed(3)}</h3>
