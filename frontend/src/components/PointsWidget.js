@@ -38,7 +38,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
     // Запускать каждую секунду, если подписка активна
     const interval = setInterval(() => {
       incrementPoints(); // Плавно увеличиваем очки
-    }, 1000); // Обновление каждую секунду
+    }, 2000); // Обновление каждую секунду
   
     // Запускать при изменении lastUpdated
     incrementPoints(); // Немедленно запускаем, если lastUpdated изменилось
@@ -110,7 +110,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
     if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
       const now = Date.now();
       const timeElapsed = (now - new Date(lastUpdated).getTime()) / 1000;
-      const accumulationRate = 0.035;
+      const accumulationRate = 0.001;
       const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
   
       console.log(`Last Update: ${new Date(lastUpdated)}, localLastPoints: ${localLastPoints}, New points: ${newPoints}`);
