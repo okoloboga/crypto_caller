@@ -117,6 +117,13 @@ const Dashboard = () => {
     }
   };
 
+  // Функция для обновления данных в родительском компоненте
+  const updatePointsData = (newTotalPoints, newLastPoints, newLastUpdated) => {
+    setTotalPoints(newTotalPoints);
+    setLastPoints(newLastPoints);
+    setLastUpdated(newLastUpdated);
+  };
+
   if (currentScreen === 'subscription') {
     return <SubscriptionForm onBack={handleBackToDashboard} />;
   }
@@ -131,6 +138,7 @@ const Dashboard = () => {
         totalPoints={totalPoints}
         lastPoints={lastPoints}
         lastUpdated={lastUpdated}  // Передаем время последнего обновления
+        updatePointsData={updatePointsData}  // Передаем callback для обновления данных
       />
 
       <button

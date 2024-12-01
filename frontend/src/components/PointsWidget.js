@@ -4,12 +4,12 @@ import { claimPoints, updatePoints } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
 import './PointsWidget.css';
 
-const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints, lastUpdated }) => {
+const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints, lastUpdated, updatePointsData }) => {
   const { t } = useTranslation();
   const walletAddress = useTonAddress();
   const [localLastPoints, setLastPoints] = useState(lastPoints);
   const [localTotalPoints, setTotalPoints] = useState(totalPoints);
-  const [isActive, setIsActive] = useState(true);  // Статус активности пользователя
+  const [isActive, setIsActive] = useState(true);
   const maxPoints = 50.000;
 
   useEffect(() => {
@@ -40,7 +40,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       return () => clearInterval(interval);  // Очищаем интервал при размонтировании компонента
     }
   }, [isSubscribed, walletAddress]);  // Следим только за этими изменениями
-  
+
   // Функция для сохранения прогресса (очков) на сервере
   const saveProgressToServer = async (newPoints) => {
     try {
@@ -59,9 +59,11 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
   
     if (localLastPoints > 0) {
       try {
+        console.log(`Claiming points: ${localLastPoints}`);
         await claimPoints(walletAddress, localLastPoints);
         setTotalPoints(localTotalPoints + localLastPoints);
         setLastPoints(0);
+        updatePointsData(localTotalPoints + localLastPoints, 0, new Date()); // Обновляем данные в родителе
         showNotification(t('pointsClaimed'));
       } catch (error) {
         console.error('Error claiming points:', error);
@@ -79,7 +81,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       const accumulationRate = 0.035;
       const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
 
-      console.log(`Last Update: ${lastUpdated}, localLastPoints: ${localLastPoints}, New points: ${newPoints}`);
+      console.log(`Last Update: ${new Date(lastUpdated)}, localLastPoints: ${localLastPoints}, New points: ${newPoints}`);
 
       // Обновляем локальное состояние
       setLastPoints(newPoints);
@@ -92,17 +94,6 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       console.log('Last updated time is null');
     }
   };
-
-  // useEffect для обновления данных и плавного увеличения очков
-  useEffect(() => {
-    if (isSubscribed && walletAddress) {
-      const interval = setInterval(() => {
-        incrementPoints();  // Плавно увеличиваем очки, если прошло достаточно времени
-      }, 1000); // Обновляем каждую секунду
-
-      return () => clearInterval(interval);  // Очищаем интервал при размонтировании компонента
-    }
-  }, [isSubscribed, walletAddress, localLastPoints, lastUpdated]);  // Следим за изменениями
 
   return (
     <div className="points-widget">
