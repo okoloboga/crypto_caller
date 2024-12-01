@@ -76,7 +76,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       const accumulationRate = 0.035;
 
       // Рассчитываем новые очки с учетом времени
-      const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, targetPoints);
+      const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, 50);
 
       // Обновляем локальное состояние
       setLastPoints(newPoints);
