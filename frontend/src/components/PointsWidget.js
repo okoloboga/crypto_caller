@@ -10,7 +10,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
   const [localLastPoints, setLastPoints] = useState(lastPoints);
   const [localTotalPoints, setTotalPoints] = useState(totalPoints);
   const [isActive, setIsActive] = useState(true);  // Статус активности пользователя
-  const maxPoints = 50;
+  const maxPoints = 50.000;
 
   useEffect(() => {
     const handleUserActivity = () => {
@@ -106,7 +106,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
     <div className="points-widget">
       {/* Прогресс-бар для накопления очков */}
       <div className="progress-container" onClick={handleProgressBarClick}>
-        <progress value={localLastPoints.toFixed(3)} max={maxPoints}></progress>
+        <progress value={localLastPoints.toFixed(3)} max={maxPoints.toFixed(3)}></progress>
         <div className="progress-overlay">
           {localLastPoints.toFixed(3)} / {maxPoints}
         </div>
