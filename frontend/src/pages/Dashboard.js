@@ -37,6 +37,21 @@ const Dashboard = () => {
     }
   }, [walletAddress, isSubscribed]);
 
+  // При монтировании компонента загрузить данные из localStorage
+  useEffect(() => {
+    const storedTotalPoints = localStorage.getItem('totalPoints');
+    if (storedTotalPoints) {
+      setTotalPoints(parseFloat(storedTotalPoints));  // Устанавливаем значение из localStorage
+    }
+  }, []);  // Этот useEffect выполняется один раз при монтировании компонента
+
+  // Сохраняем данные в localStorage при изменении totalPoints
+  useEffect(() => {
+    if (totalPoints !== undefined) {
+      localStorage.setItem('totalPoints', totalPoints.toString());  // Сохраняем totalPoints в localStorage
+    }
+  }, [totalPoints]);  // Следим за изменениями totalPoints
+
   const isValidDate = (date) => {
     return date instanceof Date && !isNaN(date);
   };
@@ -49,7 +64,7 @@ const Dashboard = () => {
         setTotalPoints(0);
         setLastPoints(0);
         setLastUpdated(new Date());
-        return;
+        localStorage.setItem('totalPoints', '0');
       } else {
         console.log('Полученный пользователь:', response);
         const lastUpdated = response.lastUpdated ? new Date(response.lastUpdated) : new Date();
@@ -58,10 +73,12 @@ const Dashboard = () => {
         setTotalPoints(response.points);
         setLastPoints(response.lastPoints);
         setLastUpdated(isValidDate(lastUpdated) ? lastUpdated : new Date());  // Если дата невалидная, используем текущую
+        localStorage.setItem('totalPoints', response.points); 
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
       setLastUpdated(new Date());
+      localStorage.setItem('totalPoints', '0');
     }
   };
 

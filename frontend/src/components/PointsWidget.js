@@ -49,6 +49,10 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       console.log('Last updated is invalid or null');
     }
   }, [lastUpdated]);
+
+  useEffect(() => {
+    setTotalPoints(totalPoints);  // Синхронизируем локальное состояние с новым значением prop
+  }, [totalPoints]); 
   
   // Функция для сохранения прогресса (очков) на сервере
   const saveProgressToServer = async (newPoints) => {
