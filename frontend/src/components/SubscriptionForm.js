@@ -143,7 +143,7 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
 
       const txSubscription = {
         validUntil: Math.floor(Date.now() / 1000) + 60,
-        network: 'mainnet', // 'testnet',
+        network: 'testnet',
         messages: [
           {
             address: process.env.TON_WALLET || 'UQDIkS1d_Lhd7EDttTtcmr9Xzg78uEMDEsYFde-PZCgfoOtU', // '0QC7IwY6zozwv_neAK1VJsBWcv_M-yd8nC_HVmB_DLVQmkY7',
