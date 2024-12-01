@@ -83,7 +83,7 @@ export class UserService {
 
     const now = Date.now();
     const lastUpdated = user.lastUpdated ? user.lastUpdated.getTime() : now;
-    const timeElapsed = (now - lastUpdated) / (1000 * 60); // Разница в минутах
+    const timeElapsed = (now - lastUpdated) / 1000; // Разница в секундах
 
     console.log(`Last updated: ${user.lastUpdated}, Time elapsed: ${timeElapsed} minutes`);
 
