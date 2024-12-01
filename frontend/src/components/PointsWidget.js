@@ -33,14 +33,19 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
   }, []);
 
   useEffect(() => {
-    if (isSubscribed && walletAddress) {
-      const interval = setInterval(() => {
-        incrementPoints();  // Плавно увеличиваем очки, если прошло достаточно времени
-      }, 1000); // Обновляем каждую секунду
+    if (!isSubscribed || !walletAddress) return;  // Если нет подписки или адреса, не запускаем логику
   
-      return () => clearInterval(interval);  // Очищаем интервал при размонтировании компонента
-    }
-  }, [isSubscribed, walletAddress]);  // Следим только за этими изменениями
+    // Запускать каждую секунду, если подписка активна
+    const interval = setInterval(() => {
+      incrementPoints(); // Плавно увеличиваем очки
+    }, 1000); // Обновление каждую секунду
+  
+    // Запускать при изменении lastUpdated
+    incrementPoints(); // Немедленно запускаем, если lastUpdated изменилось
+  
+    return () => clearInterval(interval);  // Очистить интервал при размонтировании компонента
+  }, [isSubscribed, walletAddress, lastUpdated]);
+   // Следим только за этими изменениями
 
   useEffect(() => {
     if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {

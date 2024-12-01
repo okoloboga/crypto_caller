@@ -79,12 +79,13 @@ const Dashboard = () => {
   };
 
   // Функция для обновления данных в родительском компоненте
-  const updatePointsData = (newTotalPoints, newLastPoints, newLastUpdated) => {
+  const updatePointsData = useCallback((newTotalPoints, newLastPoints, newLastUpdated) => {
     console.log('Updating points data:', newTotalPoints, newLastPoints, newLastUpdated);
     setTotalPoints(newTotalPoints);
     setLastPoints(newLastPoints);
     setLastUpdated(newLastUpdated);
-  };
+  }, []);
+  
   
   const fetchUserData = async () => {
     try {
