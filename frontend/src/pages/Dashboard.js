@@ -22,7 +22,7 @@ const Dashboard = () => {
   // Состояния для очков и времени последнего обновления
   const [totalPoints, setTotalPoints] = useState(0);
   const [lastPoints, setLastPoints] = useState(0);
-  const [lastUpdated, setLastUpdated] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
   useEffect(() => {
     if (walletAddress) {
@@ -37,25 +37,31 @@ const Dashboard = () => {
     }
   }, [walletAddress, isSubscribed]);
 
+  const isValidDate = (date) => {
+    return date instanceof Date && !isNaN(date);
+  };
+  
   const fetchUserData = async () => {
     try {
       const response = await getUserByWalletAddress(walletAddress);
       if (response === false) {
-        console.log('Пользователь не найден');
+        console.log('Пользователь не найден');
         setTotalPoints(0);
         setLastPoints(0);
-        setLastUpdated(null);
+        setLastUpdated(new Date());
         return;
       } else {
         console.log('Полученный пользователь:', response);
-        console.log('Points:', response.points, 'Last Points:', response.lastPoints, 'Last Updated:', new Date(response.lastUpdated));
-
+        const lastUpdated = response.lastUpdated ? new Date(response.lastUpdated) : new Date();
+        
+        // Проверяем валидность даты
         setTotalPoints(response.points);
         setLastPoints(response.lastPoints);
-        setLastUpdated(new Date(response.lastUpdated));  // Преобразуем lastUpdated в объект Date
+        setLastUpdated(isValidDate(lastUpdated) ? lastUpdated : new Date());  // Если дата невалидная, используем текущую
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
+      setLastUpdated(new Date());
     }
   };
 

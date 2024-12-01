@@ -41,6 +41,15 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
     }
   }, [isSubscribed, walletAddress]);  // Следим только за этими изменениями
 
+  useEffect(() => {
+    if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
+      console.log('Last updated time in PointsWidget:', lastUpdated);
+      // Дополнительная логика с lastUpdated
+    } else {
+      console.log('Last updated is invalid or null');
+    }
+  }, [lastUpdated]);
+  
   // Функция для сохранения прогресса (очков) на сервере
   const saveProgressToServer = async (newPoints) => {
     try {
@@ -74,26 +83,27 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
 
   // Функция для плавного увеличения очков на фронтенде
   const incrementPoints = () => {
-    console.log('incrementPoints called');
-    if (lastUpdated) {
+    console.log('incrementPoints called, lastUpdated:', lastUpdated);
+    if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
       const now = Date.now();
       const timeElapsed = (now - new Date(lastUpdated).getTime()) / 1000;
       const accumulationRate = 0.035;
       const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
-
+  
       console.log(`Last Update: ${new Date(lastUpdated)}, localLastPoints: ${localLastPoints}, New points: ${newPoints}`);
-
+  
       // Обновляем локальное состояние
       setLastPoints(newPoints);
-
+  
       // Если пользователь неактивен, сохраняем промежуточные очки
       if (!isActive && Math.abs(newPoints - localLastPoints) >= 1) {
         saveProgressToServer(newPoints);  // Сохраняем очки в lastPoints на сервере
       }
     } else {
-      console.log('Last updated time is null');
+      console.log('Last updated time is null or invalid');
     }
   };
+  
 
   return (
     <div className="points-widget">
