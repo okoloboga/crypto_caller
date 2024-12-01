@@ -105,9 +105,9 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
     <div className="points-widget">
       {/* Прогресс-бар для накопления очков */}
       <div className="progress-container" onClick={handleProgressBarClick}>
-        <progress value={localLastPoints} max={50}></progress>
+        <progress value={localLastPoints.toFixed(3)} max={50}></progress>
         <div className="progress-overlay">
-          {localLastPoints.toFixed(3)} / {50}
+          {localLastPoints.toFixed(3)} / 50
         </div>
       </div>
       <h3>{t('points')}: {localTotalPoints.toFixed(3)}</h3>
