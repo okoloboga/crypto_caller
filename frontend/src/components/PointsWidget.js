@@ -7,8 +7,8 @@ import './PointsWidget.css';
 const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints, lastUpdated }) => {
   const { t } = useTranslation();
   const walletAddress = useTonAddress();
-  const [localLastPoints, setLastPoints] = useState(lastPoints || 0);
-  const [localTotalPoints, setTotalPoints] = useState(totalPoints || 0);
+  const [localLastPoints, setLastPoints] = useState(lastPoints);
+  const [localTotalPoints, setTotalPoints] = useState(totalPoints);
   const [isActive, setIsActive] = useState(true);  // Статус активности пользователя
   const maxPoints = 50.000;
 
