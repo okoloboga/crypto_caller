@@ -3,6 +3,7 @@ import { useTonAddress } from '@tonconnect/ui-react';
 import { claimPoints, updatePoints } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
 import './PointsWidget.css';
+import { use } from 'i18next';
 
 const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints, lastUpdated, updatePointsData }) => {
   const { t } = useTranslation();
@@ -43,16 +44,26 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
 
   useEffect(() => {
     if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
-      console.log('Last updated time in PointsWidget:', lastUpdated);
-      // Дополнительная логика с lastUpdated
-    } else {
-      console.log('Last updated is invalid or null');
+      const now = Date.now();
+      const timeElapsed = (now - new Date(lastUpdated).getTime()) / 1000;
+      const accumulationRate = 0.035;
+      const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
+      setLastPoints(newPoints);  // Обновляем локальные очки
+  
+      // Сохраняем прогресс на сервере при длительном бездействии
+      if (!isActive && Math.abs(newPoints - localLastPoints) >= 1) {
+        saveProgressToServer(newPoints); // Сохраняем на сервере
+      }
     }
   }, [lastUpdated]);
 
   useEffect(() => {
     setTotalPoints(totalPoints);  // Синхронизируем локальное состояние с новым значением prop
   }, [totalPoints]); 
+
+  useEffect(() => {
+    setLastPoints(lastPoints);  // Синхронизируем локальное состояние с новым значением prop
+  }, [lastPoints]);
   
   // Функция для сохранения прогресса (очков) на сервере
   const saveProgressToServer = async (newPoints) => {
@@ -74,9 +85,12 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       try {
         console.log(`Claiming points: ${localLastPoints}`);
         await claimPoints(walletAddress, localLastPoints);
-        setTotalPoints(localTotalPoints + localLastPoints);
+        const newTotalPoints = localTotalPoints + localLastPoints;
+
+        setTotalPoints(newTotalPoints);
         setLastPoints(0);
-        updatePointsData(localTotalPoints + localLastPoints, 0, new Date()); // Обновляем данные в родителе
+
+        updatePointsData(newTotalPoints, 0, new Date()); // Обновляем данные в родителе
         showNotification(t('pointsClaimed'));
       } catch (error) {
         console.error('Error claiming points:', error);
