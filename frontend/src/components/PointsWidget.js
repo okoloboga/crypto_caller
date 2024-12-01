@@ -61,6 +61,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       try {
         await claimPoints(walletAddress, localLastPoints);
         setTotalPoints(localTotalPoints + localLastPoints);
+        setLastPoints(0);
         showNotification(t('pointsClaimed'));
       } catch (error) {
         console.error('Error claiming points:', error);
