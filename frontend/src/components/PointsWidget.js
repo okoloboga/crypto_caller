@@ -49,13 +49,13 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       const accumulationRate = 0.035;
       const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
       setLastPoints(newPoints);  // Обновляем локальные очки
-  
+    
       // Сохраняем прогресс на сервере при длительном бездействии
       if (!isActive && Math.abs(newPoints - localLastPoints) >= 1) {
         saveProgressToServer(newPoints); // Сохраняем на сервере
       }
     }
-  }, [lastUpdated]);
+  }, [lastUpdated]);  // Следим за изменениями времени последнего обновления  
 
   useEffect(() => {
     setTotalPoints(totalPoints);  // Синхронизируем локальное состояние с новым значением prop
@@ -121,7 +121,6 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       console.log('Last updated time is null or invalid');
     }
   };
-  
 
   return (
     <div className="points-widget">

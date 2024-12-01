@@ -46,6 +46,15 @@ const Dashboard = () => {
   }, []);  // Этот useEffect выполняется один раз при монтировании компонента
 
   useEffect(() => {
+    const storedLastUpdated = localStorage.getItem('lastUpdated');
+    if (storedLastUpdated) {
+      setLastUpdated(new Date(storedLastUpdated));  // Если есть сохраненная дата
+    } else {
+      setLastUpdated(new Date());  // Устанавливаем текущую дату, если нет
+    }
+  }, []);
+
+  useEffect(() => {
     const storedLastPoints = localStorage.getItem('lastPoints');
     if (storedLastPoints) {
       setLastPoints(parseFloat(storedLastPoints));
@@ -84,8 +93,9 @@ const Dashboard = () => {
         console.log('Пользователь не найден');
         setTotalPoints(0);
         setLastPoints(0);
-        setLastUpdated(new Date());
+        setLastUpdated(new Date());  // Используем актуальную дату
         localStorage.setItem('totalPoints', '0');
+        localStorage.setItem('lastUpdated', new Date().toISOString());  // Сохраняем актуальное время
       } else {
         console.log('Полученный пользователь:', response);
         const lastUpdated = response.lastUpdated ? new Date(response.lastUpdated) : new Date();
@@ -93,15 +103,18 @@ const Dashboard = () => {
         // Проверяем валидность даты
         setTotalPoints(response.points);
         setLastPoints(response.lastPoints);
-        setLastUpdated(isValidDate(lastUpdated) ? lastUpdated : new Date());  // Если дата невалидная, используем текущую
+        setLastUpdated(isValidDate(lastUpdated) ? lastUpdated : new Date());  // Если дата невалидная, используем текущую дату
         localStorage.setItem('totalPoints', response.points); 
+        localStorage.setItem('lastUpdated', lastUpdated.toISOString());  // Сохраняем последнюю актуальную дату
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
-      setLastUpdated(new Date());
+      setLastUpdated(new Date());  // В случае ошибки устанавливаем текущую дату
       localStorage.setItem('totalPoints', '0');
+      localStorage.setItem('lastUpdated', new Date().toISOString());  // Сохраняем актуальное время
     }
   };
+  
 
   const checkSubscriptionStatus = async () => {
     try {
