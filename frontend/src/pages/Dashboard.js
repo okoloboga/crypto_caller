@@ -40,12 +40,20 @@ const Dashboard = () => {
   const fetchUserData = async () => {
     try {
       const response = await getUserByWalletAddress(walletAddress);
-      console.log('Полученный пользователь:', response);
-      console.log('Points:', response.points, 'Last Points:', response.lastPoints, 'Last Updated:', new Date(response.lastUpdated));
+      if (response === false) {
+        console.log('Пользователь не найден');
+        setTotalPoints(0);
+        setLastPoints(0);
+        setLastUpdated(null);
+        return;
+      } else {
+        console.log('Полученный пользователь:', response);
+        console.log('Points:', response.points, 'Last Points:', response.lastPoints, 'Last Updated:', new Date(response.lastUpdated));
 
-      setTotalPoints(response.points);
-      setLastPoints(response.lastPoints);
-      setLastUpdated(new Date(response.lastUpdated));  // Преобразуем lastUpdated в объект Date
+        setTotalPoints(response.points);
+        setLastPoints(response.lastPoints);
+        setLastUpdated(new Date(response.lastUpdated));  // Преобразуем lastUpdated в объект Date
+      }
     } catch (error) {
       console.error('Error fetching user data:', error);
     }

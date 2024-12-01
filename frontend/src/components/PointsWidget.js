@@ -7,8 +7,8 @@ import './PointsWidget.css';
 const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints, lastUpdated }) => {
   const { t } = useTranslation();
   const walletAddress = useTonAddress();
-  const [localLastPoints, setLastPoints] = useState(lastPoints);
-  const [localTotalPoints, setTotalPoints] = useState(totalPoints);
+  const [localLastPoints, setLastPoints] = useState(lastPoints || 0);
+  const [localTotalPoints, setTotalPoints] = useState(totalPoints || 0);
   const [isActive, setIsActive] = useState(true);  // Статус активности пользователя
   const maxPoints = 50.000;
 
@@ -60,6 +60,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
     if (localLastPoints > 0) {
       try {
         await claimPoints(walletAddress, localLastPoints);
+        setTotalPoints(localTotalPoints + localLastPoints);
         showNotification(t('pointsClaimed'));
       } catch (error) {
         console.error('Error claiming points:', error);
@@ -106,7 +107,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
     <div className="points-widget">
       {/* Прогресс-бар для накопления очков */}
       <div className="progress-container" onClick={handleProgressBarClick}>
-        <progress value={localLastPoints.toFixed(3)}></progress>
+        <progress value={localLastPoints.toFixed(3)} max={maxPoints.toFixed(3)}></progress>
         <div className="progress-overlay">
           {localLastPoints.toFixed(3)} / {maxPoints}
         </div>
