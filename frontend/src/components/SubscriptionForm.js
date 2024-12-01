@@ -6,7 +6,7 @@ import { getUserByWalletAddress, updatePhoneNumber, createSubscription,
 import { useTranslation } from 'react-i18next'; // Импортируем хук useTranslation
 import './SubscriptionForm.css';
 
-const SubscriptionForm = ({ onBack }) => {
+const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
   const { t } = useTranslation(); // Получаем функцию для перевода
   const [tonConnectUI, setOptions] = useTonConnectUI();
   const wallet = useTonWallet();
@@ -174,6 +174,7 @@ const SubscriptionForm = ({ onBack }) => {
       setIsSubscribed(true);
       console.log('Subscription successfully activated.');
       showNotification(t('subscriptionActivated'));
+      onSubscriptionChange(true);
     } catch (error) {
       console.error('Error in handleRegister:', error);
       showNotification(t('activationFailed'));

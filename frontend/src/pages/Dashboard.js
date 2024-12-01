@@ -4,14 +4,14 @@ import { useLanguage } from '../contexts/LanguageContext';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
 import Header from '../components/Header';
-import PointsWidget from '../components/PointsWidget';  // Импортируем PointsWidget
+import PointsWidget from '../components/PointsWidget';
 import SubscriptionForm from '../components/SubscriptionForm';
 import { getUserTasks, deleteTask, checkSubscription, getUserByWalletAddress } from '../services/apiService';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const walletAddress = useTonAddress();
-  const { language } = useLanguage();  // Используем текущий язык из контекста
+  const { language } = useLanguage(); // Используем текущий язык из контекста
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [currentTask, setCurrentTask] = useState(null);
@@ -23,6 +23,11 @@ const Dashboard = () => {
   const [totalPoints, setTotalPoints] = useState(0);
   const [lastPoints, setLastPoints] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+
+  // Коллбек для обновления подписки
+  const handleSubscriptionStatusChange = (status) => {
+    setIsSubscribed(status);
+  };
 
   useEffect(() => {
     if (walletAddress) {
@@ -66,7 +71,7 @@ const Dashboard = () => {
     if (totalPoints !== undefined) {
       localStorage.setItem('totalPoints', totalPoints.toString());  // Сохраняем totalPoints в localStorage
     }
-  }, [totalPoints]);  // Следим за изменениями totalPoints
+  }, [totalPoints]);
 
   useEffect(() => {
     if (lastPoints !== undefined) {
@@ -85,7 +90,6 @@ const Dashboard = () => {
     setLastPoints(newLastPoints);
     setLastUpdated(newLastUpdated);
   }, []);
-  
   
   const fetchUserData = async () => {
     try {
@@ -176,7 +180,12 @@ const Dashboard = () => {
   };
 
   if (currentScreen === 'subscription') {
-    return <SubscriptionForm onBack={handleBackToDashboard} />;
+    return (
+      <SubscriptionForm 
+        onBack={handleBackToDashboard} 
+        onSubscriptionChange={handleSubscriptionStatusChange}  // Передаем функцию для обновления подписки
+      />
+    );
   }
 
   return (
