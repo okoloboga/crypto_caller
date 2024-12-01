@@ -7,10 +7,9 @@ import './PointsWidget.css';
 const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints, lastUpdated }) => {
   const { t } = useTranslation();
   const walletAddress = useTonAddress();
-  const [localLastPoints, setLastPoints] = useState(lastPoints || 0);
-  const [localTotalPoints, setTotalPoints] = useState(totalPoints || 0);
+  const [localLastPoints, setLastPoints] = useState(lastPoints);
+  const [localTotalPoints, setTotalPoints] = useState(totalPoints);
   const [isActive, setIsActive] = useState(true);  // Статус активности пользователя
-  const [targetPoints, setTargetPoints] = useState(50);  // Максимальное количество очков
   
   useEffect(() => {
     const handleUserActivity = () => {
@@ -106,9 +105,9 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
     <div className="points-widget">
       {/* Прогресс-бар для накопления очков */}
       <div className="progress-container" onClick={handleProgressBarClick}>
-        <progress value={localLastPoints} max={targetPoints}></progress>
+        <progress value={localLastPoints} max={50}></progress>
         <div className="progress-overlay">
-          {localLastPoints.toFixed(3)} / {targetPoints}
+          {localLastPoints.toFixed(3)} / {50}
         </div>
       </div>
       <h3>{t('points')}: {localTotalPoints.toFixed(3)}</h3>
