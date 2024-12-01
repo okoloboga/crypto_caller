@@ -85,9 +85,9 @@ export class UserService {
     const lastUpdated = user.lastUpdated ? user.lastUpdated.getTime() : now;
     const timeElapsed = (now - lastUpdated) / 1000; // Разница в секундах
 
-    console.log(`Last updated: ${user.lastUpdated}, Time elapsed: ${timeElapsed} minutes`);
+    console.log(`Last updated: ${user.lastUpdated}, Time elapsed: ${timeElapsed} seconds`);
 
-    const accumulationRate = 0.035;  // Очки за 1 минуту
+    const accumulationRate = 0.001;
     let calculatedPoints = user.points + timeElapsed * accumulationRate;
 
     if (calculatedPoints > 50) {

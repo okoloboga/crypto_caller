@@ -101,6 +101,7 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
     try {
 
       await refreshPayload(challenge);
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       console.log('Getting wallet', wallet);
       console.log(wallet.connectItems?.tonProof);
@@ -142,10 +143,10 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
 
       const txSubscription = {
         validUntil: Math.floor(Date.now() / 1000) + 60,
-        network: 'testnet',
+        network: 'mainnet', // 'testnet',
         messages: [
           {
-            address: process.env.TON_WALLET || '0QC7IwY6zozwv_neAK1VJsBWcv_M-yd8nC_HVmB_DLVQmkY7',
+            address: process.env.TON_WALLET || 'UQDIkS1d_Lhd7EDttTtcmr9Xzg78uEMDEsYFde-PZCgfoOtU', // '0QC7IwY6zozwv_neAK1VJsBWcv_M-yd8nC_HVmB_DLVQmkY7',
             amount: "1000000", // 0.001 TON
           },
         ],
