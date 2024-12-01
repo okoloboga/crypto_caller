@@ -38,8 +38,8 @@ export const updatePoints = async (walletAddress, newPoints) => {
     console.log(`Updating points for walletAddress: ${walletAddress} with newPoints: ${newPoints}`);
     // Передаем и walletAddress, и newPoints
     const response = await api.post('/user/update-points', { walletAddress, newPoints });
-    console.log('Points successfully updated:', response.data); // Ответ с обновленными очками
-    return response.data; // Возвращаем обновленные очки
+    console.log('Points successfully updated:', response); // Ответ с обновленными очками
+    return response; // Возвращаем обновленные очки
   } catch (error) {
     console.error(`Error updating points for walletAddress ${walletAddress}:`, error.message);
     throw error;
@@ -52,8 +52,8 @@ export const claimPoints = async (walletAddress, points) => {
     console.log(`Claiming points for walletAddress: ${walletAddress} with points: ${points}`);
     // Отправляем запрос на сервер для сбора очков
     const response = await api.post('/user/claim-points', { walletAddress, points });
-    console.log('Points successfully claimed and added to the user account:', response.data);
-    return response.data; // Возвращаем подтверждение успешного сбора
+    console.log('Points successfully claimed and added to the user account:', response);
+    return response; // Возвращаем подтверждение успешного сбора
   } catch (error) {
     console.error(`Error claiming points for walletAddress ${walletAddress}:`, error.message);
     throw error;
