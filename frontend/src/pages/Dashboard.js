@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import TaskList from '../components/TaskList';
