@@ -45,6 +45,13 @@ const Dashboard = () => {
     }
   }, []);  // Этот useEffect выполняется один раз при монтировании компонента
 
+  useEffect(() => {
+    const storedLastPoints = localStorage.getItem('lastPoints');
+    if (storedLastPoints) {
+      setLastPoints(parseFloat(storedLastPoints));
+    }
+  }, []);
+
   // Сохраняем данные в localStorage при изменении totalPoints
   useEffect(() => {
     if (totalPoints !== undefined) {
@@ -52,8 +59,22 @@ const Dashboard = () => {
     }
   }, [totalPoints]);  // Следим за изменениями totalPoints
 
+  useEffect(() => {
+    if (lastPoints !== undefined) {
+      localStorage.setItem('lastPoints', lastPoints.toString());
+    }
+  }, [lastPoints]);
+
   const isValidDate = (date) => {
     return date instanceof Date && !isNaN(date);
+  };
+
+  // Функция для обновления данных в родительском компоненте
+  const updatePointsData = (newTotalPoints, newLastPoints, newLastUpdated) => {
+    console.log('Updating points data:', newTotalPoints, newLastPoints, newLastUpdated);
+    setTotalPoints(newTotalPoints);
+    setLastPoints(newLastPoints);
+    setLastUpdated(newLastUpdated);
   };
   
   const fetchUserData = async () => {
@@ -138,13 +159,6 @@ const Dashboard = () => {
     } else {
       setCurrentTask({ currencyPair: '', targetPrice: '' });
     }
-  };
-
-  // Функция для обновления данных в родительском компоненте
-  const updatePointsData = (newTotalPoints, newLastPoints, newLastUpdated) => {
-    setTotalPoints(newTotalPoints);
-    setLastPoints(newLastPoints);
-    setLastUpdated(newLastUpdated);
   };
 
   if (currentScreen === 'subscription') {
