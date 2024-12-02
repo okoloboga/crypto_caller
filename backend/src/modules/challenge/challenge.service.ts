@@ -43,14 +43,25 @@ export class ChallengeService {
 
     const stateInit = loadStateInit(Cell.fromBase64(payload.proof.state_init).beginParse())
 
+	  this.logger.log('stateInit is OK ')
+
 	  const client = new TonClient4({
 		  endpoint: 'https://mainnet-v4.tonhubapi.com'
 	  })
+
+	  this.logger.log('client is OK ')
+
 	  const masterAt = await client.getLastBlock()
+
+	  this.logger.log('masterAt is OK ')
+
 	  const result = await client.runMethod(masterAt.last.seqno, Address.parse(payload.address), 'get_public_key', [])
+
+	  this.logger.log('result is OK ')
+
 	  const publicKey = Buffer.from(result.reader.readBigNumber().toString(16).padStart(64, '0'), 'hex')
 
-    this.logger.log(`publicKey: ${publicKey}`)
+      this.logger.log(`publicKey: ${publicKey}`)
 
 	  if (!publicKey) {
 		  return false
