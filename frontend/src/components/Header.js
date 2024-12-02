@@ -7,9 +7,8 @@ const Header = ({ onNavigate }) => {
   const walletAddress = useTonAddress();
   const wallet = useTonWallet();
   const [notification, setNotification] = useState('');
-  const [loading, setLoading] = useState(true); // Флаг загрузки
   const { language, changeLanguage } = useLanguage();
-  const { tonConnectUI, setOptions } = useTonConnectUI();
+  const [tonConnectUI, setOptions] = useTonConnectUI();
 
   useEffect(() => {
     const refreshPayload = async (challenge) => {
@@ -32,7 +31,7 @@ const Header = ({ onNavigate }) => {
       setLoading(true);
 
       // Получаем challenge или другие данные, если нужно
-      const challenge = "some-challenge-value";  // Предположим, что challenge мы получаем динамически
+      const challenge = await getChallenge(walletAddress);
 
       try {
         // Запускаем refreshPayload для инициализации запроса
@@ -91,7 +90,6 @@ const Header = ({ onNavigate }) => {
         </ul>
       </nav>
 
-      {loading && <p>Loading TON Proof...</p>} {/* Отображаем статус загрузки */}
       {notification && <p className="notification">{notification}</p>}
     </header>
   );
