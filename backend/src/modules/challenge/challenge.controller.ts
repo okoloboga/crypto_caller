@@ -31,18 +31,18 @@ export class ChallengeController {
     }
 
     try {
-      this.logger.log(`Начало проверки TON Proof для walletAddress: ${account}`);
-      const isValid = await this.challengeService.verifyTonProof(account, tonProof);
+      this.logger.log(`Начало проверки TON Proof для walletAddress: ${account.address}`);
+      const isValid = await this.challengeService.verifyTonProof(account.address, tonProof);
 
       if (isValid) {
-        this.logger.log(`TON Proof verification successful for walletAddress: ${account}`);
+        this.logger.log(`TON Proof verification successful for walletAddress: ${account.address}`);
       } else {
-        this.logger.warn(`TON Proof verification failed for walletAddress: ${account}`);
+        this.logger.warn(`TON Proof verification failed for walletAddress: ${account.address}`);
       }
 
       return { valid: isValid };
     } catch (error) {
-      this.logger.error(`Ошибка проверки TON Proof для walletAddress: ${account}`, error.message);
+      this.logger.error(`Ошибка проверки TON Proof для walletAddress: ${account.address}`, error.message);
       throw new BadRequestException('Ошибка проверки TON Proof.');
     }
   }
