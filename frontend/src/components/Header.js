@@ -8,6 +8,7 @@ const Header = ({ onNavigate }) => {
   const walletAddress = useTonAddress();
   const wallet = useTonWallet();
   const [notification, setNotification] = useState('');
+  const [hasTonProof, setHasTonProof] = useState(false); // Новое состояние для отслеживания tonProof
   const { language, changeLanguage } = useLanguage();
   const [tonConnectUI, setOptions] = useTonConnectUI();
 
@@ -39,8 +40,10 @@ const Header = ({ onNavigate }) => {
         // Проверяем наличие tonProof после вызова refreshPayload
         if (wallet.connectItems?.tonProof) {
           console.log('TON Proof:', wallet.connectItems.tonProof);
+          setHasTonProof(true);  // Устанавливаем состояние в true, если tonProof найден
         } else {
           setNotification('TON Proof not provided. Please reconnect your wallet.');
+          setHasTonProof(false); // Устанавливаем состояние в false, если tonProof отсутствует
           setTimeout(() => setNotification(''), 3000);
         }
       } catch (error) {
@@ -54,6 +57,9 @@ const Header = ({ onNavigate }) => {
   const handleClick = () => {
     if (!walletAddress) {
       setNotification('Connect Wallet');
+      setTimeout(() => setNotification(''), 3000);
+    } else if (!hasTonProof) {
+      setNotification('Please connect your wallet properly to get TON Proof.');
       setTimeout(() => setNotification(''), 3000);
     } else {
       onNavigate('subscription');

@@ -25,6 +25,8 @@ export class ChallengeController {
   ): Promise<{ valid: boolean }> {
     const { walletAddress, tonProof } = verifyDto;
 
+    console.log('verifyTonProof', walletAddress, tonProof);
+
     if (!walletAddress || !tonProof) {
       this.logger.warn('Missing required parameters in verify request');
       throw new BadRequestException('Missing required parameters');
