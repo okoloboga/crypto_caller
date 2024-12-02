@@ -17,7 +17,6 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
   const [notification, setNotification] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [hasShownNotification, setHasShownNotification] = useState(false);
-  const [walletReady, setWalletReady] = useState(false);
   const [challenge, setChallenge] = useState(null);
 
   useEffect(() => {
@@ -65,12 +64,6 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
 
     fetchUserData();
   }, [walletAddress, t, hasShownNotification]);
-
-  useEffect(() => {
-    if (wallet.connectItems?.tonProof) {
-      setWalletReady(true);
-    }
-  }, [wallet.connectItems]);
 
   useEffect(() => {
     if (walletAddress) {
@@ -222,10 +215,6 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
       showNotification(t('activationFailed'));
     }
   };
-
-  if (!walletReady) {
-    return <div>Loading...</div>;
-  }  
 
   return (
     <div className="subscription-form">
