@@ -1,6 +1,6 @@
 {
     "noTasks": "Нет активных задач",
-    "edit": "Редактировать",
+    "edit": "Изменить",
     "delete": "Удалить",
     "taskDetails": "{{currencyPair}}: {{targetPrice}} {{sign}}",
     "currencyPair": "Валютная пара",
@@ -30,6 +30,8 @@
     "activationFailed": "Ошибка активации. Пожалуйста, попробуйте снова.",
     "subscribeToEarn": "Подпишитесь, чтобы начать зарабатывать RUBLE.",
     "lastUpdated": "Последнее обновление: {{time}}",
-    "points": "RUBLE"
+    "points": "RUBLE",
+    "tryConnection": "Подключи кошелёк",
+    "retryConnection": "Кошелёк подключился некорректно, отключи и попробуй ещё раз"
   }
   

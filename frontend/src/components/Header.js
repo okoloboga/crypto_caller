@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { TonConnectButton, useTonAddress, useTonWallet, useTonConnectUI } from '@tonconnect/ui-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getChallenge } from '../services/apiService';
+import { useTranslation } from 'react-i18next';
 import './Header.css';
 
 const Header = ({ onNavigate }) => {
+	const { t } = useTranslation();
   const walletAddress = useTonAddress();
   const wallet = useTonWallet();
   const [notification, setNotification] = useState('');
@@ -41,7 +43,7 @@ const Header = ({ onNavigate }) => {
           console.log('TON Proof:', wallet.connectItems.tonProof);
           setHasTonProof(true);  // Устанавливаем состояние в true, если tonProof найден
         } else {
-          setNotification('TON Proof not provided. Please reconnect your wallet.');
+          setNotification(t('retryConnection'));
           setHasTonProof(false); // Устанавливаем состояние в false, если tonProof отсутствует
           setTimeout(() => setNotification(''), 3000);
         }
@@ -58,7 +60,7 @@ const Header = ({ onNavigate }) => {
       setNotification('Connect Wallet');
       setTimeout(() => setNotification(''), 3000);
     } else if (!hasTonProof) {
-      setNotification('Please connect your wallet properly to get TON Proof.');
+      setNotification(t('tryConnection'));
       setTimeout(() => setNotification(''), 3000);
     } else {
       onNavigate('subscription');

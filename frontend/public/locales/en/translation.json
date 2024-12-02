@@ -30,6 +30,8 @@
     "activationFailed": "Activation failed. Please try again.",
     "subscribeToEarn": "Subscribe to start earning RUBLE.",
     "lastUpdated": "Last updated: {{time}}",
-    "points": "RUBLE"
+    "points": "RUBLE",
+    "tryConnection": "Connect wallet correct",
+    "retryConnection": "Incorrect wallet connection, disconnect and try again"
   }
   
