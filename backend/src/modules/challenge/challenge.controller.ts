@@ -21,9 +21,9 @@ export class ChallengeController {
   // Эндпоинт для проверки challenge
   @Post('verify')
   async verifyTonProof(
-    @Body() verifyDto: { walletAddress: string; tonProof: any }, // `tonProof` должен быть объектом
+    @Body() verifyDto: { walletAddress: string; tonProof: any, account: any }, // `tonProof` должен быть объектом
   ): Promise<{ valid: boolean }> {
-    const { walletAddress, tonProof } = verifyDto;
+    const { walletAddress, tonProof, account } = verifyDto;
 
     if (!walletAddress || !tonProof) {
       this.logger.warn('Missing required parameters in verify request');
@@ -32,7 +32,7 @@ export class ChallengeController {
 
     try {
       this.logger.log(`Начало проверки TON Proof для walletAddress: ${walletAddress}`);
-      const isValid = await this.challengeService.verifyTonProof(walletAddress, tonProof);
+      const isValid = await this.challengeService.verifyTonProof(account, tonProof);
 
       if (isValid) {
         this.logger.log(`TON Proof verification successful for walletAddress: ${walletAddress}`);
