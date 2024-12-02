@@ -176,10 +176,10 @@ export const getChallenge = async (walletAddress) => {
 };
 
 // Function to verify a challenge
-export const verifyChallenge = async (account, tonProof) => {
+export const verifyChallenge = async (walletAddress, tonProof) => {
   try {
     const response = await api.post('/challenge/verify', {
-      account,
+      walletAddress,
       tonProof
     });
 
