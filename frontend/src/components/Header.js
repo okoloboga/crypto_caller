@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TonConnectButton, useTonAddress, useTonWallet, useTonConnectUI } from '@tonconnect/ui-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getChallenge } from '../services/apiService';
 import './Header.css';
 
 const Header = ({ onNavigate }) => {
@@ -28,8 +29,6 @@ const Header = ({ onNavigate }) => {
     const checkTonProof = async () => {
       if (!walletAddress) return;
 
-      setLoading(true);
-
       // Получаем challenge или другие данные, если нужно
       const challenge = await getChallenge(walletAddress);
 
@@ -46,8 +45,6 @@ const Header = ({ onNavigate }) => {
         }
       } catch (error) {
         console.error('Error checking tonProof:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
