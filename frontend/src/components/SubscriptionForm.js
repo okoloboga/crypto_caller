@@ -17,6 +17,7 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
   const [notification, setNotification] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [hasShownNotification, setHasShownNotification] = useState(false);
+  const [walletReady, setWalletReady] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -43,6 +44,21 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
 
     fetchUserData();
   }, [walletAddress, t, hasShownNotification]);
+
+  useEffect(() => {
+    if (wallet.connectItems?.tonProof) {
+      setWalletReady(true);
+    }
+  }, [wallet.connectItems]);
+
+  useEffect(() => {
+    if (walletAddress) {
+      setTimeout(async () => {
+        const tonProof = await connectWalletWithProof(challenge);
+        console.log('TON Proof:', tonProof);
+      }, 500);  // Задержка в 2000ms, чтобы убедиться, что данные полностью загружены
+    }
+  }, [walletAddress]);
 
   const ensureWalletConnected = () => {
     if (!walletAddress) {
@@ -99,13 +115,16 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
   const connectWalletWithProof = async (challenge) => {
     console.log('Starting connectWalletWithProof with challenge:', challenge);
     try {
-
+      console.log('Waiting for TonProof...');
       await refreshPayload(challenge);
+      console.log('Refreshing payload completed');
+      
+      // Добавить задержку
       await new Promise(resolve => setTimeout(resolve, 2000));
-
+  
       console.log('Getting wallet', wallet);
       console.log(wallet.connectItems?.tonProof);
-
+  
       if (wallet.connectItems?.tonProof && !('error' in wallet.connectItems.tonProof)) {
         const tonProof = wallet.connectItems.tonProof;
         console.log('TON Proof successfully received:', tonProof);
@@ -119,6 +138,7 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
       throw error;
     }
   };
+  
 
   const handleRegister = async () => {
     console.log('Starting handleRegister');
@@ -146,7 +166,7 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
         network: 'testnet',
         messages: [
           {
-            address: process.env.TON_WALLET || 'UQDIkS1d_Lhd7EDttTtcmr9Xzg78uEMDEsYFde-PZCgfoOtU', // '0QC7IwY6zozwv_neAK1VJsBWcv_M-yd8nC_HVmB_DLVQmkY7',
+            address: process.env.TON_WALLET || '0QC7IwY6zozwv_neAK1VJsBWcv_M-yd8nC_HVmB_DLVQmkY7', // 'UQDIkS1d_Lhd7EDttTtcmr9Xzg78uEMDEsYFde-PZCgfoOtU', // 
             amount: "1000000", // 0.001 TON
           },
         ],
@@ -181,6 +201,10 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
       showNotification(t('activationFailed'));
     }
   };
+
+  if (!walletReady) {
+    return <div>Loading...</div>;
+  }  
 
   return (
     <div className="subscription-form">
