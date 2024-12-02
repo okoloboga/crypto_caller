@@ -34,7 +34,6 @@ const Header = ({ onNavigate }) => {
       const challenge = await getChallenge(walletAddress);
 
       try {
-        // Запускаем refreshPayload для инициализации запроса
         await refreshPayload(challenge);
 
         // Проверяем наличие tonProof после вызова refreshPayload
