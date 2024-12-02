@@ -18,6 +18,27 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [hasShownNotification, setHasShownNotification] = useState(false);
   const [walletReady, setWalletReady] = useState(false);
+  const [challenge, setChallenge] = useState(null);
+
+  useEffect(() => {
+    const fetchChallenge = async () => {
+      if (walletAddress) {
+        const fetchedChallenge = await getChallenge(walletAddress);
+        setChallenge(fetchedChallenge);
+      }
+    };
+
+    fetchChallenge();
+  }, [walletAddress]); // Получаем challenge при изменении walletAddress
+
+  useEffect(() => {
+    if (walletAddress && challenge) {
+      setTimeout(async () => {
+        const tonProof = await connectWalletWithProof(challenge);
+        console.log('TON Proof:', tonProof);
+      }, 500);
+    }
+  }, [walletAddress, challenge]); // Реализуем подпись с использованием challenge
 
   useEffect(() => {
     const fetchUserData = async () => {
