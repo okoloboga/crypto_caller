@@ -191,7 +191,7 @@ export const verifyChallenge = async (walletAddress, tonProof) => {
 
     return response.valid;
   } catch (error) {
-    console.error(`Error verifying challenge for account.address ${account.address}:`, error.message);
+    console.error(`Error verifying challenge for address ${walletAddress}:`, error.message);
     throw error;
   }
 };
