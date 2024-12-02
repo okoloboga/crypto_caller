@@ -186,11 +186,11 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
         ],
       };
 
-      const challenge = await getChallenge(wallet.account.address);
+      const challenge = await getChallenge(walletAddress);
       const tonProof = await connectWalletWithProof(challenge);
-      console.log('Received TON Proof:', tonProof, 'For wallet:', wallet.account.address);
+      console.log('Received TON Proof:', tonProof, 'For wallet:', walletAddress);
 
-      const isValid = await verifyChallenge(wallet.account, tonProof);
+      const isValid = await verifyChallenge(walletAddress, tonProof);
       console.log('TON Proof verification result:', isValid);
 
       if (!isValid || isValid === false) {
