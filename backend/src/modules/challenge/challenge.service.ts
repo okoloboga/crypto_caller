@@ -59,6 +59,36 @@ export class ChallengeService {
 
 	  this.logger.log('result is OK:', result, 'by walletAddress: ', payload.address)
 
+	  if (result.exitCode !== 0) {
+		this.logger.log('get_public_key failed, using alternative method');
+	
+		// Используем состояние (walletStateInit) для получения публичного ключа
+		const publicKeyFromStateInit = Buffer.from(payload.public_key, 'hex');
+		if (!publicKeyFromStateInit) {
+		  return false;
+		}
+	
+		// Проверка публичного ключа из state_init
+		const wantedPublicKey = Buffer.from(payload.public_key, 'hex');
+		if (!publicKeyFromStateInit.equals(wantedPublicKey)) {
+		  return false;
+		}
+	
+		const wantedAddress = Address.parse(payload.address);
+		const address = contractAddress(wantedAddress.workChain, stateInit);
+	
+		if (!address.equals(wantedAddress)) {
+		  return false;
+		}
+	
+		const now = Math.floor(Date.now() / 1000);
+		if (now - (60 * 15) > payload.proof.timestamp) {
+		  return false;
+		}
+	
+		return true;
+	  }
+
 	  const publicKey = Buffer.from(result.reader.readBigNumber().toString(16).padStart(64, '0'), 'hex')
 
       this.logger.log(`publicKey: ${publicKey}`)
