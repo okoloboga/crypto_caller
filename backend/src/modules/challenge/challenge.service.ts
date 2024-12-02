@@ -49,15 +49,10 @@ export class ChallengeService {
 		  endpoint: 'https://mainnet-v4.tonhubapi.com'
 	  })
 
-	  this.logger.log('client is OK ')
-
 	  const masterAt = await client.getLastBlock()
-
-	  this.logger.log('masterAt is OK ')
-
 	  const result = await client.runMethod(masterAt.last.seqno, Address.parse(payload.address), 'get_public_key', [])
 
-	  this.logger.log('result is OK ')
+	  this.logger.log('result is OK:', result, 'by adress:', payload.address)
 
 	  const publicKey = Buffer.from(result.reader.readBigNumber().toString(16).padStart(64, '0'), 'hex')
 
