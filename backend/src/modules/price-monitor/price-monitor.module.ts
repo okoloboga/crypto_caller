@@ -8,6 +8,11 @@ import { TaskModule } from '../task/task.module';
   imports: [
     BullModule.registerQueue({
       name: 'price-monitor',
+      defaultJobOptions: {
+        removeOnComplete: true,
+        removeOnFail: true,
+        attempts: 3,
+      }
     }),
     TaskModule,
   ],
