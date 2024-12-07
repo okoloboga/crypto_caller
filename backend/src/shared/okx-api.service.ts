@@ -26,11 +26,9 @@ export class OkxApiService {
         this.httpService.get(url, { headers })
       );
 
-      this.logger.log(`Response for ${currencyPairSwap}: from OKX: ${JSON.stringify(response.data)}`);
-
       const data = response.data.data;
 
-      this.logger.log(`Data for ${currencyPairSwap}: ${JSON.stringify(data)}`);
+      this.logger.log(`Data for ${currencyPairSwap}: ${JSON.stringify(data.last)}`);
 
       if (data && data[0] && data[0].last) {
         return parseFloat(data[0].last);
