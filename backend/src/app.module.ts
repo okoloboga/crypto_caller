@@ -19,6 +19,7 @@ import { PriceMonitorModule } from './modules/price-monitor/price-monitor.module
       redis: {
         host: 'redis',
         port: 6379,
+        password: process.env.REDIS_PASSWORD,
         retryStrategy: (times) => {
           const delay = Math.min(times * 1000, 30000); 
           console.log(`Retrying Redis connection after ${delay}ms`);
