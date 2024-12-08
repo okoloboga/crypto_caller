@@ -42,8 +42,6 @@ services:
   # Сервис для Redis
   redis:
     image: redis:alpine
-    ports:
-      - "6379:6379"
     volumes:
       # Монтируем свой конфигурационный файл redis.conf в контейнер
       - ./redis.conf:/usr/local/etc/redis/redis.conf
