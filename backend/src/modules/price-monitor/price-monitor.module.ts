@@ -7,12 +7,13 @@ import { TaskModule } from '../task/task.module';
 @Module({
   imports: [
     BullModule.registerQueue({
-      name: 'price-monitor',
+      name: 'price-monitor',  // Указываем имя очереди
       defaultJobOptions: {
         removeOnComplete: true,
         removeOnFail: true,
         attempts: 3,
-      }
+        backoff: { type: 'exponential', delay: 5000 }, // задержка перед повторной попыткой
+      },
     }),
     TaskModule,
   ],

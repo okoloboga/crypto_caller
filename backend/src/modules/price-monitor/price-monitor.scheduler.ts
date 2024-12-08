@@ -11,10 +11,10 @@ export class PriceMonitorScheduler {
       {},
       {
         repeat: {
-          cron: '*/10 * * * * *',
+          cron: '*/59 * * * * *',
         },
       }
     );
-    console.log('Scheduled price monitor every 10 seconds');
+    console.log('Scheduled price monitor every 59 seconds');
   }
 }
