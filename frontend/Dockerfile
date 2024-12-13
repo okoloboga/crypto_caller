@@ -5,16 +5,16 @@ FROM node:18 AS build
 WORKDIR /app
 
 # Копируем package.json и package-lock.json
-COPY package*.json ./
+# COPY package*.json ./
 
 # Установка зависимостей
-RUN npm install --legacy-peer-deps
+# RUN npm install --legacy-peer-deps
 
 # Копируем все остальные файлы проекта
-COPY . .
+# COPY . .
 
 # Собираем проект
-RUN npm run build
+# RUN npm run build
 
 # Разворачиваем сервер с готовым билдом
 FROM nginx:alpine

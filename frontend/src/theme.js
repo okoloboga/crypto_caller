@@ -24,7 +24,8 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: '12px',
-          width: '90%',
+          backgroundColor: '#3258a8',
+          width: '100%',
           color: '#ffffff',  // Белый цвет для текста на кнопках
         },
         text: {

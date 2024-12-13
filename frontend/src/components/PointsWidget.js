@@ -140,7 +140,17 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
         <LinearProgress
           variant="determinate"
           value={(localLastPoints / maxPoints) * 100}  // Значение прогресса в процентах
-          sx={{ height: 16, borderRadius: 2 }}
+          color="secondary"  // Цвет для заполненной части
+          sx={{
+            height: 16,
+            borderRadius: 2,
+            '& .MuiLinearProgress-bar': {
+              backgroundColor: 'secondary.main',  // Цвет заполненной части
+            },
+            '& .MuiLinearProgress-root': {
+              backgroundColor: 'primary.main',  // Цвет незаполненной части
+            },
+          }}
         />
         <Box
           sx={{

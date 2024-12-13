@@ -81,7 +81,7 @@ const Footer = ({ handleCreateTask, onNavigate }) => {
       sx={{
         backgroundColor: '#1a1a1a',
         padding: 0,
-        height: "40px",
+        height: "60px",
         textAlign: 'center',
       }}
     >
@@ -97,32 +97,43 @@ const Footer = ({ handleCreateTask, onNavigate }) => {
       >
         <ListItem sx={{ 
           padding: 0, 
-          flexGrow: 1, 
-          textAlign: "left",
-          }}
-        > 
-          <IconButton onClick={handleClick} color="secondary">
+          flexGrow: 1,  // Растягиваем ListItem на всю доступную ширину
+          display: 'flex',  // Применяем flexbox
+          justifyContent: 'center',  // Центрируем содержимое по горизонтали
+          alignItems: 'center'  // Центрируем содержимое по вертикали
+        }}> 
+          <IconButton 
+            color="secondary" 
+            onClick={handleCreateTask} 
+            sx={{ width: '100%', height: '100%' }} // Растягиваем кнопку на всю ширину и высоту ListItem
+          >
             <AddIcCallIcon />
           </IconButton>
         </ListItem>
 
         <ListItem sx={{ 
           padding: 0, 
-          flexGrow: 1,
-          textAlign: "center",
-          }}
-        >
-          <IconButton color="secondary" onClick={handleCreateTask}>
+          flexGrow: 1,  // Растягиваем ListItem на всю доступную ширину
+          display: 'flex',  // Применяем flexbox
+          justifyContent: 'center',  // Центрируем содержимое по горизонтали
+          alignItems: 'center'  // Центрируем содержимое по вертикали
+        }}>
+          <IconButton 
+            color="secondary" 
+            onClick={handleCreateTask} 
+            sx={{ width: '100%', height: '100%' }} // Растягиваем кнопку на всю ширину и высоту ListItem
+          >
             <AddAlarmIcon />
           </IconButton>
         </ListItem>
 
         <ListItem sx={{ 
           padding: 0, 
-          flexGrow: 1, 
-          textAlign: "rigth",
-          }}
-        >
+          flexGrow: 1,  // Растягиваем ListItem на всю доступную ширину
+          display: 'flex',  // Применяем flexbox
+          justifyContent: 'center',  // Центрируем содержимое по горизонтали
+          alignItems: 'center'  // Центрируем содержимое по вертикали
+        }}>
           <Button onClick={handleLanguageChange} variant="text" color="secondary">
             {language === 'en' ? 'EN' : 'RU'}
           </Button>
