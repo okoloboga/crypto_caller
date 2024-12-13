@@ -88,7 +88,7 @@ const Footer = ({ handleCreateTask, onNavigate }) => {
         <List sx={{ display: 'flex', justifyContent: 'space-between', padding: 0, margin: 0 }}>
           <ListItem sx={{ padding: 0 }}>
             <IconButton onClick={handleClick} color="secondary">
-              <AddicCallIcon />
+              <AddIcCallIcon />
             </IconButton>
           </ListItem>
           <ListItem sx={{ padding: 0 }}>
