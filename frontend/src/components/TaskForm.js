@@ -63,7 +63,6 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
     >
       {/* Выбор валютной пары */}
       <FormControl fullWidth sx={{ marginBottom: 2 }} disabled={disabled || loading}>
-        <InputLabel>{t('currencyPair')}</InputLabel>
         <Select
           value={form.currencyPair || ''}
           onChange={(e) => setForm({ ...form, currencyPair: e.target.value })}
