@@ -85,21 +85,25 @@ const Footer = ({ handleCreateTask, onNavigate }) => {
       }}
     >
       <nav>
-        <List sx={{ display: 'flex', justifyContent: 'space-between', padding: 0, margin: 0 }}>
+        <List sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', // Центрируем все элементы
+          padding: 0, 
+          margin: 0, 
+          gap: 2, // Отступы между элементами
+        }}>
           <ListItem sx={{ padding: 0 }}>
             <IconButton onClick={handleClick} color="secondary">
               <AddIcCallIcon />
             </IconButton>
           </ListItem>
           <ListItem sx={{ padding: 0 }}>
-          </ListItem>
-          <ListItem>
             <IconButton color="secondary" onClick={handleCreateTask}>
               <AddAlarmIcon />
             </IconButton>
           </ListItem>
           <ListItem sx={{ padding: 0 }}>
-            <Button onClick={handleLanguageChange} variant="text" color='secondary.main'>
+            <Button onClick={handleLanguageChange} variant="text" color="secondary">
               {language === 'en' ? 'EN' : 'RU'}
             </Button>
           </ListItem>

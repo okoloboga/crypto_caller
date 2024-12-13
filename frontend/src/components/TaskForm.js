@@ -53,7 +53,13 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
   };
 
   return (
-    <Box sx={{ padding: 3, borderRadius: 2, boxShadow: 3 }}>
+    <Box sx={{ 
+      backgroundColor: '#1a1a1a',
+      padding: 3, 
+      borderRadius: 2, 
+      boxShadow: 3 
+      }}
+    >
       {/* Выбор валютной пары */}
       <FormControl fullWidth sx={{ marginBottom: 2 }} disabled={disabled || loading}>
         <InputLabel>{t('currencyPair')}</InputLabel>

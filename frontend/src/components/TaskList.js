@@ -12,6 +12,7 @@ const TaskList = ({ tasks, onEdit, onDelete, isDisabled, onDisabledAction }) => 
           <Paper
             key={task.id}
             sx={{
+              backgroundColor: '#1a1a1a',
               padding: 2,
               marginBottom: 2,
               borderRadius: 2,
