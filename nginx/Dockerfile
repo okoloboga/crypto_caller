@@ -17,7 +17,7 @@ WORKDIR /app
 FROM nginx:alpine
 
 # Копируем собранный фронтенд в Nginx
-COPY --from=frontend-build /app/build /usr/share/nginx/html
+# COPY --from=frontend-build /app/build /usr/share/nginx/html
 
 # Проверяем, что файлы действительно скопированы
 RUN ls -al /usr/share/nginx/html
