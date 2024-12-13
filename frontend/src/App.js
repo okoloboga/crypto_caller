@@ -4,7 +4,6 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import i18n from './i18n';
 import { useTonAddress } from '@tonconnect/ui-react';
 import Dashboard from './pages/Dashboard';
-import './App.css';
 
 const App = () => {
   const walletAddress = useTonAddress();

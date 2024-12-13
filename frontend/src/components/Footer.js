@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { TonConnectButton, useTonAddress, useTonWallet, useTonConnectUI } from '@tonconnect/ui-react';
+import { useTonAddress, useTonWallet, useTonConnectUI } from '@tonconnect/ui-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getChallenge } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
-import { Button, List, ListItem, Box, Typography } from '@mui/material';
+import { Button, List, ListItem, Box, Typography, IconButton } from '@mui/material';
 // import './Footer.css';
 
-const Footer = ({ onNavigate }) => {
+const Footer = ({ handleCreateTask, onNavigate }) => {
 	const { t } = useTranslation();
   const walletAddress = useTonAddress();
   const wallet = useTonWallet();
@@ -75,19 +75,30 @@ const Footer = ({ onNavigate }) => {
   };
 
   return (
-    <Box component="footer" sx={{ padding: 2, backgroundColor: '#f5f5f5' }}>
+    <Box
+      component="footer"
+      sx={{
+        backgroundColor: '#f5f5f5',
+        padding: 2,
+        textAlign: 'center',
+      }}
+    >
       <nav>
         <List sx={{ display: 'flex', justifyContent: 'space-between', padding: 0, margin: 0 }}>
           <ListItem sx={{ padding: 0 }}>
-            <Button onClick={handleClick} variant="contained" color="primary">
-              ME
-            </Button>
+            <IconButton onClick={handleClick} color="secondary">
+              <AddicCall />
+            </IconButton>
           </ListItem>
           <ListItem sx={{ padding: 0 }}>
-            <TonConnectButton />
+          </ListItem>
+          <ListItem>
+            <IconButton color="secondary" onClick={handleCreateTask}>
+              <AddAlarm />
+            </IconButton>
           </ListItem>
           <ListItem sx={{ padding: 0 }}>
-            <Button onClick={handleLanguageChange} variant="outlined" color="secondary">
+            <Button onClick={handleLanguageChange} variant="text" color="secondary">
               {language === 'en' ? 'EN' : 'RU'}
             </Button>
           </ListItem>

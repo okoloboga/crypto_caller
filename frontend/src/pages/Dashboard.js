@@ -3,6 +3,7 @@ import { useTonAddress } from '@tonconnect/ui-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
+import Header from '../components/Header';
 import Footer from '../components/Footer';
 import PointsWidget from '../components/PointsWidget';
 import SubscriptionForm from '../components/SubscriptionForm';
@@ -189,53 +190,61 @@ const Dashboard = () => {
   }
 
   return (
-    <Box sx={{ padding: 3 }}>
-      {/* Компонент PointsWidget */}
-      <PointsWidget 
-        isSubscribed={isSubscribed} 
-        showNotification={showNotification}
-        totalPoints={totalPoints}
-        lastPoints={lastPoints}
-        lastUpdated={lastUpdated}
-        updatePointsData={updatePointsData}
-      />
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',  // Убедитесь, что весь экран заполняется
+      }}
+    >
+      <Box
+        component="main"
+        sx={{
+          flex: 1,  // Заставляем основной контент занимать всё доступное пространство
+          padding: 3,
+        }}
+      >
+        <Header />
 
-      {/* Кнопка для создания задачи */}
-      <Box sx={{ marginTop: 3, display: 'flex', justifyContent: 'center' }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleCreateTask}
-        >
-          {language === 'en' ? 'Create Task' : 'Создать задачу'}
-        </Button>
+        {/* Компонент PointsWidget */}
+        <PointsWidget 
+          isSubscribed={isSubscribed} 
+          showNotification={showNotification}
+          totalPoints={totalPoints}
+          lastPoints={lastPoints}
+          lastUpdated={lastUpdated}
+          updatePointsData={updatePointsData}
+        />
+
+        {/* Формы и список задач */}
+        {currentTask ? (
+          <TaskForm
+            task={currentTask}
+            currencyPairs={currencyPairs}
+            onSave={handleSave}
+            onCancel={() => setCurrentTask(null)}
+          />
+        ) : (
+          <TaskList 
+            tasks={tasks} 
+            onEdit={setCurrentTask} 
+            onDelete={handleDelete} 
+          />
+        )}
+
+        {/* Сообщение с уведомлением */}
+        {notification && (
+          <Typography variant="body2" color="error" sx={{ marginTop: 2 }}>
+            {notification}
+          </Typography>
+        )}
       </Box>
 
-      {/* Формы и список задач */}
-      {currentTask ? (
-        <TaskForm
-          task={currentTask}
-          currencyPairs={currencyPairs}
-          onSave={handleSave}
-          onCancel={() => setCurrentTask(null)}
-        />
-      ) : (
-        <TaskList 
-          tasks={tasks} 
-          onEdit={setCurrentTask} 
-          onDelete={handleDelete} 
-        />
-      )}
-
-      {/* Сообщение с уведомлением */}
-      {notification && (
-        <Typography variant="body2" color="error" sx={{ marginTop: 2 }}>
-          {notification}
-        </Typography>
-      )}
-
-      {/* Header */}
-      <Footer onNavigate={setCurrentScreen} />
+      {/* Footer всегда внизу */}
+      <Footer 
+        handleCreateTask={handleCreateTask}
+        onNavigate={setCurrentScreen} 
+      />
     </Box>
   );
 };
