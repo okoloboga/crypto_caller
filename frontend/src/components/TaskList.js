@@ -38,8 +38,8 @@ const TaskList = ({ tasks, onEdit, onDelete, isDisabled, onDisabledAction }) => 
               <Button
                 onClick={() => (isDisabled ? onDisabledAction() : onEdit(task))}
                 disabled={isDisabled}
-                variant="outlined"
-                color="primary"
+                variant="contained"
+                color="secondary"
                 fullWidth
               >
                 {t('edit')}
@@ -47,7 +47,7 @@ const TaskList = ({ tasks, onEdit, onDelete, isDisabled, onDisabledAction }) => 
               <Button
                 onClick={() => (isDisabled ? onDisabledAction() : onDelete(task.id))}
                 disabled={isDisabled}
-                variant="outlined"
+                variant="contained"
                 color="secondary"
                 fullWidth
               >

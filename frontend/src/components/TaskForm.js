@@ -69,6 +69,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
           onChange={(e) => setForm({ ...form, currencyPair: e.target.value })}
           label={t('currencyPair')}
           sx={{
+            borderRadius: '12px',
             backgroundColor: "#383838",
           }}
         >
@@ -90,13 +91,13 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
         onChange={(e) => setForm({ ...form, targetPrice: e.target.value })}
         disabled={disabled || loading}
         sx={{ 
+          borderRadius: '12px',
           marginBottom: 2,
           backgroundColor: "#383838",
           }}
       />
       {/* Выбор направления цены относительно целевой */}
       <FormControl fullWidth sx={{ marginBottom: 2 }} disabled={disabled || loading}>
-        <InputLabel>{t('priceDirection')}</InputLabel>
         <Select
           value={form.isPriceAbove ? 'above' : 'below'}
           onChange={(e) => setForm({ ...form, isPriceAbove: e.target.value === 'above' })}
@@ -113,7 +114,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
       {/* Кнопки сохранения и отмены */}
       <Box sx={{ 
         display: 'flex', 
-        justifyContent: 'space-between', 
+        gap: 1,
         marginTop: 2 
         }}
       >
@@ -122,6 +123,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
           color="secondary"
           onClick={handleSave}
           disabled={disabled || loading}
+          fullWidth
         >
           {t('save')}
         </Button>
@@ -130,6 +132,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
           color="secondary"
           onClick={onCancel}
           disabled={loading}
+          fullWidth
         >
           {t('cancel')}
         </Button>

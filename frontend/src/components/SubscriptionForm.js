@@ -241,7 +241,6 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
                 value={newPhoneNumber || phoneNumber}
                 onChange={(e) => setNewPhoneNumber(e.target.value)}
                 placeholder={t('enterNewPhoneNumber')}
-                variant="outlined"
                 sx={{
                   borderRadius: '12px',
                   backgroundColor: "#383838",
@@ -261,7 +260,7 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
               <Button
                 sx={{ marginTop: 2 }}
                 onClick={() => setIsEditing(true)}
-                variant="contained"
+                color="secondary"
               >
                 {t('editNumber')}
               </Button>
