@@ -81,6 +81,7 @@ const Footer = ({ handleCreateTask, onNavigate }) => {
       sx={{
         backgroundColor: '#1a1a1a',
         padding: 0,
+        height: "40px",
         textAlign: 'center',
       }}
     >
@@ -91,7 +92,7 @@ const Footer = ({ handleCreateTask, onNavigate }) => {
           justifyContent: 'center', // Центрируем элементы
           padding: 0,
           margin: 0,
-          gap: 2, // Отступы между элементами
+          gap: 3, // Отступы между элементами
         }}
       >
         <ListItem sx={{ padding: 0, flexGrow: 1 }}> {/* Добавляем flexGrow */}

@@ -132,7 +132,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       padding: 2, 
       borderRadius: 8, 
       boxShadow: 3,
-      marginBottom: 3, 
+      margin: 1, 
       }}
     >
       {/* Прогресс-бар для накопления очков */}
@@ -140,7 +140,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
         <LinearProgress
           variant="determinate"
           value={(localLastPoints / maxPoints) * 100}  // Значение прогресса в процентах
-          sx={{ height: 8, borderRadius: 2 }}
+          sx={{ height: 16, borderRadius: 2 }}
         />
         <Box
           sx={{
@@ -156,8 +156,8 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
         </Box>
       </Box>
 
-      <Typography variant="h6" sx={{ marginTop: 2 }}>
-        {t('points')}: {localTotalPoints.toFixed(3)}
+      <Typography position="center" variant="h6" sx={{ marginTop: 2 }}>
+        "RUBLE": {localTotalPoints.toFixed(3)}
       </Typography>
     </Paper>
   );

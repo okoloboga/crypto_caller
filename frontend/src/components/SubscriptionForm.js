@@ -221,7 +221,7 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
       padding: 3, 
       borderRadius: 8, 
       boxShadow: 3, 
-      marginBottom: 3,
+      margin: 1,
       }}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
