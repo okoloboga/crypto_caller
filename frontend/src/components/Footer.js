@@ -4,7 +4,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { getChallenge } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
 import { Button, List, ListItem, Box, Typography, IconButton } from '@mui/material';
-// import './Footer.css';
+import AddAlarmIcon from '@mui/icons-material/AddAlarm';
+import AddIcCallIcon from '@mui/icons-material/AddIcCall';
 
 const Footer = ({ handleCreateTask, onNavigate }) => {
 	const { t } = useTranslation();
@@ -87,14 +88,14 @@ const Footer = ({ handleCreateTask, onNavigate }) => {
         <List sx={{ display: 'flex', justifyContent: 'space-between', padding: 0, margin: 0 }}>
           <ListItem sx={{ padding: 0 }}>
             <IconButton onClick={handleClick} color="secondary">
-              <AddicCall />
+              <AddicCallIcon />
             </IconButton>
           </ListItem>
           <ListItem sx={{ padding: 0 }}>
           </ListItem>
           <ListItem>
             <IconButton color="secondary" onClick={handleCreateTask}>
-              <AddAlarm />
+              <AddAlarmIcon />
             </IconButton>
           </ListItem>
           <ListItem sx={{ padding: 0 }}>
