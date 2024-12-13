@@ -156,8 +156,8 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
         </Box>
       </Box>
 
-      <Typography position="center" variant="h6" sx={{ marginTop: 2 }}>
-        "RUBLE": {localTotalPoints.toFixed(3)}
+      <Typography variant="h6" sx={{ marginTop: 2, textAlign: 'center' }}>
+        RUBLE: {localTotalPoints.toFixed(3)}
       </Typography>
     </Paper>
   );

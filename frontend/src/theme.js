@@ -23,6 +23,8 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
+          borderRadius: '12px',
+          width: '90%',
           color: '#ffffff',  // Белый цвет для текста на кнопках
         },
         text: {

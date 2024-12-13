@@ -100,8 +100,8 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
         <Select
           value={form.isPriceAbove ? 'above' : 'below'}
           onChange={(e) => setForm({ ...form, isPriceAbove: e.target.value === 'above' })}
-          label={t('priceDirection')}
           sx={{
+            borderRadius: '12px',
             backgroundColor: "#484848",
             }}
         >
@@ -119,7 +119,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
       >
         <Button
           variant="contained"
-          color="primary"
+          color="secondary"
           onClick={handleSave}
           disabled={disabled || loading}
         >

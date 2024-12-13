@@ -95,17 +95,34 @@ const Footer = ({ handleCreateTask, onNavigate }) => {
           gap: 3, // Отступы между элементами
         }}
       >
-        <ListItem sx={{ padding: 0, flexGrow: 1 }}> {/* Добавляем flexGrow */}
+        <ListItem sx={{ 
+          padding: 0, 
+          flexGrow: 1, 
+          textAlign: "left",
+          }}
+        > 
           <IconButton onClick={handleClick} color="secondary">
             <AddIcCallIcon />
           </IconButton>
         </ListItem>
-        <ListItem sx={{ padding: 0, flexGrow: 1 }}> {/* Добавляем flexGrow */}
+
+        <ListItem sx={{ 
+          padding: 0, 
+          flexGrow: 1,
+          textAlign: "center",
+          }}
+        >
           <IconButton color="secondary" onClick={handleCreateTask}>
             <AddAlarmIcon />
           </IconButton>
         </ListItem>
-        <ListItem sx={{ padding: 0, flexGrow: 1 }}> {/* Добавляем flexGrow */}
+
+        <ListItem sx={{ 
+          padding: 0, 
+          flexGrow: 1, 
+          textAlign: "rigth",
+          }}
+        >
           <Button onClick={handleLanguageChange} variant="text" color="secondary">
             {language === 'en' ? 'EN' : 'RU'}
           </Button>
