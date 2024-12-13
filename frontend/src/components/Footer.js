@@ -79,8 +79,8 @@ const Footer = ({ handleCreateTask, onNavigate }) => {
     <Box
       component="footer"
       sx={{
-        backgroundColor: '#f5f5f5',
-        padding: 2,
+        backgroundColor: '#1a1a1a',
+        padding: 0,
         textAlign: 'center',
       }}
     >
@@ -99,7 +99,7 @@ const Footer = ({ handleCreateTask, onNavigate }) => {
             </IconButton>
           </ListItem>
           <ListItem sx={{ padding: 0 }}>
-            <Button onClick={handleLanguageChange} variant="text" color="secondary">
+            <Button onClick={handleLanguageChange} variant="text" color='secondary.main'>
               {language === 'en' ? 'EN' : 'RU'}
             </Button>
           </ListItem>

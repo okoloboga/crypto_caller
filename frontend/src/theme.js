@@ -25,6 +25,9 @@ const theme = createTheme({
         root: {
           color: '#ffffff',  // Белый цвет для текста на кнопках
         },
+        text: {
+          color: '#3258a8',
+        }
       },
     },
     MuiPaper: {
