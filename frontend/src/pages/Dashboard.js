@@ -156,7 +156,7 @@ const Dashboard = () => {
     setTimeout(() => {
       setNotification('');
       setOpen(false);  // Скрываем уведомление после 3 секунд
-    }, 2000);  // Уведомление скрывается через 3 секунды
+    }, 3000);  // Уведомление скрывается через 3 секунды
   };
 
   const handleSave = async () => {
@@ -241,7 +241,7 @@ const Dashboard = () => {
         {/* Сообщение с уведомлением */}
         <Snackbar
           open={open}
-          autoHideDuration={2000} // Уведомление будет скрываться через 3 секунды
+          autoHideDuration={3000} // Уведомление будет скрываться через 3 секунды
           onClose={() => setOpen(false)}  // Закрываем уведомление вручную
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} // Позиция уведомления
           sx={{

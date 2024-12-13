@@ -148,7 +148,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
               backgroundColor: 'secondary.main',  // Цвет заполненной части
             },
             '& .MuiLinearProgress-root': {
-              backgroundColor: 'primary.main',  // Цвет незаполненной части
+              backgroundColor: '#000000',  // Цвет незаполненной части
             },
           }}
         />
