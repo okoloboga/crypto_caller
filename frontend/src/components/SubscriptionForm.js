@@ -4,7 +4,7 @@ import { useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-rea
 import { getUserByWalletAddress, updatePhoneNumber, createSubscription,
          checkSubscription, getChallenge, verifyChallenge } from '../services/apiService';
 import { useTranslation } from 'react-i18next'; // Импортируем хук useTranslation
-import './SubscriptionForm.css';
+import { Box, Button, TextField, Typography, Paper } from '@mui/material';
 
 const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
   const { t } = useTranslation(); // Получаем функцию для перевода
@@ -217,41 +217,82 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
   };
 
   return (
-    <div className="subscription-form">
-      {isSubscribed ? (
-        isEditing ? (
-          <div>
-            <p>{t('enterNewPhoneNumber')}:</p>
-            <input
-              type="text"
-              value={newPhoneNumber || phoneNumber}
-              onChange={(e) => setNewPhoneNumber(e.target.value)}
-              placeholder={t('enterNewPhoneNumber')}
-            />
-            <button onClick={handleSave}>{t('save')}</button>
-          </div>
+    <Paper sx={{ padding: 3, borderRadius: 2, boxShadow: 3 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {isSubscribed ? (
+          isEditing ? (
+            <Box>
+              <Typography variant="body1">{t('enterNewPhoneNumber')}:</Typography>
+              <TextField
+                fullWidth
+                type="text"
+                value={newPhoneNumber || phoneNumber}
+                onChange={(e) => setNewPhoneNumber(e.target.value)}
+                placeholder={t('enterNewPhoneNumber')}
+                variant="outlined"
+              />
+              <Button
+                sx={{ marginTop: 2 }}
+                onClick={handleSave}
+                variant="contained"
+                color="primary"
+              >
+                {t('save')}
+              </Button>
+            </Box>
+          ) : (
+            <Box>
+              <Typography variant="body1">{t('subscriptionActive', { phoneNumber })}</Typography>
+              <Button
+                sx={{ marginTop: 2 }}
+                onClick={() => setIsEditing(true)}
+                variant="outlined"
+                color="primary"
+              >
+                {t('editNumber')}
+              </Button>
+            </Box>
+          )
         ) : (
-          <div>
-            <p>{t('subscriptionActive', { phoneNumber })}</p>
-            <button onClick={() => setIsEditing(true)}>{t('editNumber')}</button>
-          </div>
-        )
-      ) : (
-        <div>
-          <h4>{t('registrationProcess')}</h4>
-          <p>{t('subscriptionDescription')}</p>
-          <input
-            type="text"
-            value={newPhoneNumber}
-            onChange={(e) => setNewPhoneNumber(e.target.value)}
-            placeholder={t('enterPhoneNumber')}
-          />
-          <button onClick={handleRegister}>{t('payForSubscription')}</button>
-        </div>
-      )}
-      <button onClick={onBack}>{t('back')}</button>
-      {notification && <p className="notification">{notification}</p>}
-    </div>
+          <Box>
+            <Typography variant="h6">{t('registrationProcess')}</Typography>
+            <Typography variant="body2">{t('subscriptionDescription')}</Typography>
+            <TextField
+              fullWidth
+              type="text"
+              value={newPhoneNumber}
+              onChange={(e) => setNewPhoneNumber(e.target.value)}
+              placeholder={t('enterPhoneNumber')}
+              variant="outlined"
+              sx={{ marginTop: 2 }}
+            />
+            <Button
+              sx={{ marginTop: 2 }}
+              onClick={handleRegister}
+              variant="contained"
+              color="primary"
+            >
+              {t('payForSubscription')}
+            </Button>
+          </Box>
+        )}
+        
+        <Button
+          onClick={onBack}
+          sx={{ marginTop: 3 }}
+          variant="outlined"
+          color="secondary"
+        >
+          {t('back')}
+        </Button>
+
+        {notification && (
+          <Typography variant="body2" color="error" sx={{ marginTop: 2 }}>
+            {notification}
+          </Typography>
+        )}
+      </Box>
+    </Paper>
   );
 };
 

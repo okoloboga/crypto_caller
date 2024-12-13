@@ -1,42 +1,62 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import './TaskList.css';
+import { Box, Button, Typography, Paper } from '@mui/material';
 
 const TaskList = ({ tasks, onEdit, onDelete, isDisabled, onDisabledAction }) => {
   const { t } = useTranslation();
 
   return (
-    <div className="task-list">
+    <Box sx={{ padding: 3 }}>
       {tasks.length > 0 ? (
         tasks.map((task) => (
-          <div key={task.id} className="task-item">
-            <p>
+          <Paper
+            key={task.id}
+            sx={{
+              padding: 2,
+              marginBottom: 2,
+              borderRadius: 2,
+              boxShadow: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+            }}
+          >
+            <Typography variant="body1">
               {t('taskDetails', {
                 currencyPair: task.currencyPair,
                 targetPrice: task.targetPrice,
                 sign: task.isPriceAbove ? '+' : '-',
               })}
-            </p>
+            </Typography>
 
-            <button
-              onClick={() => (isDisabled ? onDisabledAction() : onEdit(task))}
-              disabled={isDisabled}
-            >
-              {t('edit')}
-            </button>
-
-            <button
-              onClick={() => (isDisabled ? onDisabledAction() : onDelete(task.id))}
-              disabled={isDisabled}
-            >
-              {t('delete')}
-            </button>
-          </div>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                onClick={() => (isDisabled ? onDisabledAction() : onEdit(task))}
+                disabled={isDisabled}
+                variant="outlined"
+                color="primary"
+                fullWidth
+              >
+                {t('edit')}
+              </Button>
+              <Button
+                onClick={() => (isDisabled ? onDisabledAction() : onDelete(task.id))}
+                disabled={isDisabled}
+                variant="outlined"
+                color="secondary"
+                fullWidth
+              >
+                {t('delete')}
+              </Button>
+            </Box>
+          </Paper>
         ))
       ) : (
-        <p>{t('noTasks')}</p>
+        <Typography variant="body1" color="text.secondary">
+          {t('noTasks')}
+        </Typography>
       )}
-    </div>
+    </Box>
   );
 };
 

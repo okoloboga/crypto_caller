@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { createTask, updateTask } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
-import './TaskForm.css';
+import { Box, Button, MenuItem, Select, TextField, InputLabel, FormControl, FormHelperText } from '@mui/material';
 
 const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledAction }) => {
   const { t } = useTranslation();
@@ -53,51 +53,68 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
   };
 
   return (
-    <div className="task-form">
-      <select
-        placeholder={t('currencyPair')}
-        value={form.currencyPair || ''}
-        onChange={(e) => setForm({ ...form, currencyPair: e.target.value })}
-        disabled={disabled || loading}
-      >
-        <option value="" disabled>{t('currencyPair')}</option>
-        {currencyPairs.map((pair) => (
-          <option key={pair} value={pair}>
-            {pair}
-          </option>
-        ))}
-      </select>
+    <Box sx={{ padding: 3, borderRadius: 2, boxShadow: 3 }}>
+      {/* Выбор валютной пары */}
+      <FormControl fullWidth sx={{ marginBottom: 2 }} disabled={disabled || loading}>
+        <InputLabel>{t('currencyPair')}</InputLabel>
+        <Select
+          value={form.currencyPair || ''}
+          onChange={(e) => setForm({ ...form, currencyPair: e.target.value })}
+          label={t('currencyPair')}
+        >
+          <MenuItem value="" disabled>{t('currencyPair')}</MenuItem>
+          {currencyPairs.map((pair) => (
+            <MenuItem key={pair} value={pair}>
+              {pair}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
-      <input
+      {/* Ввод целевой цены */}
+      <TextField
+        fullWidth
         type="number"
         placeholder={t('triggerPrice')}
         value={form.targetPrice}
         onChange={(e) => setForm({ ...form, targetPrice: e.target.value })}
         disabled={disabled || loading}
+        sx={{ marginBottom: 2 }}
       />
 
-      <div className="price-trigger">
-        <label>
-          <select
-            value={form.isPriceAbove ? 'above' : 'below'}
-            onChange={(e) => setForm({ ...form, isPriceAbove: e.target.value === 'above' })}
-            disabled={disabled || loading}
-          >
-            <option value="above">{t('aboveTargetPrice')}</option>
-            <option value="below">{t('belowTargetPrice')}</option>
-          </select>
-        </label>
-      </div>
+      {/* Выбор направления цены относительно целевой */}
+      <FormControl fullWidth sx={{ marginBottom: 2 }} disabled={disabled || loading}>
+        <InputLabel>{t('priceDirection')}</InputLabel>
+        <Select
+          value={form.isPriceAbove ? 'above' : 'below'}
+          onChange={(e) => setForm({ ...form, isPriceAbove: e.target.value === 'above' })}
+          label={t('priceDirection')}
+        >
+          <MenuItem value="above">{t('aboveTargetPrice')}</MenuItem>
+          <MenuItem value="below">{t('belowTargetPrice')}</MenuItem>
+        </Select>
+      </FormControl>
 
-      <div className="task-form-buttons">
-        <button onClick={handleSave} disabled={disabled || loading}>
+      {/* Кнопки сохранения и отмены */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSave}
+          disabled={disabled || loading}
+        >
           {t('save')}
-        </button>
-        <button onClick={onCancel} disabled={loading}>
+        </Button>
+        <Button
+          variant="outlined"
+          color="secondary"
+          onClick={onCancel}
+          disabled={loading}
+        >
           {t('cancel')}
-        </button>
-      </div>
-    </div>
+        </Button>
+      </Box>
+    </Box>
   );
 };
 

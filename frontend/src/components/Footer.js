@@ -3,9 +3,10 @@ import { TonConnectButton, useTonAddress, useTonWallet, useTonConnectUI } from '
 import { useLanguage } from '../contexts/LanguageContext';
 import { getChallenge } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
-import './Header.css';
+import { Button, List, ListItem, Box, Typography } from '@mui/material';
+// import './Footer.css';
 
-const Header = ({ onNavigate }) => {
+const Footer = ({ onNavigate }) => {
 	const { t } = useTranslation();
   const walletAddress = useTonAddress();
   const wallet = useTonWallet();
@@ -74,29 +75,32 @@ const Header = ({ onNavigate }) => {
   };
 
   return (
-    <header>
+    <Box component="footer" sx={{ padding: 2, backgroundColor: '#f5f5f5' }}>
       <nav>
-        <ul>
-          <li>
-            <button onClick={handleClick}>
+        <List sx={{ display: 'flex', justifyContent: 'space-between', padding: 0, margin: 0 }}>
+          <ListItem sx={{ padding: 0 }}>
+            <Button onClick={handleClick} variant="contained" color="primary">
               ME
-            </button>
-          </li>
-          <li>
+            </Button>
+          </ListItem>
+          <ListItem sx={{ padding: 0 }}>
             <TonConnectButton />
-          </li>
-          <li>
-            {/* Кнопка с текущим языком */}
-            <button onClick={handleLanguageChange}>
+          </ListItem>
+          <ListItem sx={{ padding: 0 }}>
+            <Button onClick={handleLanguageChange} variant="outlined" color="secondary">
               {language === 'en' ? 'EN' : 'RU'}
-            </button>
-          </li>
-        </ul>
+            </Button>
+          </ListItem>
+        </List>
       </nav>
 
-      {notification && <p className="notification">{notification}</p>}
-    </header>
+      {notification && (
+        <Typography variant="body2" color="error" sx={{ marginTop: 1 }}>
+          {notification}
+        </Typography>
+      )}
+    </Box>
   );
 };
 
-export default Header;
+export default Footer;

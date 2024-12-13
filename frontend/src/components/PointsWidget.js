@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { claimPoints, updatePoints } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
-import './PointsWidget.css';
+import { Box, LinearProgress, Typography, Paper } from '@mui/material';
 import { use } from 'i18next';
 
 const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints, lastUpdated, updatePointsData }) => {
@@ -128,16 +128,32 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
   };
 
   return (
-    <div className="points-widget">
+    <Paper sx={{ padding: 2, borderRadius: 2, boxShadow: 3 }}>
       {/* Прогресс-бар для накопления очков */}
-      <div className="progress-container" onClick={handleProgressBarClick}>
-        <progress value={localLastPoints.toFixed(3)} max={maxPoints.toFixed(3)}></progress>
-        <div className="progress-overlay">
+      <Box sx={{ position: 'relative', cursor: 'pointer' }} onClick={handleProgressBarClick}>
+        <LinearProgress
+          variant="determinate"
+          value={(localLastPoints / maxPoints) * 100}  // Значение прогресса в процентах
+          sx={{ height: 8, borderRadius: 2 }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            color: 'white',
+            fontWeight: 'bold',
+          }}
+        >
           {localLastPoints.toFixed(3)} / {maxPoints}
-        </div>
-      </div>
-      <h3>{t('points')}: {localTotalPoints.toFixed(3)}</h3>
-    </div>
+        </Box>
+      </Box>
+
+      <Typography variant="h6" sx={{ marginTop: 2 }}>
+        {t('points')}: {localTotalPoints.toFixed(3)}
+      </Typography>
+    </Paper>
   );
 };
 

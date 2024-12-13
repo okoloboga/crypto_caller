@@ -3,11 +3,11 @@ import { useTonAddress } from '@tonconnect/ui-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
-import Header from '../components/Header';
+import Footer from '../components/Footer';
 import PointsWidget from '../components/PointsWidget';
 import SubscriptionForm from '../components/SubscriptionForm';
 import { getUserTasks, deleteTask, checkSubscription, getUserByWalletAddress } from '../services/apiService';
-import './Dashboard.css';
+import { Box, Button, Typography, Paper } from '@mui/material';
 
 const Dashboard = () => {
   const walletAddress = useTonAddress();
@@ -189,25 +189,29 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="dashboard">
-      <Header onNavigate={setCurrentScreen} />
-      
+    <Box sx={{ padding: 3 }}>
+      {/* Компонент PointsWidget */}
       <PointsWidget 
         isSubscribed={isSubscribed} 
         showNotification={showNotification}
         totalPoints={totalPoints}
         lastPoints={lastPoints}
-        lastUpdated={lastUpdated}  // Передаем время последнего обновления
-        updatePointsData={updatePointsData}  // Передаем callback для обновления данных
+        lastUpdated={lastUpdated}
+        updatePointsData={updatePointsData}
       />
 
-      <button
-        onClick={handleCreateTask}
-        className="create-task-button"
-      >
-        {language === 'en' ? 'Create Task' : 'Создать задачу'}
-      </button>
+      {/* Кнопка для создания задачи */}
+      <Box sx={{ marginTop: 3, display: 'flex', justifyContent: 'center' }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleCreateTask}
+        >
+          {language === 'en' ? 'Create Task' : 'Создать задачу'}
+        </Button>
+      </Box>
 
+      {/* Формы и список задач */}
       {currentTask ? (
         <TaskForm
           task={currentTask}
@@ -216,11 +220,23 @@ const Dashboard = () => {
           onCancel={() => setCurrentTask(null)}
         />
       ) : (
-        <TaskList tasks={tasks} onEdit={setCurrentTask} onDelete={handleDelete} />
+        <TaskList 
+          tasks={tasks} 
+          onEdit={setCurrentTask} 
+          onDelete={handleDelete} 
+        />
       )}
 
-      {notification && <p className="notification">{notification}</p>}
-    </div>
+      {/* Сообщение с уведомлением */}
+      {notification && (
+        <Typography variant="body2" color="error" sx={{ marginTop: 2 }}>
+          {notification}
+        </Typography>
+      )}
+
+      {/* Header */}
+      <Footer onNavigate={setCurrentScreen} />
+    </Box>
   );
 };
 
