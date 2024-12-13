@@ -84,31 +84,33 @@ const Footer = ({ handleCreateTask, onNavigate }) => {
         textAlign: 'center',
       }}
     >
-      <nav>
-        <List sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', // Центрируем все элементы
-          padding: 0, 
-          margin: 0, 
+    <nav>
+      <List
+        sx={{
+          display: 'flex',
+          justifyContent: 'center', // Центрируем элементы
+          padding: 0,
+          margin: 0,
           gap: 2, // Отступы между элементами
-        }}>
-          <ListItem sx={{ padding: 0 }}>
-            <IconButton onClick={handleClick} color="secondary">
-              <AddIcCallIcon />
-            </IconButton>
-          </ListItem>
-          <ListItem sx={{ padding: 0 }}>
-            <IconButton color="secondary" onClick={handleCreateTask}>
-              <AddAlarmIcon />
-            </IconButton>
-          </ListItem>
-          <ListItem sx={{ padding: 0 }}>
-            <Button onClick={handleLanguageChange} variant="text" color="secondary">
-              {language === 'en' ? 'EN' : 'RU'}
-            </Button>
-          </ListItem>
-        </List>
-      </nav>
+        }}
+      >
+        <ListItem sx={{ padding: 0, flexGrow: 1 }}> {/* Добавляем flexGrow */}
+          <IconButton onClick={handleClick} color="secondary">
+            <AddIcCallIcon />
+          </IconButton>
+        </ListItem>
+        <ListItem sx={{ padding: 0, flexGrow: 1 }}> {/* Добавляем flexGrow */}
+          <IconButton color="secondary" onClick={handleCreateTask}>
+            <AddAlarmIcon />
+          </IconButton>
+        </ListItem>
+        <ListItem sx={{ padding: 0, flexGrow: 1 }}> {/* Добавляем flexGrow */}
+          <Button onClick={handleLanguageChange} variant="text" color="secondary">
+            {language === 'en' ? 'EN' : 'RU'}
+          </Button>
+        </ListItem>
+      </List>
+    </nav>
 
       {notification && (
         <Typography variant="body2" color="error" sx={{ marginTop: 1 }}>

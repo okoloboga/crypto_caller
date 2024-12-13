@@ -217,7 +217,13 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
   };
 
   return (
-    <Paper sx={{ padding: 3, borderRadius: 2, boxShadow: 3 }}>
+    <Paper sx={{ 
+      padding: 3, 
+      borderRadius: 8, 
+      boxShadow: 3, 
+      marginBottom: 3,
+      }}
+    >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {isSubscribed ? (
           isEditing ? (

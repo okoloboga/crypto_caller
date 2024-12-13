@@ -202,7 +202,6 @@ const Dashboard = () => {
         component="main"
         sx={{
           flex: 1,  // Заставляем основной контент занимать всё доступное пространство
-          padding: 3,
           backgroundColor: 'primary.main',  // Если хотите только контент в этом фоне
         }}
       >

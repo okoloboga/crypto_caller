@@ -6,7 +6,11 @@ const TaskList = ({ tasks, onEdit, onDelete, isDisabled, onDisabledAction }) => 
   const { t } = useTranslation();
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <Box sx={{ 
+      padding: 3,
+      marginBottom: 3,
+      }}
+    >
       {tasks.length > 0 ? (
         tasks.map((task) => (
           <Paper
@@ -15,7 +19,7 @@ const TaskList = ({ tasks, onEdit, onDelete, isDisabled, onDisabledAction }) => 
               backgroundColor: '#1a1a1a',
               padding: 2,
               marginBottom: 2,
-              borderRadius: 2,
+              borderRadius: 8,
               boxShadow: 2,
               display: 'flex',
               flexDirection: 'column',

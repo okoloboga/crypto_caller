@@ -128,7 +128,13 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
   };
 
   return (
-    <Paper sx={{ padding: 2, borderRadius: 2, boxShadow: 3 }}>
+    <Paper sx={{ 
+      padding: 2, 
+      borderRadius: 8, 
+      boxShadow: 3,
+      marginBottom: 3, 
+      }}
+    >
       {/* Прогресс-бар для накопления очков */}
       <Box sx={{ position: 'relative', cursor: 'pointer' }} onClick={handleProgressBarClick}>
         <LinearProgress

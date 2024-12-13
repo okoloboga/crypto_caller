@@ -56,8 +56,9 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
     <Box sx={{ 
       backgroundColor: '#1a1a1a',
       padding: 3, 
-      borderRadius: 2, 
-      boxShadow: 3 
+      borderRadius: 8, 
+      boxShadow: 3,
+      marginBottom: 3,
       }}
     >
       {/* Выбор валютной пары */}
