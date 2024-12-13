@@ -8,7 +8,7 @@ import Footer from '../components/Footer';
 import PointsWidget from '../components/PointsWidget';
 import SubscriptionForm from '../components/SubscriptionForm';
 import { getUserTasks, deleteTask, checkSubscription, getUserByWalletAddress } from '../services/apiService';
-import { Box, Button, Typography, Paper } from '@mui/material';
+import { Box, Typography, Snackbar, Alert } from '@mui/material';
 
 const Dashboard = () => {
   const walletAddress = useTonAddress();
@@ -19,7 +19,7 @@ const Dashboard = () => {
   const [currencyPairs] = useState(['BTC-USD', 'ETH-USD', 'TON-USD']);
   const [notification, setNotification] = useState('');
   const [currentScreen, setCurrentScreen] = useState('dashboard');
-
+  const [open, setOpen] = useState(false); 
   // Состояния для очков и времени последнего обновления
   const [totalPoints, setTotalPoints] = useState(0);
   const [lastPoints, setLastPoints] = useState(0);
@@ -150,8 +150,13 @@ const Dashboard = () => {
   };
 
   const showNotification = (message) => {
-    setNotification(message);
-    setTimeout(() => setNotification(''), 3000);
+    setNotification(message);  // Устанавливаем текст уведомления
+    setOpen(true);  // Показываем Snackbar
+
+    setTimeout(() => {
+      setNotification('');
+      setOpen(false);  // Скрываем уведомление после 3 секунд
+    }, 2000);  // Уведомление скрывается через 3 секунды
   };
 
   const handleSave = async () => {
@@ -234,15 +239,21 @@ const Dashboard = () => {
         )}
 
         {/* Сообщение с уведомлением */}
-        {notification && (
-          <Typography variant="body2" color="error" sx={{ marginTop: 2 }}>
+        <Snackbar
+          open={open}
+          autoHideDuration={3000} // Уведомление будет скрываться через 3 секунды
+          onClose={() => setOpen(false)}  // Закрываем уведомление вручную
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} // Позиция уведомления
+        >
+          <Alert onClose={() => setOpen(false)} severity="error" sx={{ width: '100%' }}>
             {notification}
-          </Typography>
-        )}
+          </Alert>
+        </Snackbar>
       </Box>
 
       {/* Footer всегда внизу */}
       <Footer 
+        showNotification={showNotification}
         handleCreateTask={handleCreateTask}
         onNavigate={setCurrentScreen} 
       />

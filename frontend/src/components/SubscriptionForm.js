@@ -236,6 +236,10 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
                 onChange={(e) => setNewPhoneNumber(e.target.value)}
                 placeholder={t('enterNewPhoneNumber')}
                 variant="outlined"
+                sx={{
+                  borderRadius: '12px',
+                  backgroundColor: "#383838",
+                  }}
               />
               <Button
                 sx={{ marginTop: 2 }}

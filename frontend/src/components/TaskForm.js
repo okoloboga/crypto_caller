@@ -69,7 +69,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
           onChange={(e) => setForm({ ...form, currencyPair: e.target.value })}
           label={t('currencyPair')}
           sx={{
-            backgroundColor: "#484848",
+            backgroundColor: "#383838",
           }}
         >
           <MenuItem value="" disabled>{t('currencyPair')}</MenuItem>
@@ -91,7 +91,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
         disabled={disabled || loading}
         sx={{ 
           marginBottom: 2,
-          backgroundColor: "#484848",
+          backgroundColor: "#383838",
           }}
       />
       {/* Выбор направления цены относительно целевой */}
@@ -102,7 +102,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
           onChange={(e) => setForm({ ...form, isPriceAbove: e.target.value === 'above' })}
           sx={{
             borderRadius: '12px',
-            backgroundColor: "#484848",
+            backgroundColor: "#383838",
             }}
         >
           <MenuItem value="above">{t('aboveTargetPrice')}</MenuItem>

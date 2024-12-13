@@ -7,11 +7,10 @@ import { Button, List, ListItem, Box, Typography, IconButton } from '@mui/materi
 import AddAlarmIcon from '@mui/icons-material/AddAlarm';
 import AddIcCallIcon from '@mui/icons-material/AddIcCall';
 
-const Footer = ({ handleCreateTask, onNavigate }) => {
+const Footer = ({ showNotification, handleCreateTask, onNavigate }) => {
 	const { t } = useTranslation();
   const walletAddress = useTonAddress();
   const wallet = useTonWallet();
-  const [notification, setNotification] = useState('');
   const [hasTonProof, setHasTonProof] = useState(false); // Новое состояние для отслеживания tonProof
   const { language, changeLanguage } = useLanguage();
   const [tonConnectUI, setOptions] = useTonConnectUI();
@@ -45,9 +44,9 @@ const Footer = ({ handleCreateTask, onNavigate }) => {
           console.log('TON Proof:', wallet.connectItems.tonProof);
           setHasTonProof(true);  // Устанавливаем состояние в true, если tonProof найден
         } else {
-          setNotification(t('retryConnection'));
+          showNotification(t('retryConnection'));
           setHasTonProof(false); // Устанавливаем состояние в false, если tonProof отсутствует
-          setTimeout(() => setNotification(''), 3000);
+          setTimeout(() => showNotification(''), 2000);
         }
       } catch (error) {
         console.error('Error checking tonProof:', error);
@@ -59,11 +58,11 @@ const Footer = ({ handleCreateTask, onNavigate }) => {
 
   const handleClick = () => {
     if (!walletAddress) {
-      setNotification('Connect Wallet');
-      setTimeout(() => setNotification(''), 3000);
+      showNotification('Connect Wallet');
+      setTimeout(() => showNotification(''), 2000);
     } else if (!hasTonProof) {
-      setNotification(t('tryConnection'));
-      setTimeout(() => setNotification(''), 3000);
+      showNotification(t('tryConnection'));
+      setTimeout(() => showNotification(''), 2000);
     } else {
       onNavigate('subscription');
     }
@@ -104,7 +103,7 @@ const Footer = ({ handleCreateTask, onNavigate }) => {
         }}> 
           <IconButton 
             color="secondary" 
-            onClick={handleCreateTask} 
+            onClick={handleClick} 
             sx={{ width: '100%', height: '100%' }} // Растягиваем кнопку на всю ширину и высоту ListItem
           >
             <AddIcCallIcon />
@@ -141,11 +140,6 @@ const Footer = ({ handleCreateTask, onNavigate }) => {
       </List>
     </nav>
 
-      {notification && (
-        <Typography variant="body2" color="error" sx={{ marginTop: 1 }}>
-          {notification}
-        </Typography>
-      )}
     </Box>
   );
 };
