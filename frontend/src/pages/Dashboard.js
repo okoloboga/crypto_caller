@@ -8,7 +8,7 @@ import Footer from '../components/Footer';
 import PointsWidget from '../components/PointsWidget';
 import SubscriptionForm from '../components/SubscriptionForm';
 import { getUserTasks, deleteTask, checkSubscription, getUserByWalletAddress } from '../services/apiService';
-import { Box, Typography, Snackbar, Alert } from '@mui/material';
+import { Box, Snackbar, Alert } from '@mui/material';
 
 const Dashboard = () => {
   const walletAddress = useTonAddress();
@@ -241,9 +241,13 @@ const Dashboard = () => {
         {/* Сообщение с уведомлением */}
         <Snackbar
           open={open}
-          autoHideDuration={3000} // Уведомление будет скрываться через 3 секунды
+          autoHideDuration={2000} // Уведомление будет скрываться через 3 секунды
           onClose={() => setOpen(false)}  // Закрываем уведомление вручную
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} // Позиция уведомления
+          sx={{
+            borderRadius: 2,
+            marginBottom: '70px', // Добавляем отступ снизу, чтобы переместить его выше
+          }}
         >
           <Alert onClose={() => setOpen(false)} severity="error" sx={{ width: '100%' }}>
             {notification}

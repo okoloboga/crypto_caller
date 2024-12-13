@@ -10,7 +10,7 @@ const theme = createTheme({
     },
     background: {
       default: '#000000',  // Черный фон для всего приложения
-      paper: '#1a1a1a', // Серый цвет для контейнеров, если необходимо
+      paper: '#2a2a2a', // Серый цвет для контейнеров, если необходимо
     },
     text: {
       primary: '#ffffff', // Белый цвет для текста
@@ -35,7 +35,7 @@ const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundColor: '#1a1a1a', // Серый фон для компонентов Paper
+          backgroundColor: '#2a2a2a', // Серый фон для компонентов Paper
         },
       },
     },

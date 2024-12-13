@@ -4,7 +4,7 @@ import { useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-rea
 import { getUserByWalletAddress, updatePhoneNumber, createSubscription,
          checkSubscription, getChallenge, verifyChallenge } from '../services/apiService';
 import { useTranslation } from 'react-i18next'; // Импортируем хук useTranslation
-import { Box, Button, TextField, Typography, Paper } from '@mui/material';
+import { Box, Button, TextField, Typography, Paper, Snackbar, Alert } from '@mui/material';
 
 const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
   const { t } = useTranslation(); // Получаем функцию для перевода
@@ -15,6 +15,7 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [newPhoneNumber, setNewPhoneNumber] = useState('');
   const [notification, setNotification] = useState('');
+  const [open, setOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [hasShownNotification, setHasShownNotification] = useState(false);
   const [challenge, setChallenge] = useState(null);
@@ -81,8 +82,13 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
   };
 
   const showNotification = (message) => {
-    setNotification(message);
-    setTimeout(() => setNotification(''), 3000);
+    setNotification(message);  // Устанавливаем текст уведомления
+    setOpen(true);  // Показываем Snackbar
+
+    setTimeout(() => {
+      setNotification('');
+      setOpen(false);  // Скрываем уведомление после 3 секунд
+    }, 2000);  // Уведомление скрывается через 3 секунды
   };
 
   const handleSave = async () => {
@@ -245,7 +251,6 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
                 sx={{ marginTop: 2 }}
                 onClick={handleSave}
                 variant="contained"
-                color="primary"
               >
                 {t('save')}
               </Button>
@@ -256,8 +261,7 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
               <Button
                 sx={{ marginTop: 2 }}
                 onClick={() => setIsEditing(true)}
-                variant="outlined"
-                color="primary"
+                variant="contained"
               >
                 {t('editNumber')}
               </Button>
@@ -274,13 +278,16 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
               onChange={(e) => setNewPhoneNumber(e.target.value)}
               placeholder={t('enterPhoneNumber')}
               variant="outlined"
-              sx={{ marginTop: 2 }}
+              sx={{
+                marginTop: 2,
+                borderRadius: '12px',
+                backgroundColor: "#383838",
+                }}
             />
             <Button
               sx={{ marginTop: 2 }}
               onClick={handleRegister}
               variant="contained"
-              color="primary"
             >
               {t('payForSubscription')}
             </Button>
@@ -290,17 +297,26 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
         <Button
           onClick={onBack}
           sx={{ marginTop: 3 }}
-          variant="outlined"
-          color="secondary"
+          variant="contained"
         >
           {t('back')}
         </Button>
 
-        {notification && (
-          <Typography variant="body2" color="error" sx={{ marginTop: 2 }}>
+        {/* Сообщение с уведомлением */}
+        <Snackbar
+          open={open}
+          autoHideDuration={2000} // Уведомление будет скрываться через 3 секунды
+          onClose={() => setOpen(false)}  // Закрываем уведомление вручную
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} // Позиция уведомления
+          sx={{
+            borderRadius: 2,
+            marginBottom: '70px', // Добавляем отступ снизу, чтобы переместить его выше
+          }}
+        >
+          <Alert onClose={() => setOpen(false)} severity="error" sx={{ width: '100%' }}>
             {notification}
-          </Typography>
-        )}
+          </Alert>
+        </Snackbar>
       </Box>
     </Paper>
   );
