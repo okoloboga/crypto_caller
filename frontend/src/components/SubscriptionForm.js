@@ -1,6 +1,7 @@
 // src/components/SubscriptionForm.js
 import React, { useState, useEffect } from 'react';
 import { useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
+import { TonConnectButton } from '@tonconnect/ui-react';
 import { getUserByWalletAddress, updatePhoneNumber, createSubscription,
          checkSubscription, getChallenge, verifyChallenge } from '../services/apiService';
 import { useTranslation } from 'react-i18next'; // Импортируем хук useTranslation
@@ -230,6 +231,18 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
       margin: 1,
       }}
     >
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center', // Выравнивание по горизонтали (по центру)
+          alignItems: 'center', // Выравнивание по вертикали (по центру)
+          height: '100%', // Устанавливаем высоту, чтобы кнопка располагалась по центру всего доступного пространства
+          margin: 2,
+        }}
+      >
+        <TonConnectButton />
+      </Box>
+
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {isSubscribed ? (
           isEditing ? (

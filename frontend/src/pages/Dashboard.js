@@ -3,7 +3,6 @@ import { useTonAddress } from '@tonconnect/ui-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
-import { TonConnectButton } from '@tonconnect/ui-react';
 import Footer from '../components/Footer';
 import PointsWidget from '../components/PointsWidget';
 import SubscriptionForm from '../components/SubscriptionForm';
@@ -209,19 +208,6 @@ const Dashboard = () => {
           backgroundColor: 'primary.main',  // Если хотите только контент в этом фоне
         }}
       >
-        <header>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center', // Выравнивание по горизонтали (по центру)
-              alignItems: 'center', // Выравнивание по вертикали (по центру)
-              height: '100%', // Устанавливаем высоту, чтобы кнопка располагалась по центру всего доступного пространства
-              margin: 1,
-            }}
-          >
-            <TonConnectButton />
-          </Box>
-        </header>
 
         {/* Формы и список задач */}
         {currentTask ? (
@@ -255,7 +241,7 @@ const Dashboard = () => {
           </Alert>
         </Snackbar>
       </Box>
-      
+
       <Box
         sx={{
             display: 'flex',
