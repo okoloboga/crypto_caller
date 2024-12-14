@@ -148,10 +148,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleBackToDashboard = () => {
-    setCurrentScreen('dashboard');
-  };
-
   const showNotification = (message) => {
     setNotification(message);  // Устанавливаем текст уведомления
     setOpen(true);  // Показываем Snackbar
@@ -239,7 +235,7 @@ const Dashboard = () => {
 
         {onSubscription ? (
           <SubscriptionForm 
-            onBack={handleBackToDashboard} 
+            onCancel={() => setOnSubscription(false)} 
             onSubscriptionChange={handleSubscriptionStatusChange} 
             />
         ) : (
