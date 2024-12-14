@@ -5,6 +5,7 @@ import i18n from './i18n';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { CssBaseline, Box } from '@mui/material';
 import Dashboard from './pages/Dashboard';
+import background from './assets/background.mp4';
 
 
 const App = () => {
@@ -36,7 +37,7 @@ const App = () => {
             objectFit: 'cover', // Видео будет растягиваться, сохраняя пропорции
           }}
         >
-          <source src='./assets/background.mp4' type="video/mp4" />
+          <source src={background} type="video/mp4" />
           Ваш браузер не поддерживает видео.
         </video>
 
