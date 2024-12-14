@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
 import Footer from '../components/Footer';
@@ -11,9 +12,11 @@ import { Box, Snackbar, Alert, Typography } from '@mui/material';
 
 const Dashboard = () => {
   const walletAddress = useTonAddress();
+  const { t } = useTranslation();
   const { language } = useLanguage(); // Используем текущий язык из контекста
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [tasks, setTasks] = useState([]);
+  const [onSubscription, setOnSubscription] = useState(false);
   const [currentTask, setCurrentTask] = useState(null);
   const [currencyPairs] = useState(['BTC-USD', 'ETH-USD', 'TON-USD']);
   const [hasTonProof, setHasTonProof] = useState(false); // Новое состояние для отслеживания tonProof
@@ -182,7 +185,7 @@ const Dashboard = () => {
       showNotification(t('tryConnection'));
       setTimeout(() => showNotification(''), 2000);
     } else {
-      onNavigate('subscription');
+      setOnSubscription(true);
     }
   };
 
@@ -220,7 +223,16 @@ const Dashboard = () => {
           flex: 1,  // Заставляем основной контент занимать всё доступное пространство
           backgroundColor: 'primary.main',  // Если хотите только контент в этом фоне
         }}
-      >
+      > 
+        {onSubscription ? (
+          <SubscriptionForm 
+            onBack={handleBackToDashboard} 
+            onSubscriptionChange={handleSubscriptionStatusChange} 
+            />
+        ) : (
+          <>
+          </>
+        )}
 
         {/* Формы и список задач */}
         {currentTask ? (
