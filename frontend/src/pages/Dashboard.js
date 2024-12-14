@@ -8,7 +8,7 @@ import Footer from '../components/Footer';
 import PointsWidget from '../components/PointsWidget';
 import SubscriptionForm from '../components/SubscriptionForm';
 import { getUserTasks, deleteTask, checkSubscription, getUserByWalletAddress } from '../services/apiService';
-import { Box, Snackbar, Alert } from '@mui/material';
+import { Box, Snackbar, Alert, Typography } from '@mui/material';
 
 const Dashboard = () => {
   const walletAddress = useTonAddress();
@@ -220,6 +220,9 @@ const Dashboard = () => {
             }}
           >
             <TonConnectButton />
+            <Typography variant='h6'>
+              ₽: {totalPoints}
+            </Typography>
           </Box>
         </header>
 
@@ -254,18 +257,16 @@ const Dashboard = () => {
             {notification}
           </Alert>
         </Snackbar>
-        
-        {/* Компонент PointsWidget */}
+      </Box>
+
+      <Box sx={{ position: 'relative' }}>
         <PointsWidget 
-          isSubscribed={isSubscribed} 
+          isSubscribed={isSubscribed}
           showNotification={showNotification}
           totalPoints={totalPoints}
           lastPoints={lastPoints}
           lastUpdated={lastUpdated}
           updatePointsData={updatePointsData}
-          sx={{
-            marginBottom: '70px'
-          }}
         />
       </Box>
 

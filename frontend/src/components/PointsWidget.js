@@ -129,6 +129,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
 
   return (
     <Paper sx={{ 
+      height: '60px',
       padding: 2, 
       borderRadius: 8, 
       boxShadow: 3,
@@ -159,6 +160,8 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
             borderRadius: 8,
             '& .MuiLinearProgress-bar': {
               backgroundColor: 'secondary.main',  // Цвет заполненной части
+              borderTopRightRadius: '8px',  // Закругляем правый верхний угол
+              borderBottomRightRadius: '8px',  // Закругляем правый нижний угол
             },
             '& .MuiLinearProgress-root': {
               backgroundColor: '#000000',  // Цвет незаполненной части
