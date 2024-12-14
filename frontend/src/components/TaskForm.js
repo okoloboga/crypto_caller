@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { createTask, updateTask } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
-import { Box, Button, MenuItem, Select, TextField, InputLabel, FormControl, FormHelperText } from '@mui/material';
+import { Box, Button, MenuItem, Select, TextField, FormControl } from '@mui/material';
 
 const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledAction }) => {
   const { t } = useTranslation();
   const walletAddress = useTonAddress();
-  const [form, setForm] = useState(task || { currencyPair: '', targetPrice: '', isPriceAbove: true }); // Добавляем isPriceAbove в стейт
+  const [form, setForm] = useState(task || { currencyPair: '', targetPrice: '', isPriceAbove: true });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -64,9 +64,8 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
       {/* Выбор валютной пары */}
       <FormControl fullWidth sx={{ marginBottom: 2 }} disabled={disabled || loading}>
         <Select
-          value={form.currencyPair || ''}
+          value={form.currencyPair || 'BTC-USD'}
           onChange={(e) => setForm({ ...form, currencyPair: e.target.value })}
-          label={t('currencyPair')}
           sx={{
             borderRadius: '12px',
             backgroundColor: "#383838",
