@@ -7,7 +7,7 @@ import { Box, Button, MenuItem, Select, TextField, FormControl } from '@mui/mate
 const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledAction }) => {
   const { t } = useTranslation();
   const walletAddress = useTonAddress();
-  const [form, setForm] = useState(task || { currencyPair: '', targetPrice: '', isPriceAbove: true });
+  const [form, setForm] = useState(task || { currencyPair: 'BTC-USD', targetPrice: '0', isPriceAbove: true });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -64,14 +64,13 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
       {/* Выбор валютной пары */}
       <FormControl fullWidth sx={{ marginBottom: 2 }} disabled={disabled || loading}>
         <Select
-          value={form.currencyPair || 'BTC-USD'}
+          value={form.currencyPair}
           onChange={(e) => setForm({ ...form, currencyPair: e.target.value })}
           sx={{
             borderRadius: '12px',
             backgroundColor: "#383838",
           }}
         >
-          <MenuItem>{t('currencyPair')}</MenuItem>
           {currencyPairs.map((pair) => (
             <MenuItem key={pair} value={pair}>
               {pair}

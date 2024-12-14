@@ -191,7 +191,7 @@ const Dashboard = () => {
     } else if (!isSubscribed) {
       showNotification('Buy a subscription to create a task.');
     } else {
-      setCurrentTask({ currencyPair: '', targetPrice: '' });
+      setCurrentTask({ currencyPair: 'BTC-USD', targetPrice: '0' });
     }
   };
 

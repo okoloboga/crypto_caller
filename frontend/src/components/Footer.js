@@ -69,6 +69,7 @@ const Footer = ({ showNotification, handleCreateTask, handleSubscribe, setHasTon
         padding: 0,
         height: "60px",
         textAlign: 'center',
+        marginTop: 'auto',
       }}
     >
     <nav>
