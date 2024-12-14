@@ -161,8 +161,8 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
             borderRadius: 8,
             '& .MuiLinearProgress-bar': {
               backgroundColor: 'secondary.main',  // Цвет заполненной части
-              borderTopRightRadius: '8px',  // Закругляем правый верхний угол
-              borderBottomRightRadius: '8px',  // Закругляем правый нижний угол
+              borderTopRightRadius: '16px',  // Закругляем правый верхний угол
+              borderBottomRightRadius: '16px',  // Закругляем правый нижний угол
             },
             '& .MuiLinearProgress-root': {
               backgroundColor: '#000000',  // Цвет незаполненной части

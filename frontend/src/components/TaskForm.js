@@ -72,7 +72,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
             backgroundColor: "#383838",
           }}
         >
-          <MenuItem value="" disabled>{t('currencyPair')}</MenuItem>
+          <MenuItem>{t('currencyPair')}</MenuItem>
           {currencyPairs.map((pair) => (
             <MenuItem key={pair} value={pair}>
               {pair}
