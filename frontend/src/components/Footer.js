@@ -7,11 +7,10 @@ import { Button, List, ListItem, Box, Typography, IconButton } from '@mui/materi
 import AddAlarmIcon from '@mui/icons-material/AddAlarm';
 import AddIcCallIcon from '@mui/icons-material/AddIcCall';
 
-const Footer = ({ showNotification, handleCreateTask, onNavigate }) => {
+const Footer = ({ showNotification, handleCreateTask, handleSubscribe, setHasTonProof }) => {
 	const { t } = useTranslation();
   const walletAddress = useTonAddress();
   const wallet = useTonWallet();
-  const [hasTonProof, setHasTonProof] = useState(false); // Новое состояние для отслеживания tonProof
   const { language, changeLanguage } = useLanguage();
   const [tonConnectUI, setOptions] = useTonConnectUI();
 
@@ -56,18 +55,6 @@ const Footer = ({ showNotification, handleCreateTask, onNavigate }) => {
     checkTonProof();
   }, [walletAddress, wallet, tonConnectUI]); // Хуки на изменения адреса кошелька
 
-  const handleClick = () => {
-    if (!walletAddress) {
-      showNotification('Connect Wallet');
-      setTimeout(() => showNotification(''), 2000);
-    } else if (!hasTonProof) {
-      showNotification(t('tryConnection'));
-      setTimeout(() => showNotification(''), 2000);
-    } else {
-      onNavigate('subscription');
-    }
-  };
-
   // Логика для переключения языка
   const handleLanguageChange = () => {
     const newLanguage = language === 'en' ? 'ru' : 'en';
@@ -103,7 +90,7 @@ const Footer = ({ showNotification, handleCreateTask, onNavigate }) => {
         }}> 
           <IconButton 
             color="secondary" 
-            onClick={handleClick} 
+            onClick={handleSubscribe} 
             sx={{ width: '100%', height: '100%' }} // Растягиваем кнопку на всю ширину и высоту ListItem
           >
             <AddIcCallIcon />

@@ -16,6 +16,7 @@ const Dashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [currentTask, setCurrentTask] = useState(null);
   const [currencyPairs] = useState(['BTC-USD', 'ETH-USD', 'TON-USD']);
+  const [hasTonProof, setHasTonProof] = useState(false); // Новое состояние для отслеживания tonProof
   const [notification, setNotification] = useState('');
   const [currentScreen, setCurrentScreen] = useState('dashboard');
   const [open, setOpen] = useState(false); 
@@ -173,6 +174,18 @@ const Dashboard = () => {
     }
   };
 
+  const handleSubscribe = () => {
+    if (!walletAddress) {
+      showNotification('Connect Wallet');
+      setTimeout(() => showNotification(''), 2000);
+    } else if (!hasTonProof) {
+      showNotification(t('tryConnection'));
+      setTimeout(() => showNotification(''), 2000);
+    } else {
+      onNavigate('subscription');
+    }
+  };
+
   const handleCreateTask = () => {
     if (!walletAddress) {
       showNotification('Connect your wallet to create a task.');
@@ -271,7 +284,8 @@ const Dashboard = () => {
       <Footer 
         showNotification={showNotification}
         handleCreateTask={handleCreateTask}
-        onNavigate={setCurrentScreen} 
+        handleSubscribe={handleSubscribe}
+        setHasTonProof={setHasTonProof}
       />
     </Box>
   );
