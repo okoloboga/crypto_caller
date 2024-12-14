@@ -59,6 +59,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
       borderRadius: 8, 
       boxShadow: 3,
       margin: 1,
+      zIndex: 1,
       }}
     >
       {/* Выбор валютной пары */}

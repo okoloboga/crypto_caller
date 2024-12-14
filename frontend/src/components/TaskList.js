@@ -9,6 +9,7 @@ const TaskList = ({ tasks, onEdit, onDelete, isDisabled, onDisabledAction }) => 
     <Box sx={{ 
       padding: 3,
       margin: 1,
+      zIndex: 1,
       }}
     >
       {tasks.length > 0 ? (

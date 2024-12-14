@@ -35,6 +35,7 @@ const App = () => {
             width: '100%',
             height: '100%',
             objectFit: 'cover', // Видео будет растягиваться, сохраняя пропорции
+            zIndex: -1,
           }}
         >
           <source src={background} type="video/mp4" />
