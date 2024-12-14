@@ -4,7 +4,7 @@ import { claimPoints, updatePoints } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
 import { Box, LinearProgress, Paper } from '@mui/material';
 import { use } from 'i18next';
-import logoSmall from '../../public/logoSmall.png';
+import logoSmall from './assets/logoSmall.png';
 
 const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints, lastUpdated, updatePointsData }) => {
   const { t } = useTranslation();
