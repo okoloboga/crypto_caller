@@ -196,15 +196,6 @@ const Dashboard = () => {
     }
   };
 
-  if (currentScreen === 'subscription') {
-    return (
-      <SubscriptionForm 
-        onBack={handleBackToDashboard} 
-        onSubscriptionChange={handleSubscriptionStatusChange}  // Передаем функцию для обновления подписки
-      />
-    );
-  }
-
   return (
     <Box
       sx={{
