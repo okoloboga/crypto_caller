@@ -3,7 +3,7 @@ import { useTonAddress } from '@tonconnect/ui-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
-import Header from '../components/Header';
+import { TonConnectButton } from '@tonconnect/ui-react';
 import Footer from '../components/Footer';
 import PointsWidget from '../components/PointsWidget';
 import SubscriptionForm from '../components/SubscriptionForm';
@@ -20,7 +20,6 @@ const Dashboard = () => {
   const [notification, setNotification] = useState('');
   const [currentScreen, setCurrentScreen] = useState('dashboard');
   const [open, setOpen] = useState(false); 
-  // Состояния для очков и времени последнего обновления
   const [totalPoints, setTotalPoints] = useState(0);
   const [lastPoints, setLastPoints] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -210,17 +209,19 @@ const Dashboard = () => {
           backgroundColor: 'primary.main',  // Если хотите только контент в этом фоне
         }}
       >
-        <Header />
-
-        {/* Компонент PointsWidget */}
-        <PointsWidget 
-          isSubscribed={isSubscribed} 
-          showNotification={showNotification}
-          totalPoints={totalPoints}
-          lastPoints={lastPoints}
-          lastUpdated={lastUpdated}
-          updatePointsData={updatePointsData}
-        />
+        <header>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center', // Выравнивание по горизонтали (по центру)
+              alignItems: 'center', // Выравнивание по вертикали (по центру)
+              height: '100%', // Устанавливаем высоту, чтобы кнопка располагалась по центру всего доступного пространства
+              margin: 1,
+            }}
+          >
+            <TonConnectButton />
+          </Box>
+        </header>
 
         {/* Формы и список задач */}
         {currentTask ? (
@@ -246,13 +247,26 @@ const Dashboard = () => {
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} // Позиция уведомления
           sx={{
             borderRadius: 2,
-            marginBottom: '70px', // Добавляем отступ снизу, чтобы переместить его выше
+            marginBottom: '140px', // Добавляем отступ снизу, чтобы переместить его выше
           }}
         >
           <Alert onClose={() => setOpen(false)} severity="error" sx={{ width: '100%' }}>
             {notification}
           </Alert>
         </Snackbar>
+        
+        {/* Компонент PointsWidget */}
+        <PointsWidget 
+          isSubscribed={isSubscribed} 
+          showNotification={showNotification}
+          totalPoints={totalPoints}
+          lastPoints={lastPoints}
+          lastUpdated={lastUpdated}
+          updatePointsData={updatePointsData}
+          sx={{
+            marginBottom: '70px'
+          }}
+        />
       </Box>
 
       {/* Footer всегда внизу */}

@@ -136,14 +136,27 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       }}
     >
       {/* Прогресс-бар для накопления очков */}
-      <Box sx={{ position: 'relative', cursor: 'pointer' }} onClick={handleProgressBarClick}>
+      <Box sx={{ position: 'relative', cursor: 'pointer' }} onClick={handleProgressBarClick}>   
+        <Box
+          sx={{
+            position: 'absolute',
+            left: 0,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: '40px',  // Размер изображения
+            height: '40px',  // Размер изображения
+            backgroundImage: 'url(../../public/logoSmall.png)',  // Путь к изображению
+            backgroundSize: 'contain',  // Чтобы изображение масштабировалось
+            backgroundRepeat: 'no-repeat',  // Запрещаем повтор изображения
+          }}
+        />
         <LinearProgress
           variant="determinate"
           value={(localLastPoints / maxPoints) * 100}  // Значение прогресса в процентах
           color="secondary"  // Цвет для заполненной части
           sx={{
-            height: 16,
-            borderRadius: 2,
+            height: '60px',
+            borderRadius: 8,
             '& .MuiLinearProgress-bar': {
               backgroundColor: 'secondary.main',  // Цвет заполненной части
             },
@@ -165,10 +178,6 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
           {localLastPoints.toFixed(3)} / {maxPoints}
         </Box>
       </Box>
-
-      <Typography variant="h6" sx={{ marginTop: 2, textAlign: 'center' }}>
-        RUBLE: {localTotalPoints.toFixed(3)}
-      </Typography>
     </Paper>
   );
 };
