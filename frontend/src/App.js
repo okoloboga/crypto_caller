@@ -6,6 +6,7 @@ import { useTonAddress } from '@tonconnect/ui-react';
 import { CssBaseline, Box } from '@mui/material';
 import Dashboard from './pages/Dashboard';
 
+
 const App = () => {
   const walletAddress = useTonAddress();
   console.log(`Wallet address: ${walletAddress}`);
@@ -21,6 +22,24 @@ const App = () => {
           height: '100vh', // Убедитесь, что контейнер растягивается на весь экран
         }}
       >
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover', // Видео будет растягиваться, сохраняя пропорции
+          }}
+        >
+          <source src='./assets/background.mp4' type="video/mp4" />
+          Ваш браузер не поддерживает видео.
+        </video>
+
         <I18nextProvider i18n={i18n}>
           <LanguageProvider>
             <Dashboard walletAddress={walletAddress} />
