@@ -16,10 +16,10 @@ const App = () => {
       <CssBaseline />
       <Box
         sx={{
-          backgroundColor: "#000000",
           margin: 0, // Убираем отступы
           padding: 0, // Убираем поля
           height: '100vh', // Убедитесь, что контейнер растягивается на весь экран
+          overflow: 'hidden'
         }}
       >
         <video
