@@ -220,9 +220,6 @@ const Dashboard = () => {
             }}
           >
             <TonConnectButton />
-            <Typography variant='h6'>
-              ₽: {totalPoints}
-            </Typography>
           </Box>
         </header>
 
@@ -258,6 +255,10 @@ const Dashboard = () => {
           </Alert>
         </Snackbar>
       </Box>
+
+      <Typography variant='h5'>
+        ₽UBLE: {totalPoints}
+      </Typography>
 
       <Box sx={{ position: 'relative' }}>
         <PointsWidget 

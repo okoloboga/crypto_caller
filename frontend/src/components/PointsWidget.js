@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { claimPoints, updatePoints } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
-import { Box, LinearProgress, Typography, Paper } from '@mui/material';
+import { Box, LinearProgress, Paper } from '@mui/material';
 import { use } from 'i18next';
+import logoSmall from '../../public/logoSmall.png';
 
 const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints, lastUpdated, updatePointsData }) => {
   const { t } = useTranslation();
@@ -146,7 +147,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
             transform: 'translateY(-50%)',
             width: '40px',  // Размер изображения
             height: '40px',  // Размер изображения
-            backgroundImage: 'url(../../public/logoSmall.png)',  // Путь к изображению
+            backgroundImage: logoSmall,  // Путь к изображению
             backgroundSize: 'contain',  // Чтобы изображение масштабировалось
             backgroundRepeat: 'no-repeat',  // Запрещаем повтор изображения
           }}
@@ -156,7 +157,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
           value={(localLastPoints / maxPoints) * 100}  // Значение прогресса в процентах
           color="secondary"  // Цвет для заполненной части
           sx={{
-            height: '60px',
+            height: '30px',
             borderRadius: 8,
             '& .MuiLinearProgress-bar': {
               backgroundColor: 'secondary.main',  // Цвет заполненной части
