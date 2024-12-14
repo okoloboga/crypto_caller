@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from 'react-i18next';
+import { TonConnectButton } from '@tonconnect/ui-react';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
 import Footer from '../components/Footer';
@@ -223,7 +224,19 @@ const Dashboard = () => {
           flex: 1,  // Заставляем основной контент занимать всё доступное пространство
           backgroundColor: 'primary.main',  // Если хотите только контент в этом фоне
         }}
-      > 
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center', // Выравнивание по горизонтали (по центру)
+            alignItems: 'center', // Выравнивание по вертикали (по центру)
+            height: '100%', // Устанавливаем высоту, чтобы кнопка располагалась по центру всего доступного пространства
+            margin: 2,
+          }}
+        >
+          <TonConnectButton />
+        </Box>
+
         {onSubscription ? (
           <SubscriptionForm 
             onBack={handleBackToDashboard} 
