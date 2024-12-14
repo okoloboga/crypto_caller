@@ -42,6 +42,18 @@ const App = () => {
           Ваш браузер не поддерживает видео.
         </video>
 
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)', // Затемняющий слой
+            zIndex: -1, // Размещаем слой поверх видео
+          }}
+        />
+
         <I18nextProvider i18n={i18n}>
           <LanguageProvider>
             <Dashboard walletAddress={walletAddress} />

@@ -166,16 +166,16 @@ const Dashboard = () => {
     try {
       await deleteTask(taskId);
       setTasks(tasks.filter(task => task.id !== taskId));
-      showNotification('Task successfully deleted');
+      showNotification(t('taskDeleted'));
     } catch (error) {
       console.error('Error deleting task:', error);
-      showNotification('Failed to delete task. Please try again.');
+      showNotification(t('taskDeleteFail'));
     }
   };
 
   const handleSubscribe = () => {
     if (!walletAddress) {
-      showNotification('Connect Wallet');
+      showNotification(t('connectWallet'));
       setTimeout(() => showNotification(''), 2000);
     } else if (!hasTonProof) {
       showNotification(t('tryConnection'));
@@ -187,9 +187,9 @@ const Dashboard = () => {
 
   const handleCreateTask = () => {
     if (!walletAddress) {
-      showNotification('Connect your wallet to create a task.');
+      showNotification(t('tryConnection'));
     } else if (!isSubscribed) {
-      showNotification('Buy a subscription to create a task.');
+      showNotification(t('noSubscription'));
     } else {
       setCurrentTask({ currencyPair: 'BTC-USD', targetPrice: '0' });
     }

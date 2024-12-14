@@ -32,6 +32,11 @@
     "subscribeToEarn": "Subscribe to start earning RUBLE.",
     "lastUpdated": "Last updated: {{time}}",
     "points": "RUBLE",
+    "pointsClaimed": "RUBLE collected!",
+    "pointsClaimError": "Error collecting RUBLE",
+    "taskDeleted": "Task deleted",
+    "taskDeleteFail": "Error deleting task",
+    "noSubscription": "Pay for a subscription to create a task",
     "tryConnection": "Connect wallet correct",
     "retryConnection": "Incorrect wallet connection, disconnect and try again"
   }

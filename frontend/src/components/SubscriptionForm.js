@@ -178,7 +178,6 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
 
     try {
       ensureWalletConnected();
-      showNotification(t('registrationProcess'));
       console.log('Connected wallet:', walletAddress);
 
       const txSubscription = {
@@ -202,8 +201,6 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
       if (!isValid || isValid === false) {
         throw new Error('TON Proof failed verification.');
       }
-
-      showNotification(t('tonProofSuccess'));
 
       console.log('Sending transaction...');
       await tonConnectUI.sendTransaction(txSubscription);
