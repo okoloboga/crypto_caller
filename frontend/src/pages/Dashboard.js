@@ -22,7 +22,6 @@ const Dashboard = () => {
   const [currencyPairs] = useState(['BTC-USD', 'ETH-USD', 'TON-USD']);
   const [hasTonProof, setHasTonProof] = useState(false); // Новое состояние для отслеживания tonProof
   const [notification, setNotification] = useState('');
-  const [currentScreen, setCurrentScreen] = useState('dashboard');
   const [open, setOpen] = useState(false); 
   const [totalPoints, setTotalPoints] = useState(0);
   const [lastPoints, setLastPoints] = useState(0);
@@ -277,7 +276,7 @@ const Dashboard = () => {
           }}
       >
         <Typography variant='h5'>
-          ₽UBLE: {totalPoints}
+          ₽UBLE: {totalPoints.toFixed(3)}
         </Typography>
       </Box>
 

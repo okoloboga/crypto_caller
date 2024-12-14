@@ -6,7 +6,7 @@ import { getUserByWalletAddress, updatePhoneNumber, createSubscription,
 import { useTranslation } from 'react-i18next'; // Импортируем хук useTranslation
 import { Box, Button, TextField, Typography, Paper, Snackbar, Alert } from '@mui/material';
 
-const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
+const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
   const { t } = useTranslation(); // Получаем функцию для перевода
   const [tonConnectUI, setOptions] = useTonConnectUI();
   const wallet = useTonWallet();
@@ -296,7 +296,7 @@ const SubscriptionForm = ({ onBack, onSubscriptionChange }) => {
         )}
         
         <Button
-          onClick={onBack}
+          onClick={onCancel}
           sx={{ marginTop: 3 }}
           variant="contained"
           color="secondary"
