@@ -6,7 +6,7 @@ import { getChallenge } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
 import { Button, List, ListItem, Box } from '@mui/material';
 
-const Header = ({ showNotification, handleSubscribe, handleSubscribe, setHasTonProof }) => {
+const Header = ({ showNotification, handleSubscribe, setHasTonProof }) => {
   const { t } = useTranslation();
   const walletAddress = useTonAddress();
   const wallet = useTonWallet();
