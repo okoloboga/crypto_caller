@@ -199,13 +199,18 @@ const Dashboard = () => {
         minHeight: '100vh',
       }}
     >
+      <Header 
+        showNotification={showNotification}
+        handleSubscribe={handleSubscribe}
+        setHasTonProof={setHasTonProof} 
+      />
+
       <Box
         component="main"
         sx={{
           flex: 1,
         }}
       >
-        <Header />
 
         <Box sx={{ position: 'relative' }}>
           <PointsWidget 

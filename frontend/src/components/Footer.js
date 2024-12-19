@@ -11,7 +11,7 @@ const Footer = ({ handleCreateTask }) => {
       component="footer"
       sx={{
         backgroundColor: '#1a1a1a',
-        padding: 0,
+        padding: 8,
         height: "60px",
         textAlign: 'center',
         marginTop: 'auto',
