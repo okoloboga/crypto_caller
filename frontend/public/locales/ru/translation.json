@@ -32,6 +32,7 @@
     "subscribeToEarn": "Подпишитесь, чтобы начать зарабатывать RUBLE.",
     "lastUpdated": "Последнее обновление: {{time}}",
     "points": "RUBLE",
+    "notFull": "Заполни шкалу!",
     "pointsClaimed": "RUBLE собраны!",
     "pointsClaimError": "Ошибка сбора RUBLE",
     "taskDeleted": "Задание удалено",

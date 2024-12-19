@@ -1,52 +1,10 @@
-import React, { useState, useEffect } from 'react';
 import { useTonAddress, useTonWallet, useTonConnectUI } from '@tonconnect/ui-react';
-import { getChallenge } from '../services/apiService';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from 'react-i18next';
 import { Button, Box } from '@mui/material';
 
-const Footer = ({ showNotification, handleCreateTask, handleSubscribe, setHasTonProof }) => {
+const Footer = ({ handleCreateTask }) => {
 	const { t } = useTranslation();
-  const walletAddress = useTonAddress();
-  const wallet = useTonWallet();
-  const [tonConnectUI, setOptions] = useTonConnectUI();
-
-  useEffect(() => {
-    const refreshPayload = async (challenge) => {
-      tonConnectUI.setConnectRequestParameters({ state: "loading" });
-
-      if (challenge) {
-        tonConnectUI.setConnectRequestParameters({
-          state: "ready",
-          value: { tonProof: challenge },
-        });
-      } else {
-        tonConnectUI.setConnectRequestParameters(null);
-      };
-    };
-
-    const checkTonProof = async () => {
-      if (!walletAddress) return;
-
-      const challenge = await getChallenge(walletAddress);
-
-      try {
-        await refreshPayload(challenge);
-
-        if (wallet.connectItems?.tonProof) {
-          console.log('TON Proof:', wallet.connectItems.tonProof);
-          setHasTonProof(true);
-        } else {
-          showNotification(t('retryConnection'));
-          setHasTonProof(false);
-          setTimeout(() => showNotification(''), 2000);
-        }
-      } catch (error) {
-        console.error('Error checking tonProof:', error);
-      }
-    };
-
-    checkTonProof();
-  }, [walletAddress, wallet, tonConnectUI]);
 
   return (
     <Box
@@ -77,7 +35,7 @@ const Footer = ({ showNotification, handleCreateTask, handleSubscribe, setHasTon
           justifyContent: 'center',
           alignItems: 'center'
         }}>
-          <Button  
+          <Button 
             onClick={handleCreateTask}
             variant="text"
             color="secondary" 

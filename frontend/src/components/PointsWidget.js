@@ -16,12 +16,12 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
 
   useEffect(() => {
     const handleUserActivity = () => {
-      setIsActive(true);  // Пользователь активен
+      setIsActive(true);
     };
   
     const inactivityTimer = setTimeout(() => {
-      setIsActive(false);  // Пользователь неактивен
-    }, 30000);  // Например, через 30 секунд неактивности
+      setIsActive(false);
+    }, 30000);
   
     window.addEventListener('mousemove', handleUserActivity);
     window.addEventListener('keypress', handleUserActivity);
@@ -34,19 +34,16 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
   }, []);
 
   useEffect(() => {
-    if (!isSubscribed || !walletAddress) return;  // Если нет подписки или адреса, не запускаем логику
+    if (!isSubscribed || !walletAddress) return;
   
-    // Запускать каждую секунду, если подписка активна
     const interval = setInterval(() => {
-      incrementPoints(); // Плавно увеличиваем очки
-    }, 1000); // Обновление каждую секунду
+      incrementPoints();
+    }, 1000);
   
-    // Запускать при изменении lastUpdated
-    incrementPoints(); // Немедленно запускаем, если lastUpdated изменилось
+    incrementPoints();
   
-    return () => clearInterval(interval);  // Очистить интервал при размонтировании компонента
+    return () => clearInterval(interval);
   }, [isSubscribed, walletAddress, lastUpdated]);
-   // Следим только за этими изменениями
 
   useEffect(() => {
     if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
@@ -54,37 +51,42 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       const timeElapsed = (now - new Date(lastUpdated).getTime()) / 1000;
       const accumulationRate = 0.001;
       const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
-      setLastPoints(newPoints);  // Обновляем локальные очки
-    
-      // Сохраняем прогресс на сервере при длительном бездействии
+      setLastPoints(newPoints);
+
       if (!isActive && Math.abs(newPoints - localLastPoints) >= 1) {
-        saveProgressToServer(newPoints); // Сохраняем на сервере
+        saveProgressToServer(newPoints);
       }
     }
-  }, [lastUpdated]);  // Следим за изменениями времени последнего обновления  
+  }, [lastUpdated]); 
 
   useEffect(() => {
-    setTotalPoints(totalPoints);  // Синхронизируем локальное состояние с новым значением prop
+    setTotalPoints(totalPoints);
   }, [totalPoints]); 
 
   useEffect(() => {
-    setLastPoints(lastPoints);  // Синхронизируем локальное состояние с новым значением prop
+    setLastPoints(lastPoints);
   }, [lastPoints]);
-  
-  // Функция для сохранения прогресса (очков) на сервере
+
+  const isFull = localLastPoints >= maxPoints;
+  const progressValue = isFull ? 100 : (localLastPoints / maxPoints) * 100;
+
   const saveProgressToServer = async (newPoints) => {
     try {
-      await updatePoints(walletAddress, newPoints);  // Отправляем накопленные очки на сервер в lastPoints
+      await updatePoints(walletAddress, newPoints);
     } catch (err) {
       console.error('Error saving progress:', err);
     }
   };
 
-  // Функция для сбора очков и отправки на сервер
   const handleProgressBarClick = async () => {
     if (!isSubscribed) {
       showNotification(t('noSubscription'));
-      return; // Прерываем выполнение, если нет подписки
+      return;
+    }
+
+    if (localLastPoints < maxPoints) {
+      showNotification(t('notFull'));
+      return;
     }
   
     if (localLastPoints > 0) {
@@ -96,7 +98,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
         setTotalPoints(newTotalPoints);
         setLastPoints(0);
 
-        updatePointsData(newTotalPoints, 0, new Date()); // Обновляем данные в родителе
+        updatePointsData(newTotalPoints, 0, new Date());
         showNotification(t('pointsClaimed'));
       } catch (error) {
         console.error('Error claiming points:', error);
@@ -105,7 +107,6 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
     }
   };
 
-  // Функция для плавного увеличения очков на фронтенде
   const incrementPoints = () => {
     console.log('incrementPoints called, lastUpdated:', lastUpdated);
     if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
@@ -116,12 +117,10 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
   
       console.log(`Last Update: ${new Date(lastUpdated)}, localLastPoints: ${localLastPoints}, New points: ${newPoints}`);
   
-      // Обновляем локальное состояние
       setLastPoints(newPoints);
   
-      // Если пользователь неактивен, сохраняем промежуточные очки
       if (!isActive && Math.abs(newPoints - localLastPoints) >= 1) {
-        saveProgressToServer(newPoints);  // Сохраняем очки в lastPoints на сервере
+        saveProgressToServer(newPoints);
       }
     } else {
       console.log('Last updated time is null or invalid');
@@ -145,27 +144,25 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
             left: 0,
             top: '50%',
             transform: 'translateY(-50%)',
-            width: '40px',  // Размер изображения
-            height: '40px',  // Размер изображения
-            backgroundImage: logoSmall,  // Путь к изображению
-            backgroundSize: 'contain',  // Чтобы изображение масштабировалось
-            backgroundRepeat: 'no-repeat',  // Запрещаем повтор изображения
+            width: '40px',
+            height: '40px',
+            backgroundImage: logoSmall, 
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
           }}
         />
         <LinearProgress
           variant="determinate"
-          value={(localLastPoints / maxPoints) * 100}  // Значение прогресса в процентах
-          color="secondary"  // Цвет для заполненной части
+          value={progressValue}
+          color="inherit"
           sx={{
             height: '30px',
             borderRadius: 8,
+            backgroundColor: '#000000',
             '& .MuiLinearProgress-bar': {
-              backgroundColor: 'secondary.main',  // Цвет заполненной части
-              borderTopRightRadius: '16px',  // Закругляем правый верхний угол
-              borderBottomRightRadius: '16px',  // Закругляем правый нижний угол
-            },
-            '& .MuiLinearProgress-root': {
-              backgroundColor: '#000000',  // Цвет незаполненной части
+              backgroundColor: isFull ? '#ff55ba' : 'secondary.main',
+              borderTopRightRadius: '16px',
+              borderBottomRightRadius: '16px',
             },
           }}
         />
@@ -179,7 +176,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
             fontWeight: 'bold',
           }}
         >
-          {localLastPoints.toFixed(3)} / {maxPoints}
+          {isFull ? 'COLLECT' : `${localLastPoints.toFixed(3)} / ${maxPoints}`}
         </Box>
       </Box>
     </Paper>

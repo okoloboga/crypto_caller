@@ -32,6 +32,7 @@
     "subscribeToEarn": "Subscribe to start earning RUBLE.",
     "lastUpdated": "Last updated: {{time}}",
     "points": "RUBLE",
+    "notFull": "Fill the scale!",
     "pointsClaimed": "RUBLE collected!",
     "pointsClaimError": "Error collecting RUBLE",
     "taskDeleted": "Task deleted",
