@@ -32,6 +32,10 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    document.title = "RUBLE CALLER";
+  }, []);
+
+  useEffect(() => {
     if (walletAddress) {
       checkSubscriptionStatus();
       fetchUserData();
