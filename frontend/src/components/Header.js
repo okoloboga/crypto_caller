@@ -61,7 +61,7 @@ const Header = ({ showNotification, handleSubscribe, setHasTonProof }) => {
       component="footer"
       sx={{
         backgroundColor: '#1a1a1a',
-        padding: 8,
+        padding: "8px",
         height: "60px",
         textAlign: 'center',
         marginTop: 'auto',
