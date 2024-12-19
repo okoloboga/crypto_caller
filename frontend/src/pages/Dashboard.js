@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from 'react-i18next';
-import { Header } from '../components/Header';
+import Header from '../components/Header';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
 import Footer from '../components/Footer';
