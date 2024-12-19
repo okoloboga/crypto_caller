@@ -75,11 +75,11 @@ services:
     networks:
       - default
     volumes:
-      # - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      # - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - /etc/letsencrypt:/etc/letsencrypt:ro
-      # - ./frontend/public:/usr/share/nginx/html:ro
       - ./frontend/build:/usr/share/nginx/html:ro
+
+      - ./frontend_main:/usr/share/nginx/main:ro          # Для ruble.website
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
     command: ["nginx", "-g", "daemon off;"]
 
 volumes:

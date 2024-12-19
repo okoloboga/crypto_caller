@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RUBLE</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=VT323&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <header class="top-header">
+        <nav class="top-nav">
+            <a href="#" class="top-nav-logo">RUBLE</a>
+            <button class="hamburger" onclick="toggleMenu()">☰</button>
+            <div class="top-nav-links">
+                <a href="https://t.me/ruble_market_bot" target="_blank" class="top-nav-link">TG Bot</a>
+                <a href="https://t.me/RUBLEMEM" target="_blank" class="top-nav-link">TG Channel</a>
+                <a href="https://x.com/ruble_com?s=11" target="_blank" class="top-nav-link">X.COM</a>
+                <button class="language-button" onclick="switchLanguage()">EN</button>
+            </div>
+        </nav>
+    </header>    
+    
+    <!-- Hero Section with Background Video -->
+    <section class="hero-section">
+        <div class="hero-overlay"></div>
+        <video autoplay muted loop class="background-video">
+            <source src="assets/background.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="hero-content">
+            <a href="#comic-story-section-1">
+                <img src="assets/logo.png" alt="Crypto Token Logo" class="logo-center">
+            </a>
+            <h1 class="hero-title"></h1>
+            <p class="hero-description"></p>
+        </div>
+        <p class="hero-disclaimer"></p>
+    </section>
+
+    <!-- Comic-Style Story Section -->
+    <section id="comic-story-section-1" class="comic-story-section">
+        <div class="marquee-overlay">
+            <p class="comic1"></p>
+        </div>
+        <div class="story-grid fade-in">
+            <div class="comic-frame">
+                <a href="#video-section">
+                    <img src="assets/comic1.jpg" alt="Comic Panel 1" class="darkened">
+                </a>
+            </div>
+            <div class="comic-frame">
+                <a href="#video-section">
+                    <img src="assets/comic2.jpg" alt="Comic Panel 2" class="darkened">
+                </a>
+            </div>
+            <div class="comic-frame">
+                <a href="#video-section">
+                    <img src="assets/comic3.jpg" alt="Comic Panel 3" class="darkened">
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Video Background Section -->
+    <section id="video-section" class="video-background-section">
+        <div class="video-content fade-in">
+            <p class="video-title"></p>
+            <div class="video-description">
+                <ul>
+                    <li class="video-description-1"></li>
+                    <li class="video-description-2"></li>
+                    <li class="video-description-3"></li>
+                    <li class="video-description-4"></li>
+                    <li class="video-description-5"></li>
+                    <li class="video-description-6"></li>
+                    <li class="video-description-7"></li>
+                </ul>
+            </div>
+            <a href="#comic-story-section-2">
+                <img src="assets/distr.png" alt="Distibution" class="logo-down">
+            </a>
+        </div>
+        <div class="video-overlay"></div>
+        <div class="video-slider">
+            <video autoplay muted loop class="background-video" id="video1">
+                <source src="assets/background1.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <video autoplay muted loop class="background-video" id="video2" style="display: none;">
+                <source src="assets/background2.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <video autoplay muted loop class="background-video" id="video3" style="display: none;">
+                <source src="assets/background3.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <video autoplay muted loop class="background-video" id="video4" style="display: none;">
+                <source src="assets/background4.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </section>
+
+    <!-- Second Comic-Style Story Section -->
+    <section id="comic-story-section-2" class="comic-story-section">
+        <div class="marquee-overlay">
+            <p class="comic2"></p>
+        </div>
+        <div class="story-grid fade-in">
+            <div class="comic-frame">
+                <img src="assets/comic4.jpg" alt="Comic Panel 4" class="darkened">
+            </div>
+            <div class="comic-frame">
+                <img src="assets/comic5.jpg" alt="Comic Panel 5" class="darkened">
+            </div>
+            <div class="comic-frame">
+                <img src="assets/comic6.jpg" alt="Comic Panel 6" class="darkened">
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="cta-section">
+        <p class="cta-description"></p>
+        <a href="https://t.me/ruble_market_bot" class="cta-button"></a>
+    </section>
+    <script src="scripts.js"></script>
+</body>
+</html>
