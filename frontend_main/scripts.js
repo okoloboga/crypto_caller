@@ -60,8 +60,7 @@ function loadLanguageContent(lang) {
             document.querySelector(".comic2").innerHTML = data.comic2;
             document.querySelector(".cta-description").innerHTML = data.ctaDescription;
             document.querySelector(".cta-button").innerHTML = data.ctaButton;
-
-            // Change button language
+            document.querySelector("caller-button").innerHTML = data.callerButton
             document.querySelector(".language-button").innerHTML = lang === "en" ? "EN" : "RU";
         })
         .catch(error => console.error('Error loading language content:', error));
