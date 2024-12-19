@@ -3,6 +3,8 @@ FROM node:18 AS frontend-build
 
 WORKDIR /app
 
+COPY conf.d /etc/nginx/conf.d
+
 # Копируем package.json и устанавливаем зависимости
 # COPY frontend/package.json frontend/package-lock.json ./
 # RUN npm install --legacy-peer-deps
@@ -23,8 +25,8 @@ FROM nginx:alpine
 RUN ls -al /usr/share/nginx/html
 
 # Настраиваем конфигурацию
-COPY nginx/nginx.conf /etc/nginx/nginx.conf
-COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+# COPY nginx/nginx.conf /etc/nginx/nginx.conf
+# COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 EXPOSE 443
