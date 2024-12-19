@@ -17,9 +17,9 @@ const App = () => {
       <CssBaseline />
       <Box
         sx={{
-          margin: 0, // Убираем отступы
-          padding: 0, // Убираем поля
-          height: '100vh', // Убедитесь, что контейнер растягивается на весь экран
+          margin: 0,
+          padding: 0,
+          height: '100vh',
           overflow: 'hidden'
         }}
       >
@@ -34,7 +34,7 @@ const App = () => {
             left: 0,
             width: '100%',
             height: '100%',
-            objectFit: 'cover', // Видео будет растягиваться, сохраняя пропорции
+            objectFit: 'cover',
             zIndex: -1,
           }}
         >
@@ -49,8 +49,8 @@ const App = () => {
             left: 0,
             width: '100%',
             height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)', // Затемняющий слой
-            zIndex: -1, // Размещаем слой поверх видео
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: -1,
           }}
         />
 

@@ -2,32 +2,31 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from 'react-i18next';
-import { TonConnectButton } from '@tonconnect/ui-react';
+import { Header } from '../components/Header';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
 import Footer from '../components/Footer';
 import PointsWidget from '../components/PointsWidget';
 import SubscriptionForm from '../components/SubscriptionForm';
 import { getUserTasks, deleteTask, checkSubscription, getUserByWalletAddress } from '../services/apiService';
-import { Box, Snackbar, Alert, Typography } from '@mui/material';
+import { Box, Snackbar, Alert } from '@mui/material';
 
 const Dashboard = () => {
   const walletAddress = useTonAddress();
   const { t } = useTranslation();
-  const { language } = useLanguage(); // Используем текущий язык из контекста
+  const { language } = useLanguage();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [onSubscription, setOnSubscription] = useState(false);
   const [currentTask, setCurrentTask] = useState(null);
   const [currencyPairs] = useState(['BTC-USD', 'ETH-USD', 'TON-USD']);
-  const [hasTonProof, setHasTonProof] = useState(false); // Новое состояние для отслеживания tonProof
+  const [hasTonProof, setHasTonProof] = useState(false);
   const [notification, setNotification] = useState('');
   const [open, setOpen] = useState(false); 
   const [totalPoints, setTotalPoints] = useState(0);
   const [lastPoints, setLastPoints] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  // Коллбек для обновления подписки
   const handleSubscriptionStatusChange = (status) => {
     setIsSubscribed(status);
   };
@@ -35,7 +34,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (walletAddress) {
       checkSubscriptionStatus();
-      fetchUserData();  // Получаем данные о пользователе при монтировании компонента
+      fetchUserData();
     }
   }, [walletAddress]);
 
@@ -45,20 +44,19 @@ const Dashboard = () => {
     }
   }, [walletAddress, isSubscribed]);
 
-  // При монтировании компонента загрузить данные из localStorage
   useEffect(() => {
     const storedTotalPoints = localStorage.getItem('totalPoints');
     if (storedTotalPoints) {
-      setTotalPoints(parseFloat(storedTotalPoints));  // Устанавливаем значение из localStorage
+      setTotalPoints(parseFloat(storedTotalPoints));
     }
-  }, []);  // Этот useEffect выполняется один раз при монтировании компонента
+  }, []);
 
   useEffect(() => {
     const storedLastUpdated = localStorage.getItem('lastUpdated');
     if (storedLastUpdated) {
-      setLastUpdated(new Date(storedLastUpdated));  // Если есть сохраненная дата
+      setLastUpdated(new Date(storedLastUpdated));
     } else {
-      setLastUpdated(new Date());  // Устанавливаем текущую дату, если нет
+      setLastUpdated(new Date());
     }
   }, []);
 
@@ -69,10 +67,9 @@ const Dashboard = () => {
     }
   }, []);
 
-  // Сохраняем данные в localStorage при изменении totalPoints
   useEffect(() => {
     if (totalPoints !== undefined) {
-      localStorage.setItem('totalPoints', totalPoints.toString());  // Сохраняем totalPoints в localStorage
+      localStorage.setItem('totalPoints', totalPoints.toString());
     }
   }, [totalPoints]);
 
@@ -86,7 +83,6 @@ const Dashboard = () => {
     return date instanceof Date && !isNaN(date);
   };
 
-  // Функция для обновления данных в родительском компоненте
   const updatePointsData = useCallback((newTotalPoints, newLastPoints, newLastUpdated) => {
     console.log('Updating points data:', newTotalPoints, newLastPoints, newLastUpdated);
     setTotalPoints(newTotalPoints);
@@ -101,9 +97,9 @@ const Dashboard = () => {
         console.log('Пользователь не найден');
         setTotalPoints(0);
         setLastPoints(0);
-        setLastUpdated(new Date());  // Используем актуальную дату
+        setLastUpdated(new Date());
         localStorage.setItem('totalPoints', '0');
-        localStorage.setItem('lastUpdated', new Date().toISOString());  // Сохраняем актуальное время
+        localStorage.setItem('lastUpdated', new Date().toISOString());
       } else {
         console.log('Полученный пользователь:', response);
         const lastUpdated = response.lastUpdated ? new Date(response.lastUpdated) : new Date();
@@ -111,15 +107,15 @@ const Dashboard = () => {
         // Проверяем валидность даты
         setTotalPoints(response.points);
         setLastPoints(response.lastPoints);
-        setLastUpdated(isValidDate(lastUpdated) ? lastUpdated : new Date());  // Если дата невалидная, используем текущую дату
+        setLastUpdated(isValidDate(lastUpdated) ? lastUpdated : new Date());
         localStorage.setItem('totalPoints', response.points); 
-        localStorage.setItem('lastUpdated', lastUpdated.toISOString());  // Сохраняем последнюю актуальную дату
+        localStorage.setItem('lastUpdated', lastUpdated.toISOString());
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
-      setLastUpdated(new Date());  // В случае ошибки устанавливаем текущую дату
+      setLastUpdated(new Date());
       localStorage.setItem('totalPoints', '0');
-      localStorage.setItem('lastUpdated', new Date().toISOString());  // Сохраняем актуальное время
+      localStorage.setItem('lastUpdated', new Date().toISOString());
     }
   };
   
@@ -148,13 +144,13 @@ const Dashboard = () => {
   };
 
   const showNotification = (message) => {
-    setNotification(message);  // Устанавливаем текст уведомления
-    setOpen(true);  // Показываем Snackbar
+    setNotification(message);
+    setOpen(true);
 
     setTimeout(() => {
       setNotification('');
-      setOpen(false);  // Скрываем уведомление после 3 секунд
-    }, 3000);  // Уведомление скрывается через 3 секунды
+      setOpen(false);
+    }, 3000);
   };
 
   const handleSave = async () => {
@@ -200,26 +196,26 @@ const Dashboard = () => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '100vh',  // Убедитесь, что весь экран заполняется
+        minHeight: '100vh',
       }}
     >
       <Box
         component="main"
         sx={{
-          flex: 1,  // Заставляем основной контент занимать всё доступное пространство
+          flex: 1,
         }}
       >
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center', // Выравнивание по горизонтали (по центру)
-            alignItems: 'center', // Выравнивание по вертикали (по центру)
-            height: '100%', // Устанавливаем высоту, чтобы кнопка располагалась по центру всего доступного пространства
-            margin: 2,
-            zIndex: 1,
-          }}
-        >
-          <TonConnectButton />
+        <Header />
+
+        <Box sx={{ position: 'relative' }}>
+          <PointsWidget 
+            isSubscribed={isSubscribed}
+            showNotification={showNotification}
+            totalPoints={totalPoints}
+            lastPoints={lastPoints}
+            lastUpdated={lastUpdated}
+            updatePointsData={updatePointsData}
+          />
         </Box>
 
         {onSubscription ? (
@@ -251,43 +247,18 @@ const Dashboard = () => {
         {/* Сообщение с уведомлением */}
         <Snackbar
           open={open}
-          autoHideDuration={3000} // Уведомление будет скрываться через 3 секунды
-          onClose={() => setOpen(false)}  // Закрываем уведомление вручную
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} // Позиция уведомления
+          autoHideDuration={3000}
+          onClose={() => setOpen(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
           sx={{
             borderRadius: 2,
-            marginBottom: '140px', // Добавляем отступ снизу, чтобы переместить его выше
+            marginBottom: '140px',
           }}
         >
           <Alert onClose={() => setOpen(false)} severity="error" sx={{ width: '100%' }}>
             {notification}
           </Alert>
         </Snackbar>
-      </Box>
-
-      <Box
-        sx={{
-            display: 'flex',
-            justifyContent: 'center', // Выравнивание по горизонтали (по центру)
-            alignItems: 'center', // Выравнивание по вертикали (по центру)
-            height: '100%', // Устанавливаем высоту, чтобы кнопка располагалась по центру всего доступного пространства
-            margin: 1,
-          }}
-      >
-        <Typography variant='h5'>
-          ₽UBLE: {totalPoints.toFixed(3)}
-        </Typography>
-      </Box>
-
-      <Box sx={{ position: 'relative' }}>
-        <PointsWidget 
-          isSubscribed={isSubscribed}
-          showNotification={showNotification}
-          totalPoints={totalPoints}
-          lastPoints={lastPoints}
-          lastUpdated={lastUpdated}
-          updatePointsData={updatePointsData}
-        />
       </Box>
 
       {/* Footer всегда внизу */}

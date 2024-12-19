@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useTonAddress, useTonWallet, useTonConnectUI } from '@tonconnect/ui-react';
+import { TonConnectButton } from '@tonconnect/ui-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getChallenge } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
-import { Button, Box } from '@mui/material';
+import { Button, List, ListItem, Box, Typography, IconButton } from '@mui/material';
 
-const Footer = ({ showNotification, handleCreateTask, handleSubscribe, setHasTonProof }) => {
-	const { t } = useTranslation();
+const Header = ({ showNotification, handleSubscribe, setHasTonProof }) => {
+  const { t } = useTranslation();
   const walletAddress = useTonAddress();
   const wallet = useTonWallet();
+  const { language, changeLanguage } = useLanguage();
   const [tonConnectUI, setOptions] = useTonConnectUI();
 
   useEffect(() => {
@@ -49,6 +51,11 @@ const Footer = ({ showNotification, handleCreateTask, handleSubscribe, setHasTon
     checkTonProof();
   }, [walletAddress, wallet, tonConnectUI]);
 
+  const handleLanguageChange = () => {
+    const newLanguage = language === 'en' ? 'ru' : 'en';
+    changeLanguage(newLanguage);
+  };
+
   return (
     <Box
       component="footer"
@@ -62,7 +69,7 @@ const Footer = ({ showNotification, handleCreateTask, handleSubscribe, setHasTon
       }}
     >
     <nav>
-      <Box
+      <List
         sx={{
           display: 'flex',
           justifyContent: 'center',
@@ -71,26 +78,48 @@ const Footer = ({ showNotification, handleCreateTask, handleSubscribe, setHasTon
           gap: 3,
         }}
       >
-        <Box sx={{ 
+        <ListItem sx={{ 
+          padding: 0, 
+          flexGrow: 1,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}> 
+          <Button 
+            onClick={handleSubscribe} 
+            variant="text"
+            color="secondary"
+          >
+            ME
+          </Button>
+        </ListItem>
+
+        <ListItem sx={{ 
           padding: 0, 
           flexGrow: 1,
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center'
         }}>
-          <Button  
-            onClick={handleCreateTask}
-            variant="text"
-            color="secondary" 
-          >
-            {t('createTask')}
+          <TonConnectButton />
+        </ListItem>
+
+        <ListItem sx={{ 
+          padding: 0, 
+          flexGrow: 1,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <Button onClick={handleLanguageChange} variant="text" color="secondary">
+            {language === 'en' ? 'EN' : 'RU'}
           </Button>
-        </Box>
-      </Box>
+        </ListItem>
+      </List>
     </nav>
 
     </Box>
   );
 };
 
-export default Footer;
+export default Header;
