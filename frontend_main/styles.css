@@ -37,7 +37,7 @@ body {
 }
 
 .top-nav-link, .language-button {
-    background-color: rgba(65, 44, 114, 1);
+    background-color: #25ea2e;
     color: #fff;
     border: none;
     padding: 10px 15px;
@@ -99,7 +99,7 @@ body {
 }
 
 .top-nav-link:hover, .language-button:hover {
-    background-color: rgb(8, 77, 82); /* Малиновый цвет при наведении */
+    background-color: #ff55ba; /* Малиновый цвет при наведении */
 }
 
 .fade-in {
@@ -180,7 +180,7 @@ body {
     display: inline-block;
     padding: 15px 30px;
     margin-top: 20px;
-    background-color: rgba(65, 44, 114, 1);
+    background-color: #25ea2e;
     color: white;
     text-decoration: none;
     border-radius: 20px;
@@ -188,7 +188,7 @@ body {
 }
 
 .cta-button:hover {
-    background-color: rgb(8, 77, 82); 
+    background-color: #ff55ba; 
     transform: scale(1.2);
 }
 @media (max-width: 768px) {
