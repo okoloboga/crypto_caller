@@ -25,7 +25,7 @@
     "editNumber": "Edit Number",
     "createTask": "CREATE TASK",
     "enterNewPhoneNumber": "Enter new phone number",
-    "subscriptionDescription": "To use the service, you need to enter your phone number and pay for the subscription. The phone number will be used for notifications about trigger activation. The subscription costs 1 TON per month.",
+    "subscriptionDescription": "To use the service, you need to enter your phone number and pay for the subscription. The phone number will be used for notifications about trigger activation. The subscription costs 0.75 TON per month.",
     "payForSubscription": "Pay",
     "subscriptionActivated": "Subscription successfully activated.",
     "activationFailed": "Activation failed. Please try again.",
@@ -39,6 +39,7 @@
     "taskDeleteFail": "Error deleting task",
     "noSubscription": "Pay for a subscription to create a task",
     "tryConnection": "Connect wallet correct",
-    "retryConnection": "Incorrect wallet connection, disconnect and try again"
+    "retryConnection": "Incorrect wallet connection, disconnect and try again",
+    "waitListing": "Wait for RUBLE listing!"
   }
   

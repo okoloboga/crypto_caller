@@ -89,21 +89,23 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       return;
     }
   
-    if (localLastPoints > 0) {
-      try {
-        console.log(`Claiming points: ${localLastPoints}`);
-        await claimPoints(walletAddress, localLastPoints);
-        const newTotalPoints = localTotalPoints + localLastPoints;
+    if (localLastPoints >= maxPoints) {
+      showNotification(t('waitListing'));
+      return;
+      // try {
+      //   console.log(`Claiming points: ${localLastPoints}`);
+      //   await claimPoints(walletAddress, localLastPoints);
+      //   const newTotalPoints = localTotalPoints + localLastPoints;
 
-        setTotalPoints(newTotalPoints);
-        setLastPoints(0);
+      //   setTotalPoints(newTotalPoints);
+      //   setLastPoints(0);
 
-        updatePointsData(newTotalPoints, 0, new Date());
-        showNotification(t('pointsClaimed'));
-      } catch (error) {
-        console.error('Error claiming points:', error);
-        showNotification(t('pointsClaimError'));
-      }
+      //   updatePointsData(newTotalPoints, 0, new Date());
+      //   showNotification(t('pointsClaimed'));
+      // } catch (error) {
+      //   console.error('Error claiming points:', error);
+      //   showNotification(t('pointsClaimError'));
+      // }
     }
   };
 
@@ -163,6 +165,8 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
               backgroundColor: isFull ? '#ff55ba' : 'secondary.main',
               borderTopRightRadius: '16px',
               borderBottomRightRadius: '16px',
+              boxShadow: isFull ? '0px 0px 15px 5px rgba(255, 85, 186, 0.8)' : 'none', 
+              transition: 'box-shadow 0.3s ease',
             },
           }}
         />

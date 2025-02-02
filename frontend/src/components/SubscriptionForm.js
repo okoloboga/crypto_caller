@@ -1,13 +1,12 @@
-// src/components/SubscriptionForm.js
 import React, { useState, useEffect } from 'react';
 import { useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { getUserByWalletAddress, updatePhoneNumber, createSubscription,
          checkSubscription, getChallenge, verifyChallenge } from '../services/apiService';
-import { useTranslation } from 'react-i18next'; // Импортируем хук useTranslation
+import { useTranslation } from 'react-i18next';
 import { Box, Button, TextField, Typography, Paper, Snackbar, Alert } from '@mui/material';
 
 const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
-  const { t } = useTranslation(); // Получаем функцию для перевода
+  const { t } = useTranslation();
   const [tonConnectUI, setOptions] = useTonConnectUI();
   const wallet = useTonWallet();
   const walletAddress = useTonAddress();
@@ -185,8 +184,8 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
         network: 'testnet',
         messages: [
           {
-            address: process.env.TON_WALLET || '0QC7IwY6zozwv_neAK1VJsBWcv_M-yd8nC_HVmB_DLVQmkY7', // 'UQDIkS1d_Lhd7EDttTtcmr9Xzg78uEMDEsYFde-PZCgfoOtU', // 
-            amount: "1000000", // 0.001 TON
+            address: process.env.TON_WALLET || '0QC7IwY6zozwv_neAK1VJsBWcv_M-yd8nC_HVmB_DLVQmkY7', // 'UQB26VtCk8H5o23Gk_fW80wCncY-kcWQ4LBEx6PDabmi5CLh', // 
+            amount: "750000000", // 0.75 TON
           },
         ],
       };
@@ -267,8 +266,12 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
           )
         ) : (
           <Box>
-            <Typography variant="h6">{t('registrationProcess')}</Typography>
-            <Typography variant="body2">{t('subscriptionDescription')}</Typography>
+            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+              <Typography variant="h6">{t('registrationProcess')}</Typography>
+            </Box>
+            <Typography variant="body2" align="justify">
+              {t('subscriptionDescription')}
+            </Typography>
             <TextField
               fullWidth
               type="text"
@@ -277,7 +280,7 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
               placeholder={t('enterPhoneNumber')}
               sx={{
                 marginTop: 2,
-                borderRadius: '12px',
+                borderRadius: '16px',
                 backgroundColor: "#383838",
                 }}
             />
@@ -294,7 +297,7 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
         
         <Button
           onClick={onCancel}
-          sx={{ marginTop: 3 }}
+          sx={{ marginTop: 2 }}
           variant="contained"
           color="secondary"
         >
