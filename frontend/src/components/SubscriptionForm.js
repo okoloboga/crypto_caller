@@ -181,11 +181,11 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
 
       const txSubscription = {
         validUntil: Math.floor(Date.now() / 1000) + 60,
-        network: 'testnet',
+        network: 'mainnet',
         messages: [
           {
-            address: process.env.TON_WALLET || '0QC7IwY6zozwv_neAK1VJsBWcv_M-yd8nC_HVmB_DLVQmkY7', // 'UQB26VtCk8H5o23Gk_fW80wCncY-kcWQ4LBEx6PDabmi5CLh', // 
-            amount: "750000000", // 0.75 TON
+            address: process.env.TON_WALLET || 'UQB26VtCk8H5o23Gk_fW80wCncY-kcWQ4LBEx6PDabmi5CLh',// '0QC7IwY6zozwv_neAK1VJsBWcv_M-yd8nC_HVmB_DLVQmkY7' 
+            amount: "75000000", // "750000000" = 0.75 TON
           },
         ],
       };
