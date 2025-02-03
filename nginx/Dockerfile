@@ -4,7 +4,7 @@ FROM node:18 AS frontend-build
 WORKDIR /app
 
 # Настраиваем конфигурацию
-COPY conf.d /etc/nginx/conf.d
+COPY nginx/conf.d /etc/nginx/conf.d
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Копируем package.json и устанавливаем зависимости
