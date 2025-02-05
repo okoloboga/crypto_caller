@@ -37,7 +37,7 @@
     "pointsClaimError": "Ошибка сбора RUBLE",
     "taskDeleted": "Задание удалено",
     "taskDeleteFail": "Ошибка удаления задания",
-    "noSubscription": "Оплати подписку, что бы создать задание!",
+    "noSubscription": "Оплати подписку!",
     "tryConnection": "Подключи кошелёк",
     "retryConnection": "Кошелёк подключился некорректно, отключи и попробуй ещё раз",
     "waitListing": "Ожидай листинга RUBLE!"

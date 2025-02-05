@@ -8,14 +8,14 @@ WORKDIR /app
 # COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Копируем package.json и устанавливаем зависимости
-# COPY frontend/package.json frontend/package-lock.json ./
-# RUN npm install --legacy-peer-deps
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm install --legacy-peer-deps
 
 # Копируем исходный код фронтенда
-# COPY frontend/ ./
+COPY frontend/ ./
 
 # Собираем приложение
-# RUN npm run build
+RUN npm run build
 
 # Stage 2: Настройка Nginx
 FROM nginx:alpine

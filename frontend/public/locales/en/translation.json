@@ -37,7 +37,7 @@
     "pointsClaimError": "Error collecting RUBLE",
     "taskDeleted": "Task deleted",
     "taskDeleteFail": "Error deleting task",
-    "noSubscription": "Pay for a subscription to create a task!",
+    "noSubscription": "Pay for a subscription!",
     "tryConnection": "Connect wallet correct",
     "retryConnection": "Incorrect wallet connection, disconnect and try again",
     "waitListing": "Wait for RUBLE listing!"

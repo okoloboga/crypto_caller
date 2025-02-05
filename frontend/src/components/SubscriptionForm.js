@@ -266,8 +266,10 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
           )
         ) : (
           <Box>
-            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-              <Typography variant="h6">{t('registrationProcess')}</Typography>
+            <Box display="flex" justifyContent="center" alignItems="flex-start" height="auto">
+              <Typography variant="h6" style={{ textAlign: 'center' }}>
+                {t('registrationProcess')}
+              </Typography>
             </Box>
             <Typography variant="body2" align="justify">
               {t('subscriptionDescription')}
