@@ -1,7 +1,7 @@
 import logging
 import os
 from aiogram import Bot, Dispatcher, types, F
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, CallbackQuery
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, CallbackQuery, InputFile
 from aiogram.client.bot import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
@@ -48,15 +48,15 @@ def get_main_menu():
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
 
+    photo = InputFile("main.jpg")
     caption_text = "Привет! Нажмите на кнопку ниже, чтобы запустить RUBLE CALLER или оставить отзыв:"
 
     # Отправляем изображение с подписью и клавиатурой
-    with open("main.jpg", "rb") as photo:
-        await message.answer_photo(
-            photo,
-            caption=caption_text,
-            reply_markup=get_main_menu()
-        )
+    await message.answer_photo(
+        photo,
+        caption=caption_text,
+        reply_markup=get_main_menu()
+    )
 
 # Обработчик нажатия на кнопку "Оставить отзыв"
 @dp.callback_query(F.data == "leave_feedback")
