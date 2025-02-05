@@ -1,10 +1,10 @@
 import logging
 import os
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher, types, F
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, CallbackQuery
 from aiogram.client.bot import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.filters import Command, Text
+from aiogram.filters import Command
 from dotenv import load_dotenv
 import asyncio
 
@@ -59,7 +59,7 @@ async def send_welcome(message: types.Message):
         )
 
 # Обработчик нажатия на кнопку "Оставить отзыв"
-@dp.callback_query(Text("leave_feedback"))
+@dp.callback_query(F.data == "leave_feedback")
 async def ask_for_feedback(callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
     user_feedback_state[user_id] = True  # Устанавливаем флаг ожидания ввода сообщения
@@ -75,7 +75,7 @@ async def ask_for_feedback(callback_query: CallbackQuery):
     await callback_query.answer()
 
 # Обработчик кнопки "НАЗАД"
-@dp.callback_query(Text("cancel_feedback"))
+@dp.callback_query(F.data == "cancel_feedback")
 async def cancel_feedback(callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
 
