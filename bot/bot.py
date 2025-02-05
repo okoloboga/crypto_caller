@@ -39,7 +39,7 @@ def get_main_menu():
                 InlineKeyboardButton(text="RUBLE CALLER", web_app=WebAppInfo(url=WEB_APP_URL))
             ],
             [
-                InlineKeyboardButton(text="Оставить отзыв", callback_data="leave_feedback")
+                InlineKeyboardButton(text="Обратная связь", callback_data="leave_feedback")
             ]
         ]
     )
