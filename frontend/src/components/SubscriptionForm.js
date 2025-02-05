@@ -185,7 +185,7 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
         messages: [
           {
             address: process.env.TON_WALLET || 'UQB26VtCk8H5o23Gk_fW80wCncY-kcWQ4LBEx6PDabmi5CLh',// '0QC7IwY6zozwv_neAK1VJsBWcv_M-yd8nC_HVmB_DLVQmkY7' 
-            amount: "75000000", // "750000000" = 0.75 TON
+            amount: "750000000", // "750000000" = 0.75 TON
           },
         ],
       };
