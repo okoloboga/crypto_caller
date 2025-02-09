@@ -7,10 +7,12 @@ import { ChallengeModule } from './modules/challenge/challenge.module';
 import { AppController } from './app.controller';
 import { BullModule } from '@nestjs/bull';
 import { PriceMonitorModule } from './modules/price-monitor/price-monitor.module';
+import { TicketModule } from './modules/tickets/tickets.module';
 
 @Module({
   imports: [
     ChallengeModule,
+    TicketModule,
     UserModule, 
     TaskModule, 
     NotificationModule,

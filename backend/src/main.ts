@@ -7,8 +7,8 @@ import { readFileSync } from 'fs';
 async function bootstrap() {
   // Опции HTTPS
   const httpsOptions = {
-    key: readFileSync('/etc/letsencrypt/live/caller.ruble.website/privkey.pem'),
-    cert: readFileSync('/etc/letsencrypt/live/caller.ruble.website/fullchain.pem'),
+    key: readFileSync(process.env.SSL_KEY),
+    cert: readFileSync(process.env.SSL_CERT),
   };
   
 

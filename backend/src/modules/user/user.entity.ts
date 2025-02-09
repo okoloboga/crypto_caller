@@ -1,4 +1,3 @@
-// src/user/user.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Notification } from '../notification/notification.entity';
 
