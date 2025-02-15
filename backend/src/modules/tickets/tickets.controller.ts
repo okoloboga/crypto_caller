@@ -23,7 +23,7 @@ export class TicketController {
 
     @Delete()
     async deleteTicket(
-        @Body('id') userId: string
+        @Body('userId') userId: string
     ): Promise<Ticket> {
         try {
             return await this.ticketService.deleteTicket(userId);
