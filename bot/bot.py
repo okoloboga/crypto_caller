@@ -127,7 +127,7 @@ async def ask_for_feedback(callback_query: CallbackQuery):
         ]
     )
 
-    await bot.send_message(user_id, "Введите ваше обращение, начиная со слова\nticket\nили нажмите 'НАЗАД' для отмены:", reply_markup=cancel_keyboard)
+    await bot.send_message(user_id, "Введите ваше обращение, начиная со слова\n\nticket\n\nили нажмите 'НАЗАД' для отмены:", reply_markup=cancel_keyboard)
     await callback_query.answer()
 
 # Обработчик кнопки "НАЗАД"
@@ -158,7 +158,7 @@ async def handle_text(message: types.Message):
         )
 
         # Отправляем отзыв админу
-        feedback_text = f"Новое обращение от @{message.from_user.username or message.from_user.full_name}:\n\n{message.text}"
+        feedback_text = f"Новое обращение от {user_id}:\n\n{message.text}"
         await bot.send_message(ADMIN_ID, feedback_text, reply_markup=answer_keyboard)
 
         # Подтверждаем пользователю, что сообщение отправлено
@@ -178,7 +178,7 @@ async def ticket_answer(callback_query: CallbackQuery):
 
     user_ticket_id = callback_query.data[16:]
 
-    await callback_query.answer(f"Введи ответ пользователю, начиная со слова answer_{user_ticket_id}") 
+    await callback_query.message.answer(f"Введи ответ пользователю, начиная со слова answer_{user_ticket_id}") 
 
 # Обработка ответа пользователю от админа
 @dp.message(F.text.startswith("answer_"))
@@ -196,7 +196,7 @@ async def ticket_answer_process(message: types.Message):
 @dp.message()
 async def unknown_message(message: types.Message):
 
-    await message.answer("Вы отправили что то непонятное... Если хотите написать обращение для тех. поддержки - нажмите Обратная связь и введите свой запрос начиная со слова\nticket")
+    await message.answer("Вы отправили что то непонятное... Если хотите написать обращение для тех. поддержки - нажмите Обратная связь и введите свой запрос начиная со слова\n\nticket")
 
 # Запуск бота
 async def main():
