@@ -10,7 +10,7 @@ export class TicketService {
         private readonly ticketRepository: Repository<Ticket>,
     ) {}
 
-    async createTicket(userId: number, message: string): Promise<Ticket> {
+    async createTicket(userId: string, message: string): Promise<Ticket> {
         // Проверяем, существует ли уже запись с таким userId
         const existingTicket = await this.ticketRepository.findOne({ where: { userId } });
 

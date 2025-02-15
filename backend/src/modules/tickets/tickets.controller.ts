@@ -8,7 +8,7 @@ export class TicketController {
 
     @Post()
     async createTicket(
-        @Body('userId') userId: number,
+        @Body('userId') userId: string,
         @Body('message') message: string,
     ): Promise<Ticket> {
         try {
