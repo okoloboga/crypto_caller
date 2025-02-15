@@ -62,11 +62,11 @@ def create_ticket(message):
 
     # Проверка результата
     if response.status_code == 201:
-        message.reply_text("Ваше обращение успешно создано!")
+        message.answer("Ваше обращение успешно создано!")
     elif response.status_code == 409:
-        message.reply_text("У вас уже есть активное обращение. Пожалуйста, дождитесь ответа.")
+        message.answer("У вас уже есть активное обращение. Пожалуйста, дождитесь ответа.")
     else:
-        message.reply_text("Произошла ошибка при создании обращения. Попробуйте позже.")
+        message.answer("Произошла ошибка при создании обращения. Попробуйте позже.")
 
 # Функция для удаления записи
 def delete_ticket(message):
@@ -80,11 +80,11 @@ def delete_ticket(message):
 
     # Проверка результата
     if response.status_code == 200:
-        message.reply_text("Обращение успешно удалено!")
+        message.answer("Обращение успешно удалено!")
     elif response.status_code == 404:
-        message.reply_text("У вас нет активных обращений.")
+        message.answer("У вас нет активных обращений.")
     else:
-        message.reply_text("Произошла ошибка при удалении обращения. Попробуйте позже.")
+        message.answer("Произошла ошибка при удалении обращения. Попробуйте позже.")
 
 
 # Функция для создания главного меню
@@ -133,7 +133,7 @@ async def ask_for_feedback(callback_query: CallbackQuery):
         ]
     )
 
-    await bot.send_message(user_id, "Введите ваше обращение, начиная со слова **ticket** или нажмите 'НАЗАД' для отмены:", reply_markup=cancel_keyboard)
+    await bot.send_message(user_id, "Введите ваше обращение, начиная со слова\nticket\nили нажмите 'НАЗАД' для отмены:", reply_markup=cancel_keyboard)
     await callback_query.answer()
 
 # Обработчик кнопки "НАЗАД"
@@ -202,7 +202,7 @@ async def ticket_answer_process(message: types.Message):
 @dp.message()
 async def unknown_message(message: types.Message):
 
-    await message.answer("Вы отправили что то непонятное... Если хотите написать обращение для тех. поддержки - нажмите **Обратная связь** и введите свой запрос начиная со слова **ticket**")
+    await message.answer("Вы отправили что то непонятное... Если хотите написать обращение для тех. поддержки - нажмите Обратная связь и введите свой запрос начиная со слова\nticket")
 
 # Запуск бота
 async def main():
