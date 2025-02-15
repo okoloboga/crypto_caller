@@ -6,7 +6,7 @@ export class Ticket {
     id: number;
 
     @Column({ unique: true })
-    userId: number;
+    userId: string;
 
     @Column({ nullable: false })
     message: string;
