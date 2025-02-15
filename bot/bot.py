@@ -104,6 +104,8 @@ def get_main_menu():
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
 
+    logger.info(f"WEB_APP_URL: {WEB_APP_URL}")
+
     photo = FSInputFile("main.jpg")
     caption_text = "Привет! Нажмите на кнопку ниже, чтобы запустить RUBLE CALLER или оставить отзыв:"
 
