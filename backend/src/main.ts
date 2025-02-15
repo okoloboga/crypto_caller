@@ -11,7 +11,6 @@ async function bootstrap() {
     cert: readFileSync(process.env.SSL_CERT),
   };
   
-
   // Создание приложения с поддержкой HTTPS
   const app = await NestFactory.create(AppModule, { httpsOptions });
 
