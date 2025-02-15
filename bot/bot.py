@@ -69,14 +69,12 @@ def create_ticket(message):
         message.answer("Произошла ошибка при создании обращения. Попробуйте позже.")
 
 # Функция для удаления записи
-def delete_ticket(message):
+def delete_ticket(user_ticket_id, message):
 
-    user_id = message.from_user.id
-
-    logger.info(f"Удаление Тикета. user_id: {user_id}")
+    logger.info(f"Удаление Тикета. user_id: {user_ticket_id}")
 
     data = {
-        "userId": user_id,
+        "userId": user_ticket_id,
     }
 
     # Отправка DELETE-запроса
@@ -91,7 +89,6 @@ def delete_ticket(message):
         message.answer("У вас нет активных обращений.")
     else:
         message.answer("Произошла ошибка при удалении обращения. Попробуйте позже.")
-
 
 # Функция для создания главного меню
 def get_main_menu():
@@ -198,7 +195,7 @@ async def ticket_answer_process(message: types.Message):
     answer_text = message.text[message.text.find(" "):]
 
     await bot.send_message(user_ticket_id, f"Ответ от тех. поддержки: {answer_text}")
-    delete_ticket(message)
+    delete_ticket(user_ticket_id, message)
 
 # Обработчик остальных сообщений
 @dp.message()

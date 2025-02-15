@@ -1,4 +1,4 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Ticket } from './tickets.entity';
@@ -24,7 +24,17 @@ export class TicketService {
         return await this.ticketRepository.save(ticket);
     }
 
-    async deleteTicket(userId: string): Promise<void> {
+    async deleteTicket(userId: string): Promise<Ticket> {
+        // Находим запись по id
+        const ticket = await this.ticketRepository.findOne({ where: { userId } });
+
+        if (!ticket) {
+            // Если запись не найдена, выбрасываем ошибку
+            throw new NotFoundException(`Ticket with id ${userId} not found`);
+        }
+
+        // Удаляем запись и возвращаем удаленную сущность
         await this.ticketRepository.delete(userId);
+        return ticket;
     }
 }

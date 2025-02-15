@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Delete, Param, ConflictException } from '@nestjs/common';
+import { Controller, Post, Body, Delete, ConflictException } from '@nestjs/common';
 import { TicketService } from './tickets.service';
 import { Ticket } from './tickets.entity';
 
@@ -24,9 +24,9 @@ export class TicketController {
     @Delete()
     async deleteTicket(
         @Body('id') userId: string
-    ): Promise<void> {
+    ): Promise<Ticket> {
         try {
-            return this.ticketService.deleteTicket(userId);
+            return await this.ticketService.deleteTicket(userId);
         } catch (error) {
             if (error instanceof ConflictException) {
                 throw error;
