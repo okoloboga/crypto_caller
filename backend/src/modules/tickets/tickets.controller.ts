@@ -14,17 +14,24 @@ export class TicketController {
         try {
             return await this.ticketService.createTicket(userId, message);
         } catch (error) {
-            // Если возникла ошибка ConflictException, пробрасываем её дальше
             if (error instanceof ConflictException) {
                 throw error;
             }
-            // Обработка других ошибок, если необходимо
             throw error;
         }
     }
 
-    @Delete(':id')
-    async deleteTicket(@Param('id') id: number): Promise<void> {
-        return this.ticketService.deleteTicket(id);
+    @Delete()
+    async deleteTicket(
+        @Body('id') userId: string
+    ): Promise<void> {
+        try {
+            return this.ticketService.deleteTicket(userId);
+        } catch (error) {
+            if (error instanceof ConflictException) {
+                throw error;
+            }
+            throw error;
+        }
     }
 }

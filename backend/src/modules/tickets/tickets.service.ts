@@ -24,7 +24,7 @@ export class TicketService {
         return await this.ticketRepository.save(ticket);
     }
 
-    async deleteTicket(id: number): Promise<void> {
-        await this.ticketRepository.delete(id);
+    async deleteTicket(userId: string): Promise<void> {
+        await this.ticketRepository.delete(userId);
     }
 }

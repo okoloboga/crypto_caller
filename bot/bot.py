@@ -75,8 +75,14 @@ def delete_ticket(message):
 
     logger.info(f"Удаление Тикета. user_id: {user_id}")
 
+    data = {
+        "userId": user_id,
+    }
+
     # Отправка DELETE-запроса
-    response = requests.delete(f"{TICKET_ROUTE}{user_id}")
+    response = requests.delete(TICKET_ROUTE, json=data)
+                               
+    logger.info(f"Ответ от сервера за удаление записи: {response}")
 
     # Проверка результата
     if response.status_code == 200:
@@ -158,7 +164,7 @@ async def handle_text(message: types.Message):
         )
 
         # Отправляем отзыв админу
-        feedback_text = f"Новое обращение от {user_id}:\n\n{message.text}"
+        feedback_text = f"Новое обращение от #{user_id}:\n\n{message.text}"
         await bot.send_message(ADMIN_ID, feedback_text, reply_markup=answer_keyboard)
 
         # Подтверждаем пользователю, что сообщение отправлено
@@ -178,7 +184,9 @@ async def ticket_answer(callback_query: CallbackQuery):
 
     user_ticket_id = callback_query.data[16:]
 
-    await callback_query.message.answer(f"Введи ответ пользователю, начиная со слова answer_{user_ticket_id}") 
+    await callback_query.message.answer(f"Введи ответ пользователю, начиная с фразы:")
+    await callback_query.message.answer(f"answer_{user_ticket_id}")
+    await callback_query.answer()
 
 # Обработка ответа пользователю от админа
 @dp.message(F.text.startswith("answer_"))
@@ -187,7 +195,7 @@ async def ticket_answer_process(message: types.Message):
     logger.info(f"Отвечаем пользователю от админа {message.text}")
 
     user_ticket_id = message.text[7:message.text.find(" ")]
-    answer_text = message.text[message.text.find(" ")]
+    answer_text = message.text[message.text.find(" "):]
 
     await bot.send_message(user_ticket_id, f"Ответ от тех. поддержки: {answer_text}")
     delete_ticket(message)
