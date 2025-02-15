@@ -34,7 +34,7 @@ export class TicketService {
         }
 
         // Удаляем запись и возвращаем удаленную сущность
-        await this.ticketRepository.delete(userId);
+        await this.ticketRepository.delete({ userId });
         return ticket;
     }
 }
