@@ -27,7 +27,11 @@ export class TonService {
       
     });
 
-    this.jettonMasterAddress = Address.parse(process.env.JETTON_CONTRACT); // Замени на адрес твоего Jetton-контракта
+    const jettonAddress = process.env.JETTON_MASTER_ADDRESS || 'EQ...';
+    if (!jettonAddress) {
+      throw new Error('JETTON_MASTER_ADDRESS is not defined in .env');
+    }
+    this.jettonMasterAddress = Address.parse(jettonAddress);
 
     this.initCentralWallet();
   }
