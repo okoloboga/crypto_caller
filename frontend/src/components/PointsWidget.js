@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
-import { claimPoints, updatePoints } from '../services/apiService';
+import { requestTokenWithdrawal, updatePoints } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
 import { Box, LinearProgress, Paper } from '@mui/material';
 import { use } from 'i18next';
@@ -90,22 +90,22 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
     }
   
     if (localLastPoints >= maxPoints) {
-      showNotification(t('waitListing'));
-      return;
-      // try {
-      //   console.log(`Claiming points: ${localLastPoints}`);
-      //   await claimPoints(walletAddress, localLastPoints);
-      //   const newTotalPoints = localTotalPoints + localLastPoints;
+      // showNotification(t('waitListing'));
+      // return;
+      try {
+        console.log(`Claiming points: ${localLastPoints}`);
+        await requestTokenWithdrawal(walletAddress, maxPoints);
+        const newTotalPoints = localTotalPoints + localLastPoints;
 
-      //   setTotalPoints(newTotalPoints);
-      //   setLastPoints(0);
+        setTotalPoints(newTotalPoints);
+        setLastPoints(0);
 
-      //   updatePointsData(newTotalPoints, 0, new Date());
-      //   showNotification(t('pointsClaimed'));
-      // } catch (error) {
-      //   console.error('Error claiming points:', error);
-      //   showNotification(t('pointsClaimError'));
-      // }
+        updatePointsData(newTotalPoints, 0, new Date());
+        showNotification(t('pointsClaimed'));
+      } catch (error) {
+        console.error('Error claiming points:', error);
+        showNotification(t('pointsClaimError'));
+      }
     }
   };
 

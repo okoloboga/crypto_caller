@@ -32,6 +32,23 @@ export const getUserByWalletAddress = async (walletAddress) => {
   }
 };
 
+// Функция для отправки токенов на кошелёк пользователя
+export const requestTokenWithdrawal = async (walletAddress, amount) => {
+  console.log(`Requesting token withdrawal for walletAddress: ${walletAddress}, amount: ${amount}`);
+  try {
+    const response = await api.post('/withdrawal/send-tokens', {
+      recipientAddress: walletAddress,
+      amount: amount.toString(), // Убедимся, что amount — строка
+    });
+
+    console.log('Token withdrawal successful:', response.data);
+    return response.data; // Возвращаем результат от сервера
+  } catch (error) {
+    console.error(`Error requesting token withdrawal for walletAddress ${walletAddress}:`, error.message);
+    throw error;
+  }
+};
+
 // Функция для обновления очков
 export const updatePoints = async (walletAddress, newPoints) => {
   try {

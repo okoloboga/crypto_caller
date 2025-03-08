@@ -8,6 +8,8 @@ import { AppController } from './app.controller';
 import { BullModule } from '@nestjs/bull';
 import { PriceMonitorModule } from './modules/price-monitor/price-monitor.module';
 import { TicketModule } from './modules/tickets/tickets.module';
+import { TonModule } from './modules/ton/ton.module';
+import { WithdrawalController } from './modules/ton/withdrawal.controller';
 
 @Module({
   imports: [
@@ -15,6 +17,7 @@ import { TicketModule } from './modules/tickets/tickets.module';
     TicketModule,
     UserModule, 
     TaskModule, 
+    TonModule,
     NotificationModule,
     PriceMonitorModule, 
     BullModule.forRoot({
@@ -43,6 +46,6 @@ import { TicketModule } from './modules/tickets/tickets.module';
       synchronize: true
     }),
   ],
-  controllers: [AppController],
+  controllers: [AppController, WithdrawalController],
 })
 export class AppModule {}
