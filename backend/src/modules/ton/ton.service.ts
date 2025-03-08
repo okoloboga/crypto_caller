@@ -11,7 +11,7 @@ import {
   storeMessage,
 } from '@ton/ton';
 import { mnemonicToPrivateKey } from '@ton/crypto';
-import nacl from 'tweetnacl';
+import * as nacl from 'tweetnacl';
 
 @Injectable()
 export class TonService {
@@ -38,10 +38,11 @@ export class TonService {
   }
 
   private async initCentralWallet() {
+    console.log('tweetnacl:', nacl);
     const mnemonic = process.env.CENTRAL_WALLET_MNEMONIC.split(' ');
     const keyPair = await mnemonicToPrivateKey(mnemonic);
     this.keyPair = nacl.sign.keyPair.fromSecretKey(Buffer.from(keyPair.secretKey));
-
+    console.log('keyPair:', keyPair);
     this.centralWallet = WalletContractV4.create({
       workchain: 0,
       publicKey: Buffer.from(this.keyPair.publicKey),
