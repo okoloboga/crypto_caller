@@ -27,7 +27,8 @@ export class TonService {
       
     });
 
-    const jettonAddress = process.env.JETTON_MASTER_ADDRESS || 'EQ...';
+    const jettonAddress = process.env.JETTON_MASTER_ADDRESS;
+    console.log('JETTON_MASTER_ADDRESS from .env:', jettonAddress);
     if (!jettonAddress) {
       throw new Error('JETTON_MASTER_ADDRESS is not defined in .env');
     }
