@@ -19,7 +19,7 @@ services:
       SSL_CERT: ${SSL_CERT}
       JETTON_MASTER_ADDRESS: ${JETTON_MASTER_ADDRESS}
       CENTRAL_WALLET_MNEMONIC: ${CENTRAL_WALLET_MNEMONIC}
-      TON_API_KEY: ${ON_API_KEY}
+      TON_API_KEY: ${TON_API_KEY}
     ports:
       - "3000:3000"
     depends_on:
