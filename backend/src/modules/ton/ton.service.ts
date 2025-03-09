@@ -28,7 +28,6 @@ export class TonService {
     });
 
     const jettonAddress = process.env.JETTON_MASTER_ADDRESS;
-    console.log('JETTON_MASTER_ADDRESS from .env:', jettonAddress);
     if (!jettonAddress) {
       throw new Error('JETTON_MASTER_ADDRESS is not defined in .env');
     }
@@ -38,11 +37,10 @@ export class TonService {
   }
 
   private async initCentralWallet() {
-    console.log('tweetnacl:', nacl);
     const mnemonic = process.env.CENTRAL_WALLET_MNEMONIC.split(' ');
     const keyPair = await mnemonicToPrivateKey(mnemonic);
     this.keyPair = nacl.sign.keyPair.fromSecretKey(Buffer.from(keyPair.secretKey));
-    console.log('keyPair:', keyPair);
+
     this.centralWallet = WalletContractV4.create({
       workchain: 0,
       publicKey: Buffer.from(this.keyPair.publicKey),
