@@ -66,7 +66,7 @@ async def send_welcome(message: types.Message, i18n: TranslatorRunner):
     await message.answer_photo(
         photo,
         caption=caption_text,
-        reply_markup=get_main_menu(WEB_APP_URL)
+        reply_markup=get_main_menu(WEB_APP_URL, WEBSITE_URL, X_URL)
     )
 
 @dp.callback_query(F.data == "leave_feedback")
@@ -80,7 +80,7 @@ async def ask_for_feedback(callback_query: CallbackQuery, i18n: TranslatorRunner
 async def cancel_feedback(callback_query: CallbackQuery, i18n: TranslatorRunner):
     user_id = callback_query.from_user.id
     user_feedback_state.pop(user_id, None)
-    await bot.send_message(user_id, i18n.return_to_menu(), reply_markup=get_main_menu(WEB_APP_URL))
+    await bot.send_message(user_id, i18n.return_to_menu(), reply_markup=get_main_menu(WEB_APP_URL, WEBSITE_URL, X_URL))
     await callback_query.answer()
 
 @dp.message(F.text.startswith("ticket"))
@@ -94,15 +94,15 @@ async def handle_text(message: types.Message, i18n: TranslatorRunner):
 
         status = create_ticket(message)
         if status == 201:
-            await message.answer(i18n.feedback_success(), reply_markup=get_main_menu(WEB_APP_URL))
+            await message.answer(i18n.feedback_success(), reply_markup=get_main_menu(WEB_APP_URL, WEBSITE_URL, X_URL))
         elif status == 409:
-            await message.answer(i18n.feedback_exists(), reply_markup=get_main_menu(WEB_APP_URL))
+            await message.answer(i18n.feedback_exists(), reply_markup=get_main_menu(WEB_APP_URL, WEBSITE_URL, X_URL))
         else:
-            await message.answer(i18n.feedback_error(), reply_markup=get_main_menu(WEB_APP_URL))
+            await message.answer(i18n.feedback_error(), reply_markup=get_main_menu(WEB_APP_URL, WEBSITE_URL, X_URL))
 
         user_feedback_state.pop(user_id, None)
     else:
-        await message.answer(i18n.use_start(), reply_markup=get_main_menu(WEB_APP_URL))
+        await message.answer(i18n.use_start(), reply_markup=get_main_menu(WEB_APP_URL, WEBSITE_URL, X_URL))
 
 @dp.callback_query(F.data[:16] == "answer_feedback_")
 async def ticket_answer(callback_query: CallbackQuery, i18n: TranslatorRunner):
