@@ -6,8 +6,8 @@ def get_main_menu(web_app_url: str, website_url: str, x_url: str):
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="RUBLE CALLER", web_app=WebAppInfo(url=web_app_url))],
-            [InlineKeyboardButton(text="WEBSITE", web_app=WebAppInfo(url=website_url)),
-             InlineKeyboardButton(text="X", web_app=WebAppInfo(url=x_url))],
+            [InlineKeyboardButton(text="WEBSITE", url=website_url),
+             InlineKeyboardButton(text="X.COM", url=x_url)],
             [InlineKeyboardButton(text="Обратная связь", callback_data="leave_feedback")]
         ]
     )
