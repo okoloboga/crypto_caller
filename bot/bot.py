@@ -22,6 +22,8 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = os.getenv("ADMIN_ID")
 STATS_ID = os.getenv("STATS_IDS")
 WEB_APP_URL = os.getenv("WEB_APP_URL")
+WEBSITE_URL = os.getenv("WEBSITE_URL")
+X_URL = os.getenv("X_URL")
 TICKET_ROUTE = os.getenv("TICKET_ROUTE")
 
 # Настройка логирования
