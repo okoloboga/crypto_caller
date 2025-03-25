@@ -104,7 +104,7 @@ async def send_welcome(message: types.Message, i18n: TranslatorRunner):
     await message.answer_photo(
         photo,
         caption=caption_text,
-        reply_markup=get_main_menu(WEB_APP_URL, WEBSITE_URL, X_URL)  # Attach the main menu keyboard
+        reply_markup=get_main_menu(WEB_APP_URL, WEBSITE_URL, X_URL, TRADE_URL)  # Attach the main menu keyboard
     )
 
 @dp.callback_query(F.data == "leave_feedback")
