@@ -93,7 +93,13 @@ const Header = ({ showNotification, handleSubscribe, setHasTonProof }) => {
       }
     };
 
-    checkTonProof();
+    const timer = setTimeout(() => {
+      if (walletAddress && wallet) {
+        checkTonProof();
+      }
+    }, 5000);
+
+    return () => clearTimeout(timer);
   }, [walletAddress, wallet, tonConnectUI, showNotification, setHasTonProof, t]);
 
   /**
