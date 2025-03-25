@@ -49,7 +49,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   const [isActive, setIsActive] = useState(true);
 
   // Maximum points that can be accumulated before claiming
-  const maxPoints = 50.000;
+  const maxPoints = 100.000;
 
   // Detect user activity to pause/resume point accumulation
   useEffect(() => {
@@ -202,20 +202,6 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
     >
       {/* Progress bar for points accumulation */}
       <Box sx={{ position: 'relative', cursor: 'pointer' }} onClick={handleProgressBarClick}>   
-        {/* App logo displayed on the progress bar */}
-        <Box
-          sx={{
-            position: 'absolute',
-            left: 0,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: '40px',
-            height: '40px',
-            backgroundImage: `url(${logoSmall})`, // Use the imported logo
-            backgroundSize: 'contain',
-            backgroundRepeat: 'no-repeat',
-          }}
-        />
         {/* Linear progress bar showing points accumulation */}
         <LinearProgress
           variant="determinate"

@@ -84,9 +84,8 @@ const Header = ({ showNotification, handleSubscribe, setHasTonProof }) => {
           console.log('TON Proof:', wallet.connectItems.tonProof);
           setHasTonProof(true);
         } else {
-          showNotification(t('retryConnection'));
           setHasTonProof(false);
-          setTimeout(() => showNotification(''), 2000);
+          setTimeout(() => showNotification(t('retryConnection')), 2000);
         }
       } catch (error) {
         console.error('Error checking tonProof:', error);
@@ -97,7 +96,7 @@ const Header = ({ showNotification, handleSubscribe, setHasTonProof }) => {
       if (walletAddress && wallet) {
         checkTonProof();
       }
-    }, 5000);
+    }, 10000);
 
     return () => clearTimeout(timer);
   }, [walletAddress, wallet, tonConnectUI, showNotification, setHasTonProof, t]);
