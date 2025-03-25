@@ -1,63 +1,116 @@
-import { Injectable } from '@nestjs/common';
+/**
+ * Service for handling TON blockchain operations in the RUBLE Farming App backend.
+ * This service provides functionality for sending Jetton tokens on the TON blockchain.
+ * It initializes a central wallet using a mnemonic and interacts with the TON network
+ * using the TonClient. It is part of the TonModule and is exported for use in other modules
+ * (e.g., for handling withdrawals).
+ */
+
+import { Injectable } from '@nestjs/common'; // Import Injectable decorator for NestJS service
 import {
   TonClient,
   WalletContractV4,
-  JettonMaster,
   beginCell,
   Address,
   toNano,
   internal,
   external,
   storeMessage,
-} from '@ton/ton';
-import { mnemonicToPrivateKey } from '@ton/crypto';
-import * as nacl from 'tweetnacl';
+} from '@ton/ton'; // Import TON blockchain utilities
+import { mnemonicToPrivateKey } from '@ton/crypto'; // Import utility for deriving keys from mnemonic
+import * as nacl from 'tweetnacl'; // Import nacl for cryptographic operations
 
+/**
+ * TonService class providing business logic for TON blockchain operations.
+ * Initializes a central wallet and handles sending Jetton tokens to recipient addresses.
+ */
 @Injectable()
 export class TonService {
+  // TON client for interacting with the TON blockchain
   private client: TonClient;
+
+  // Central wallet for sending transactions
   private centralWallet: WalletContractV4 | null = null;
+
+  // Address of the Jetton Master contract
   private jettonMasterAddress: Address;
+
+  // Key pair for signing transactions
   private keyPair: nacl.SignKeyPair;
 
+  /**
+   * Constructor to initialize the TON client and central wallet.
+   * Sets up the TonClient with the TON Center API endpoint and initializes the central wallet
+   * using a mnemonic from environment variables.
+   * @throws Error if JETTON_MASTER_ADDRESS is not defined in the environment.
+   */
   constructor() {
+    // Initialize the TON client with the TON Center API endpoint and API key
     this.client = new TonClient({
       endpoint: 'https://toncenter.com/api/v2/jsonRPC',
-      apiKey: process.env.TON_API_KEY, // Добавь API ключ в .env
-      
+      apiKey: process.env.TON_API_KEY, // API key should be set in .env
     });
 
+    // Load and validate the Jetton Master address from environment variables
     const jettonAddress = process.env.JETTON_MASTER_ADDRESS;
     if (!jettonAddress) {
       throw new Error('JETTON_MASTER_ADDRESS is not defined in .env');
     }
     this.jettonMasterAddress = Address.parse(jettonAddress);
 
+    // Initialize the central wallet
     this.initCentralWallet();
   }
 
+  /**
+   * Initialize the central wallet using a mnemonic from environment variables.
+   * Derives the key pair and creates a WalletContractV4 instance.
+   */
   private async initCentralWallet() {
+    // Split the mnemonic into an array of words
     const mnemonic = process.env.CENTRAL_WALLET_MNEMONIC.split(' ');
+    // Derive the key pair from the mnemonic
     const keyPair = await mnemonicToPrivateKey(mnemonic);
+    // Generate a signing key pair using nacl
     this.keyPair = nacl.sign.keyPair.fromSecretKey(Buffer.from(keyPair.secretKey));
 
+    // Create a WalletContractV4 instance for the central wallet
     this.centralWallet = WalletContractV4.create({
-      workchain: 0,
+      workchain: 0, // Use the base workchain (0)
       publicKey: Buffer.from(this.keyPair.publicKey),
     });
   }
 
+  /**
+   * Get the Jetton wallet address for a user.
+   * Queries the Jetton Master contract to find the user's Jetton wallet address.
+   * @param userAddress - The user's TON address.
+   * @param jettonMasterAddress - The address of the Jetton Master contract.
+   * @returns The user's Jetton wallet address.
+   */
   private async getUserJettonWalletAddress(userAddress: Address, jettonMasterAddress: Address): Promise<Address> {
+    // Create a cell containing the user's address
     const userAddressCell = beginCell().storeAddress(userAddress).endCell();
 
+    // Call the get_wallet_address method on the Jetton Master contract
     const response = await this.client.runMethod(jettonMasterAddress, 'get_wallet_address', [
       { type: 'slice', cell: userAddressCell },
     ]);
 
+    // Extract and return the Jetton wallet address from the response
     return response.stack.readAddress();
   }
 
+  /**
+   * Send Jetton tokens to a recipient address.
+   * Constructs and sends a transaction from the central wallet to transfer Jetton tokens.
+   * @param recipientAddress - The TON address of the recipient.
+   * @param amount - The amount of Jetton tokens to send (as a string).
+   * @returns An object indicating the success of the transaction and a message.
+   * @throws Error if the central wallet is not initialized or if the transaction fails.
+   */
   async sendTokens(recipientAddress: string, amount: string) {
+    // Ensure the central wallet and key pair are initialized
     if (!this.centralWallet || !this.keyPair) {
       throw new Error('Central wallet is not initialized yet');
     }
@@ -66,50 +119,54 @@ export class TonService {
       const wallet = this.centralWallet;
       const contract = this.client.open(wallet);
 
+      // Get the current sequence number of the wallet
       const seqno = await contract.getSeqno();
+      // Get the Jetton wallet address for the central wallet
       const jettonWalletAddress = await this.getUserJettonWalletAddress(wallet.address, this.jettonMasterAddress);
 
-      // Формируем тело сообщения для перевода Jetton
+      // Construct the message body for the Jetton transfer
       const messageBody = beginCell()
-        .storeUint(0x0f8a7ea5, 32) // Опкод для Jetton-трансфера
-        .storeUint(0, 64) // Query ID
-        .storeCoins(toNano(amount)) // Сумма в нанотонах (зависит от decimals токена)
-        .storeAddress(Address.parse(recipientAddress)) // Адрес получателя
-        .storeAddress(wallet.address) // Response destination (возврат остатка)
-        .storeBit(0) // Нет custom payload
-        .storeCoins(toNano('0.01')) // Forward TON amount для газа
-        .storeBit(0) // Нет forward payload
+        .storeUint(0x0f8a7ea5, 32) // Opcode for Jetton transfer
+        .storeUint(0, 64) // Query ID (set to 0)
+        .storeCoins(toNano(amount)) // Amount in nano units (depends on token decimals)
+        .storeAddress(Address.parse(recipientAddress)) // Recipient address
+        .storeAddress(wallet.address) // Response destination (for any remaining funds)
+        .storeBit(0) // No custom payload
+        .storeCoins(toNano('0.01')) // Forward TON amount for gas
+        .storeBit(0) // No forward payload
         .endCell();
 
-      // Создаём внутреннее сообщение
+      // Create an internal message for the Jetton transfer
       const internalMessage = internal({
         to: jettonWalletAddress,
-        value: toNano('0.1'), // TON для оплаты газа
-        bounce: true,
+        value: toNano('0.1'), // TON amount for gas
+        bounce: true, // Bounce back if the transaction fails
         body: messageBody,
       });
 
-      // Формируем транзакцию
+      // Create the transfer transaction
       const body = wallet.createTransfer({
         seqno,
         secretKey: Buffer.from(this.keyPair.secretKey),
         messages: [internalMessage],
       });
 
-      // Создаём внешнее сообщение
+      // Create an external message for the transaction
       const externalMessage = external({
         to: wallet.address,
         body,
       });
 
+      // Serialize the external message into a cell
       const externalMessageCell = beginCell().store(storeMessage(externalMessage)).endCell();
       const signedTransaction = externalMessageCell.toBoc();
 
-      // Отправляем транзакцию
+      // Send the transaction to the TON network
       await this.client.sendFile(signedTransaction);
 
       return { success: true, message: `Sent ${amount} tokens to ${recipientAddress}` };
     } catch (error) {
+      // Log and throw an error if the transaction fails
       console.error('Error sending tokens:', error);
       throw new Error('Failed to send tokens');
     }

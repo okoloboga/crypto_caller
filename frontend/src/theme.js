@@ -3,17 +3,17 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#000000', // Черный цвет для основной палитры
+      main: '#000000',
     },
     secondary: {
-      main: '#25ea2e', // Синий цвет для второстепенной палитры
+      main: '#25ea2e',
     },
     background: {
-      default: '#000000',  // Черный фон для всего приложения
-      paper: '#2a2a2a', // Серый цвет для контейнеров, если необходимо
+      default: '#000000',
+      paper: '#2a2a2a',
     },
     text: {
-      primary: '#ffffff', // Белый цвет для текста
+      primary: '#ffffff',
     },
   },
   typography: {
@@ -25,7 +25,7 @@ const theme = createTheme({
         root: {
           borderRadius: '12px',
           width: '100%',
-          color: '#ffffff',  // Белый цвет для текста на кнопках
+          color: '#ffffff',
         },
         text: {
           color: '#25ea2e',
@@ -35,7 +35,7 @@ const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundColor: '#2a2a2a', // Серый фон для компонентов Paper
+          backgroundColor: '#2a2a2a',
         },
       },
     },

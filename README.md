@@ -1,99 +1,94 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# RUBLE CALLER
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+**Overview**
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+**RUBLE CALLER** is a cryptocurrency application that combines a landing page, a Telegram bot, and a main app (frontend + backend) to provide users with a seamless experience for farming RUBLE tokens, monitoring cryptocurrency prices, and managing token withdrawals. The main app is built with React JS, the backend uses NestJS, and the entire system integrates with the TON blockchain, OKX API, and Twilio for notifications.
 
-## Description
+The core feature of RUBLE CALLER is token farming: users can farm RUBLE tokens (up to 50) and withdraw them to their TON wallet. Additional features, such as price monitoring with notifications, are available via a paid subscription.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Features
 
-## Project setup
+**Main App (Frontend)**
+Built with: **React JS, JavaScript, Material-UI.**
+Platform: Telegram app.
+Token Farming: Users authenticate via a TON wallet to start farming RUBLE tokens (max 50). Clicking the progress bar resets the farm and sends tokens to the user's TON wallet.
+Subscription-Based Features:
+Price Monitoring: Users can create tasks to monitor cryptocurrency pairs (e.g., BTC/USD) via the OKX API, set target prices, and receive phone call notifications (via Twilio) when the price hits the target.
+Task Management: Edit or delete price monitoring tasks.
+Subscription: Costs 0.75 TON and requires a phone number for notifications.
 
-```bash
-$ npm install
-```
+**Landing Page**
+Purpose: A user-friendly entry point to the **RUBLE CALLER** ecosystem.
+Links:
+Social media profiles.
+Telegram bot.
+**RUBLE** token [contract](https://tonviewer.com/EQA5QopV0455mb09Nz6iPL3JsX_guIGf77a6l-DtqSQh0aE-).
+Token trading platform.
 
-## Compile and run the project
+**Telegram Bot**
+Built with: **Aiogram3**
+Functionality:
+A user-friendly entry point to the **RUBLE CALLER** App.
+Provides all links available on the landing page (social media, token contract, trading platform).
+Allows users to contact support directly.
+Purpose: Enhances user engagement and support within Telegram.
 
-```bash
-# development
-$ npm run start
+**Backend**
+Built with: **NestJS, TypeORM.**
+Functionality:
+Manages user data, subscriptions, and points.
+Handles price monitoring tasks and integrates with the OKX API for real-time price data.
+Sends notifications via Twilio when price targets are reached.
+Processes token withdrawals on the TON blockchain.
 
-# watch mode
-$ npm run start:dev
+## Project Structure
+- **Main App (Frontend):** React JS app running in Telegram, handling token farming, price monitoring, and user interactions.
+- **Landing Page:** Static page with links to social media, the bot, token contract, and trading platform.
+- **Telegram Bot:** Automates user interactions, provides links, and offers support.
+- **Backend:** NestJS server with modules for user management, price monitoring, notifications, tickets, and TON blockchain operations.
 
-# production mode
-$ npm run start:prod
-```
+## Technologies Used
+- ****Frontend:** React JS, JavaScript, Material-UI (for the main app).
+- **Backend:** NestJS, TypeORM (for database operations).
+- **Blockchain:** TON SDK (@ton/ton) for token withdrawals.
 
-## Run tests
+## APIs:
+- **OKX API** for real-time cryptocurrency price data.
+- **Twilio** for sending phone call notifications.
+- **Deployment:** Docker for containerized deployment.
 
-```bash
-# unit tests
-$ npm run test
+## Key Integrations
+- **TON Blockchain:** Used for user authentication and token withdrawals (RUBLE tokens).
+- **OKX API:** Fetches real-time cryptocurrency prices for price monitoring tasks.
+- **Twilio:** Sends phone call notifications to users when price targets are reached.
 
-# e2e tests
-$ npm run test:e2e
+## Getting Started
+This project is designed to be run using Docker. Ensure you have the necessary environment variables configured (e.g., API keys for OKX, TON mnemonic, Twilio credentials, database credentials) before starting the application.
 
-# test coverage
-$ npm run test:cov
-```
+## Prerequisites
+- **Node.js** (for development purposes)
+- **Docke**r (for deployment)
+- A database **PostgreSQL** compatible with **TypeORM**
+- API keys for **OKX, TON blockchain**, and **Twilio**
+- Environment Variables
+- The application relies on several environment variables for configuration. Ensure the following are set in your .env file:
 
-## Deployment
+OKX_API_KEY, OKX_API_SECRET, OKX_API_PASSPHRASE: Credentials for the OKX API.
+TON_API_KEY, JETTON_MASTER_ADDRESS, CENTRAL_WALLET_MNEMONIC: Credentials for TON blockchain operations.
+TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER: Credentials for Twilio notifications.
+Database connection details (e.g., DATABASE_HOST, DATABASE_PORT, etc.).
+Future Improvements
+UI/UX Enhancements: Improve the React app's interface with real-time updates and better visuals.
+Bot Features: Add more interactive commands to the Telegram bot (e.g., task creation, subscription management).
+Security: Use a secrets manager for sensitive data (e.g., TON mnemonic, Twilio credentials).
+Scalability: Optimize price monitoring for large numbers of tasks using a queue system.
+Localization: Support multiple languages for the app, bot, and landing page.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Contributing
+We are open to contributions! Feel free to create an issue or submit a pull request. Share your feedback via Telegram: [okoloboga](https://t.me/okolo_boga).
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### License
+[MIT License](https://github.com/okoloboga/sna_net/blob/main/LICENSE.md)
 
-```bash
-$ npm install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Authors
+[okoloboga](https://t.me/okolo_boga)

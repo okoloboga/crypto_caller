@@ -1,26 +1,53 @@
 <!DOCTYPE html>
+<!--
+Landing page for the RUBLE Farming App.
+This HTML file defines the structure of the landing page, including a top navigation bar,
+a hero section with a background video, comic-style story sections, a video background section
+with a slider, and a call-to-action section. It uses external styles (styles.css) and scripts (scripts.js)
+for styling and interactivity, and supports language switching for English and Russian.
+-->
 <html lang="en">
 <head>
+    <!-- Meta tags for character encoding and responsive viewport -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Page title -->
     <title>RUBLE</title>
+    
+    <!-- Link to external stylesheet -->
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Preconnect to Google Fonts for faster loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Import Google Fonts (Roboto Mono and VT323) for typography -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
-
     <!-- Top Navigation Bar -->
     <header class="top-header">
         <nav class="top-nav">
+            <!-- Logo linking to the top of the page -->
             <a href="#" class="top-nav-logo">RUBLE</a>
+            
+            <!-- Hamburger menu button for mobile navigation -->
             <button class="hamburger" onclick="toggleMenu()">☰</button>
+            
+            <!-- Navigation links -->
             <div class="top-nav-links">
-                <a href="https://caller.ruble.website" target="_blank" class="top-nav-link">CALLER</a>
-                <a href="https://t.me/ruble_caller_bot" target="_blank" class="top-nav-link">TG Bot</a>
-                <a href="https://t.me/RUBLEMEM" target="_blank" class="top-nav-link">TG Channel</a>
+                <!-- Link to Tonviewer contract-->
+                <a href="https://tonviewer.com/EQA5QopV0455mb09Nz6iPL3JsX_guIGf77a6l-DtqSQh0aE-" target="_blank" class="top-nav-link">CONTRACT</a> 
+                <!-- Link to RUBLE TRADE on GeckoTerminal -->
+                <a href="https://www.geckoterminal.com/ru/ton/pools/EQDPn9nZc_0B1Hv6mWbFBvM1F64yLPnbpL6wGVPJQaoeL8BZ" target="_blank" class="top-nav-link">RUBLE TRADE</a>
+                <!-- Link to the Telegram bot (CALLER) -->
+                <a href="https://t.me/ruble_caller_bot" target="_blank" class="top-nav-link">CALLER</a>
+                <!-- Link to the Telegram channel -->
+                <a href="https://t.me/RUBLEMEM" target="_blank" class="top-nav-link">TELEGRAM</a>
+                <!-- Link to X (Twitter) -->
                 <a href="https://x.com/ruble_com?s=11" target="_blank" class="top-nav-link">X.COM</a>
+                <!-- Button to switch language (English/Russian) -->
                 <button class="language-button" onclick="switchLanguage()">EN</button>
             </div>
         </nav>
@@ -28,37 +55,53 @@
     
     <!-- Hero Section with Background Video -->
     <section class="hero-section">
+        <!-- Overlay for visual effect on the background video -->
         <div class="hero-overlay"></div>
+        
+        <!-- Background video that auto-plays, loops, and is muted -->
         <video autoplay muted loop class="background-video">
             <source src="assets/background.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
+        
+        <!-- Hero content (logo, title, description) -->
         <div class="hero-content">
+            <!-- Logo linking to the first comic story section -->
             <a href="#comic-story-section-1">
                 <img src="assets/logo.png" alt="Crypto Token Logo" class="logo-center">
             </a>
+            <!-- Hero title (populated dynamically via JavaScript) -->
             <h1 class="hero-title"></h1>
+            <!-- Hero description (populated dynamically via JavaScript) -->
             <p class="hero-description"></p>
         </div>
+        
+        <!-- Disclaimer text (populated dynamically via JavaScript) -->
         <p class="hero-disclaimer"></p>
     </section>
 
-    <!-- Comic-Style Story Section -->
+    <!-- Comic-Style Story Section 1 -->
     <section id="comic-story-section-1" class="comic-story-section">
+        <!-- Marquee overlay with text (populated dynamically via JavaScript) -->
         <div class="marquee-overlay">
             <p class="comic1"></p>
         </div>
+        
+        <!-- Grid of comic panels with fade-in animation -->
         <div class="story-grid fade-in">
+            <!-- Comic panel 1 linking to the video section -->
             <div class="comic-frame">
                 <a href="#video-section">
                     <img src="assets/comic1.jpg" alt="Comic Panel 1" class="darkened">
                 </a>
             </div>
+            <!-- Comic panel 2 linking to the video section -->
             <div class="comic-frame">
                 <a href="#video-section">
                     <img src="assets/comic2.jpg" alt="Comic Panel 2" class="darkened">
                 </a>
             </div>
+            <!-- Comic panel 3 linking to the video section -->
             <div class="comic-frame">
                 <a href="#video-section">
                     <img src="assets/comic3.jpg" alt="Comic Panel 3" class="darkened">
@@ -69,8 +112,12 @@
 
     <!-- Video Background Section -->
     <section id="video-section" class="video-background-section">
+        <!-- Video content with fade-in animation -->
         <div class="video-content fade-in">
+            <!-- Video section title (populated dynamically via JavaScript) -->
             <p class="video-title"></p>
+            
+            <!-- Video description list (populated dynamically via JavaScript) -->
             <div class="video-description">
                 <ul>
                     <li class="video-description-1"></li>
@@ -81,24 +128,34 @@
                     <li class="video-description-6"></li>
                 </ul>
             </div>
+            
+            <!-- Distribution image linking to the second comic story section -->
             <a href="#comic-story-section-2">
-                <img src="assets/distr.png" alt="Distibution" class="logo-down">
+                <img src="assets/distr.png" alt="Distribution" class="logo-down">
             </a>
         </div>
+        
+        <!-- Overlay for visual effect on the background videos -->
         <div class="video-overlay"></div>
+        
+        <!-- Video slider with multiple background videos -->
         <div class="video-slider">
+            <!-- Video 1 (visible by default) -->
             <video autoplay muted loop class="background-video" id="video1">
                 <source src="assets/background1.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
+            <!-- Video 2 (hidden by default) -->
             <video autoplay muted loop class="background-video" id="video2" style="display: none;">
                 <source src="assets/background2.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
+            <!-- Video 3 (hidden by default) -->
             <video autoplay muted loop class="background-video" id="video3" style="display: none;">
                 <source src="assets/background3.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
+            <!-- Video 4 (hidden by default) -->
             <video autoplay muted loop class="background-video" id="video4" style="display: none;">
                 <source src="assets/background4.mp4" type="video/mp4">
                 Your browser does not support the video tag.
@@ -108,16 +165,22 @@
 
     <!-- Second Comic-Style Story Section -->
     <section id="comic-story-section-2" class="comic-story-section">
+        <!-- Marquee overlay with text (populated dynamically via JavaScript) -->
         <div class="marquee-overlay">
             <p class="comic2"></p>
         </div>
+        
+        <!-- Grid of comic panels with fade-in animation -->
         <div class="story-grid fade-in">
+            <!-- Comic panel 4 -->
             <div class="comic-frame">
                 <img src="assets/comic4.jpg" alt="Comic Panel 4" class="darkened">
             </div>
+            <!-- Comic panel 5 -->
             <div class="comic-frame">
                 <img src="assets/comic5.jpg" alt="Comic Panel 5" class="darkened">
             </div>
+            <!-- Comic panel 6 -->
             <div class="comic-frame">
                 <img src="assets/comic6.jpg" alt="Comic Panel 6" class="darkened">
             </div>
@@ -126,10 +189,17 @@
 
     <!-- Call to Action Section -->
     <section class="cta-section">
+        <!-- Call to action description (populated dynamically via JavaScript) -->
         <p class="cta-description"></p>
+        
+        <!-- Button linking to the Telegram bot -->
         <a href="https://t.me/ruble_caller_bot" class="cta-button">TG Bot</a>
+        
+        <!-- Button linking to the CALLER app (text populated dynamically via JavaScript) -->
         <a href="https://caller.ruble.website" class="caller-button"></a>
     </section>
+    
+    <!-- Include the JavaScript file for interactivity -->
     <script src="scripts.js"></script>
 </body>
 </html>

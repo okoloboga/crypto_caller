@@ -22,7 +22,7 @@ body {
 
 .top-nav {
     display: flex;
-    justify-content: space-between; /* Разделяет элементы на две стороны */
+    justify-content: space-between;
     align-items: center;
     margin: 0 auto;
     width: 100%;
@@ -33,7 +33,7 @@ body {
     font-weight: bold;
     color: #fff;
     text-decoration: none;
-    margin-right: auto; /* Сдвигает логотип влево */
+    margin-right: auto;
 }
 
 .top-nav-link, .language-button {
@@ -49,7 +49,6 @@ body {
     margin-left: 25px;
 }
 
-/* Скрыть стандартные ссылки на мобильных устройствах */
 .top-nav-links {
     display: flex;
     gap: 15px;
@@ -64,7 +63,6 @@ body {
     cursor: pointer;
 }
 
-/* Мобильные стили */
 @media (max-width: 768px) {
     .top-nav-links {
         display: flex;
@@ -75,10 +73,10 @@ body {
         left: 0;
         right: 0;
         padding: 10px;
-        max-height: 0; /* Изначально скрыто */
-        overflow: hidden; /* Скрываем содержимое при уменьшении высоты */
-        opacity: 0; /* Невидимо при закрытом состоянии */
-        transition: max-height 0.5s ease, opacity 0.5s ease; /* Плавный переход высоты и прозрачности */
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition: max-height 0.5s ease, opacity 0.5s ease;
     }
 
     .hamburger {
@@ -86,20 +84,20 @@ body {
     }
 
     .top-nav-link, .language-button {
-        width: 30%; /* Раньше они были во всю ширину, теперь они занимают только нужную им ширину */
+        width: 30%;
         padding: 10px;
-        margin: 5px auto; /* Добавляем небольшой отступ между кнопками */
+        margin: 5px auto;
         text-align: center; 
     }
     
     .top-nav-links.show {
-        max-height: 300px; /* Высота при открытом состоянии (должно быть больше, чем высота всех элементов) */
-        opacity: 1; /* Полная видимость */
+        max-height: 300px;
+        opacity: 1;
     }
 }
 
 .top-nav-link:hover, .language-button:hover {
-    background-color: #ff55ba; /* Малиновый цвет при наведении */
+    background-color: #ff55ba;
 }
 
 .fade-in {
@@ -203,42 +201,41 @@ body {
 
 /* Comic-Style Story Section */
 .comic-story-section {
-    position: relative; /* Это необходимо, чтобы правильно позиционировать абсолютные элементы внутри */
+    position: relative;
     height: 100vh;
     padding: 0 20px;
     background-color: black;
     box-sizing: border-box;
-    display: block; /* Заменяем flex, чтобы элементы могли быть позиционированы независимо */
+    display: block;
 }
 
-/* Бегущая строка поверх всей секции */
+
 .marquee-overlay {
     position: absolute;
-    top: 0; /* Перемещаем строку к верхней части секции */
+    top: 0;
     left: 0;
     width: 100%;
-    background: rgba(0, 0, 0, 0.7); /* Затемнение для улучшения видимости текста */
-    color: #fff; /* Цвет текста белый для лучшей видимости */
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
     overflow: hidden;
     white-space: nowrap;
-    z-index: 10; /* Поверх всех других элементов */
-    padding: 10px 0; /* Дополнительное пространство сверху и снизу */
+    z-index: 10;
+    padding: 10px 0;
     box-sizing: border-box;
-    text-align: center; /* Текст по центру по горизонтали */
+    text-align: center;
 }
 
 .marquee-overlay p {
-    letter-spacing: 0.5em; /* Добавляет пространство между каждой буквой */
-    word-spacing: 1.5em;   /* Добавляет пространство между словами, 1.5em эквивалентно примерно трём пробелам */
+    letter-spacing: 0.5em;
+    word-spacing: 1.5em;
     display: inline-block;
-    animation: marquee 60s linear infinite; /* Время анимации и бесконечное повторение */
+    animation: marquee 60s linear infinite;
     padding-left: 100%;
     box-sizing: border-box;
-    font-size: 1.5em; /* Увеличен для лучшей видимости */
-    color: #fff; /* Белый цвет текста */
+    font-size: 1.5em;
+    color: #fff;
 }
 
-/* Анимация для бегущей строки */
 @keyframes marquee {
     0% {
         transform: translateX(0%);
@@ -253,12 +250,12 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
-    height: calc(100% - 50px); /* Корректируем высоту для учета бегущей строки сверху */
+    height: calc(100% - 50px);
     width: 100%;
     align-items: center;
     justify-items: center;
     box-sizing: border-box;
-    padding-top: 50px; /* Чтобы создать отступ сверху и не пересекаться с бегущей строкой */
+    padding-top: 50px;
 }
 
 .comic-frame {
@@ -290,39 +287,38 @@ body {
 
 
 
-/* Comic-Style Story Section (мобильные стили) */
+/* Comic-Style Story Section */
 @media (max-width: 768px) {
     .story-grid {
         display: flex;
         overflow-x: scroll;
         scroll-snap-type: x mandatory;
-        gap: 10px; /* Расстояние между картинками */
-        padding: 10px; /* Дополнительное пространство вокруг изображений */
-        align-items: center; /* Центрируем изображения по вертикали */
+        gap: 10px;
+        padding: 10px;
+        align-items: center;
     }
 
     .comic-frame {
         height: 73%;
         width: 90%;
-        flex: 0 0 auto; /* Позволяем каждому элементу быть независимым и соответствовать контенту */
-        scroll-snap-align: start; /* Привязка к началу при прокрутке */
-        display: inline-block; /* Изменяем на inline-block, чтобы блок автоматически подстраивался под размеры содержимого */
-        margin: 0; /* Убираем лишние отступы */
+        flex: 0 0 auto;
+        scroll-snap-align: start;
+        display: inline-block;
+        margin: 0;
     }
     
     .comic-frame img {
-        width: 100%; /* Изображение занимает весь контейнер по ширине */
-        height: 100%; /* Сохраняем пропорции изображения */
-        object-fit: contain; /* Избегаем обрезки изображения */
-        display: block; /* Убираем лишние отступы, которые могут появляться при рендеринге изображений */
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
     }
 
     .marquee-overlay p {
-        font-size: 1em; /* Уменьшаем размер шрифта для мобильных устройств */
-        letter-spacing: 0.7em; /* Немного уменьшаем расстояние между буквами */
-        word-spacing: 1em;     /* Уменьшаем расстояние между словами */
-        animation: marquee 45s linear infinite; /* Скорость можно тоже подстроить для мобильных */
-    }
+        font-size: 1em;
+        letter-spacing: 0.7em;
+        word-spacing: 1em;
+        animation: marquee 45s linear infinite;
     
 }
 
@@ -338,7 +334,6 @@ body {
     color: white;
 }
 
-/* Слой затемнения */
 .video-overlay {
     position: absolute;
     top: 0;
@@ -346,12 +341,11 @@ body {
     width: 100%;
     height: 100%;
     background: rgba(0, 10, 56, 0.5);
-    z-index: 1; /* Более низкий z-index */
+    z-index: 1;
 }
 
-/* Содержимое поверх видео */
 .video-content {
-    position: relative; /* Добавлено для z-index */
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -360,7 +354,7 @@ body {
     padding: 20px;
     background: rgba(0, 0, 0, 0.5);
     border-radius: 10px;
-    z-index: 2; /* Выше, чем z-index для .video-overlay */
+    z-index: 2;
 }
 
 .video-title {
@@ -404,39 +398,38 @@ body {
     filter: brightness(0.7);
 }
 
-/* Мобильные стили */
 @media (max-width: 768px) {
     .video-content {
-        padding: 10px; /* Уменьшенные отступы */
-        max-width: 90%; /* Ограничиваем ширину контента */
-        max-height: 80vh; /* Ограничиваем максимальную высоту, чтобы контент не занимал весь экран */
-        background: rgba(0, 0, 0, 0.7); /* Слегка увеличиваем прозрачность для лучшего контраста */
-        border-radius: 8px; /* Немного уменьшаем радиус для компактного вида */
+        padding: 10px;
+        max-width: 90%;
+        max-height: 80vh;
+        background: rgba(0, 0, 0, 0.7);
+        border-radius: 8px;
     }
 
     .video-title {
-        font-size: 1.5rem; /* Уменьшаем размер заголовка */
-        margin-bottom: 20px; /* Сокращаем отступ снизу */
+        font-size: 1.5rem;
+        margin-bottom: 20px;
     }
 
     .video-description {
-        font-size: 1rem; /* Уменьшаем размер текста */
+        font-size: 1rem;
         width: 100%;
-        border-radius: 10px; /* Уменьшаем радиус для аккуратного вида */
+        border-radius: 10px;
     }
 
     .video-description ul {
-        padding: 3px; /* Уменьшаем внутренние отступы */
+        padding: 3px;
     }
 
     .video-description li {
-        font-size: 1.2rem; /* Уменьшаем размер элементов списка */
-        margin-bottom: 6px; /* Уменьшаем отступы между элементами */
+        font-size: 1.2rem;
+        margin-bottom: 6px;
     }
 
     .logo-down {
-        width: 90px; /* Уменьшаем размер логотипа */
-        margin-top: 15px; /* Сокращаем отступ сверху */
+        width: 90px;
+        margin-top: 15px;
     }
 }
 
@@ -460,4 +453,5 @@ body {
     .video-title {
         font-size: 1.5rem;
     }
+}
 }

@@ -1,40 +1,89 @@
+/**
+ * Dashboard component for the RUBLE Farming App.
+ * This component serves as the main interface for users after authentication.
+ * It manages user subscription status, task creation/editing/deletion, token farming (points),
+ * and displays notifications. Users can subscribe, create tasks for monitoring currency pairs,
+ * and claim points if they meet the criteria.
+ */
+
 import React, { useState, useEffect, useCallback } from 'react';
+
+// Import hook to retrieve the TON wallet address
 import { useTonAddress } from '@tonconnect/ui-react';
+
+// Import language context and translation hooks for internationalization
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from 'react-i18next';
+
+// Import components for the dashboard layout
 import Header from '../components/Header';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
 import Footer from '../components/Footer';
 import PointsWidget from '../components/PointsWidget';
 import SubscriptionForm from '../components/SubscriptionForm';
+
+// Import API service functions for interacting with the backend
 import { getUserTasks, deleteTask, checkSubscription, getUserByWalletAddress } from '../services/apiService';
+
+// Import Material-UI components for layout and notifications
 import { Box, Snackbar, Alert } from '@mui/material';
 
+/**
+ * Dashboard component that renders the main app interface.
+ * @returns {JSX.Element} The rendered Dashboard component.
+ */
 const Dashboard = () => {
+  // Retrieve the TON wallet address using the TonConnect hook
   const walletAddress = useTonAddress();
+
+  // Translation hook for internationalization
   const { t } = useTranslation();
+
+  // Language context to access the current language
   const { language } = useLanguage();
+
+  // State to track subscription status
   const [isSubscribed, setIsSubscribed] = useState(false);
+
+  // State to store the user's tasks
   const [tasks, setTasks] = useState([]);
+
+  // State to toggle the subscription form visibility
   const [onSubscription, setOnSubscription] = useState(false);
+
+  // State to store the current task being edited or created
   const [currentTask, setCurrentTask] = useState(null);
+
+  // State for available currency pairs for task creation
   const [currencyPairs] = useState(['BTC-USD', 'ETH-USD', 'TON-USD']);
+
+  // State to track if TON proof is available for subscription
   const [hasTonProof, setHasTonProof] = useState(false);
+
+  // State for notification message and visibility
   const [notification, setNotification] = useState('');
-  const [open, setOpen] = useState(false); 
+  const [open, setOpen] = useState(false);
+
+  // State for token farming (points) data
   const [totalPoints, setTotalPoints] = useState(0);
   const [lastPoints, setLastPoints] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
+  /**
+   * Update the subscription status.
+   * @param {boolean} status - The new subscription status.
+   */
   const handleSubscriptionStatusChange = (status) => {
     setIsSubscribed(status);
   };
 
+  // Set the document title on component mount
   useEffect(() => {
     document.title = "RUBLE CALLER";
   }, []);
 
+  // Fetch subscription status and user data when wallet address changes
   useEffect(() => {
     if (walletAddress) {
       checkSubscriptionStatus();
@@ -42,12 +91,14 @@ const Dashboard = () => {
     }
   }, [walletAddress]);
 
+  // Fetch tasks if the user is subscribed and has a wallet address
   useEffect(() => {
     if (walletAddress && isSubscribed) {
       fetchTasks();
     }
   }, [walletAddress, isSubscribed]);
 
+  // Load total points from localStorage on mount
   useEffect(() => {
     const storedTotalPoints = localStorage.getItem('totalPoints');
     if (storedTotalPoints) {
@@ -55,6 +106,7 @@ const Dashboard = () => {
     }
   }, []);
 
+  // Load last updated timestamp from localStorage on mount
   useEffect(() => {
     const storedLastUpdated = localStorage.getItem('lastUpdated');
     if (storedLastUpdated) {
@@ -64,6 +116,7 @@ const Dashboard = () => {
     }
   }, []);
 
+  // Load last points from localStorage on mount
   useEffect(() => {
     const storedLastPoints = localStorage.getItem('lastPoints');
     if (storedLastPoints) {
@@ -71,48 +124,63 @@ const Dashboard = () => {
     }
   }, []);
 
+  // Save total points to localStorage when they change
   useEffect(() => {
     if (totalPoints !== undefined) {
       localStorage.setItem('totalPoints', totalPoints.toString());
     }
   }, [totalPoints]);
 
+  // Save last points to localStorage when they change
   useEffect(() => {
     if (lastPoints !== undefined) {
       localStorage.setItem('lastPoints', lastPoints.toString());
     }
   }, [lastPoints]);
 
+  /**
+   * Validate if a date is valid.
+   * @param {Date} date - The date to validate.
+   * @returns {boolean} True if the date is valid, false otherwise.
+   */
   const isValidDate = (date) => {
     return date instanceof Date && !isNaN(date);
   };
 
+  /**
+   * Update points data (total points, last points, and last updated timestamp).
+   * @param {number} newTotalPoints - The new total points value.
+   * @param {number} newLastPoints - The new last points value.
+   * @param {Date} newLastUpdated - The new last updated timestamp.
+   */
   const updatePointsData = useCallback((newTotalPoints, newLastPoints, newLastUpdated) => {
     console.log('Updating points data:', newTotalPoints, newLastPoints, newLastUpdated);
     setTotalPoints(newTotalPoints);
     setLastPoints(newLastPoints);
     setLastUpdated(newLastUpdated);
   }, []);
-  
+
+  /**
+   * Fetch user data from the backend using the wallet address.
+   * Updates points and last updated timestamp based on the response.
+   */
   const fetchUserData = async () => {
     try {
       const response = await getUserByWalletAddress(walletAddress);
       if (response === false) {
-        console.log('Пользователь не найден');
+        console.log('User not found');
         setTotalPoints(0);
         setLastPoints(0);
         setLastUpdated(new Date());
         localStorage.setItem('totalPoints', '0');
         localStorage.setItem('lastUpdated', new Date().toISOString());
       } else {
-        console.log('Полученный пользователь:', response);
+        console.log('Received user:', response);
         const lastUpdated = response.lastUpdated ? new Date(response.lastUpdated) : new Date();
-        
-        // Проверяем валидность даты
         setTotalPoints(response.points);
         setLastPoints(response.lastPoints);
         setLastUpdated(isValidDate(lastUpdated) ? lastUpdated : new Date());
-        localStorage.setItem('totalPoints', response.points); 
+        localStorage.setItem('totalPoints', response.points);
         localStorage.setItem('lastUpdated', lastUpdated.toISOString());
       }
     } catch (error) {
@@ -122,8 +190,11 @@ const Dashboard = () => {
       localStorage.setItem('lastUpdated', new Date().toISOString());
     }
   };
-  
 
+  /**
+   * Check the user's subscription status.
+   * Updates the isSubscribed state based on the response.
+   */
   const checkSubscriptionStatus = async () => {
     try {
       const subscriptionStatus = walletAddress ? Boolean(await checkSubscription(walletAddress)) : false;
@@ -134,6 +205,10 @@ const Dashboard = () => {
     }
   };
 
+  /**
+   * Fetch the user's tasks from the backend.
+   * Updates the tasks state with the fetched tasks.
+   */
   const fetchTasks = async () => {
     try {
       const fetchedTasks = await getUserTasks(walletAddress);
@@ -147,21 +222,32 @@ const Dashboard = () => {
     }
   };
 
+  /**
+   * Show a notification message to the user.
+   * @param {string} message - The message to display.
+   */
   const showNotification = (message) => {
     setNotification(message);
     setOpen(true);
-
     setTimeout(() => {
       setNotification('');
       setOpen(false);
     }, 3000);
   };
 
+  /**
+   * Handle saving a task (create or update).
+   * Refetches tasks and clears the current task.
+   */
   const handleSave = async () => {
     await fetchTasks();
     setCurrentTask(null);
   };
 
+  /**
+   * Handle deleting a task.
+   * @param {string} taskId - The ID of the task to delete.
+   */
   const handleDelete = async (taskId) => {
     try {
       await deleteTask(taskId);
@@ -173,6 +259,10 @@ const Dashboard = () => {
     }
   };
 
+  /**
+   * Handle subscription button click.
+   * Shows a notification if the wallet is not connected or TON proof is missing.
+   */
   const handleSubscribe = () => {
     if (!walletAddress) {
       showNotification(t('connectWallet'));
@@ -185,6 +275,10 @@ const Dashboard = () => {
     }
   };
 
+  /**
+   * Handle creating a new task.
+   * Shows a notification if the wallet is not connected or the user is not subscribed.
+   */
   const handleCreateTask = () => {
     if (!walletAddress) {
       showNotification(t('tryConnection'));
@@ -203,21 +297,23 @@ const Dashboard = () => {
         minHeight: '100vh',
       }}
     >
-      <Header 
+      {/* Header with subscription and TON proof handling */}
+      <Header
         showNotification={showNotification}
         handleSubscribe={handleSubscribe}
-        setHasTonProof={setHasTonProof} 
+        setHasTonProof={setHasTonProof}
       />
 
+      {/* Main content area */}
       <Box
         component="main"
         sx={{
           flex: 1,
         }}
       >
-
+        {/* Points widget for token farming */}
         <Box sx={{ position: 'relative' }}>
-          <PointsWidget 
+          <PointsWidget
             isSubscribed={isSubscribed}
             showNotification={showNotification}
             totalPoints={totalPoints}
@@ -227,17 +323,18 @@ const Dashboard = () => {
           />
         </Box>
 
+        {/* Subscription form (shown if onSubscription is true) */}
         {onSubscription ? (
-          <SubscriptionForm 
-            onCancel={() => setOnSubscription(false)} 
-            onSubscriptionChange={handleSubscriptionStatusChange} 
-            />
+          <SubscriptionForm
+            onCancel={() => setOnSubscription(false)}
+            onSubscriptionChange={handleSubscriptionStatusChange}
+          />
         ) : (
           <>
           </>
         )}
 
-        {/* Формы и список задач */}
+        {/* Task form or task list (shown based on currentTask state) */}
         {currentTask ? (
           <TaskForm
             task={currentTask}
@@ -246,14 +343,14 @@ const Dashboard = () => {
             onCancel={() => setCurrentTask(null)}
           />
         ) : (
-          <TaskList 
-            tasks={tasks} 
-            onEdit={setCurrentTask} 
-            onDelete={handleDelete} 
+          <TaskList
+            tasks={tasks}
+            onEdit={setCurrentTask}
+            onDelete={handleDelete}
           />
         )}
 
-        {/* Сообщение с уведомлением */}
+        {/* Notification snackbar for user feedback */}
         <Snackbar
           open={open}
           autoHideDuration={3000}
@@ -270,8 +367,8 @@ const Dashboard = () => {
         </Snackbar>
       </Box>
 
-      {/* Footer всегда внизу */}
-      <Footer 
+      {/* Footer with task creation and subscription buttons */}
+      <Footer
         showNotification={showNotification}
         handleCreateTask={handleCreateTask}
         handleSubscribe={handleSubscribe}
@@ -281,4 +378,5 @@ const Dashboard = () => {
   );
 };
 
+// Export the Dashboard component as the default export
 export default Dashboard;

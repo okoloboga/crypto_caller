@@ -1,37 +1,51 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
-import { AllExceptionsFilter } from './shared/exceptions/all-exceptions.filter';
-import { readFileSync } from 'fs';
+/**
+ * Entry point for the RUBLE Farming App backend.
+ * This file initializes the NestJS application, configures HTTPS, sets up global settings
+ * (such as API prefix, exception filters, and CORS), and starts the server on port 3000.
+ */
 
+import { NestFactory } from '@nestjs/core'; // Import NestFactory to create the NestJS application
+import { AppModule } from './app.module'; // Import the root module of the application
+import { Logger } from '@nestjs/common'; // Import Logger for logging application events
+import { AllExceptionsFilter } from './shared/exceptions/all-exceptions.filter'; // Import custom exception filter
+import { readFileSync } from 'fs'; // Import readFileSync to read SSL certificate files
+
+/**
+ * Bootstrap function to initialize and start the NestJS application.
+ * Configures HTTPS, global API prefix, exception handling, CORS, and starts the server.
+ */
 async function bootstrap() {
-  // Опции HTTPS
+  // Configure HTTPS options by reading SSL key and certificate from environment variables
   const httpsOptions = {
-    key: readFileSync(process.env.SSL_KEY),
-    cert: readFileSync(process.env.SSL_CERT),
+    key: readFileSync(process.env.SSL_KEY), // Path to the SSL private key
+    cert: readFileSync(process.env.SSL_CERT), // Path to the SSL certificate
   };
   
-  // Создание приложения с поддержкой HTTPS
+  // Create the NestJS application with HTTPS support
   const app = await NestFactory.create(AppModule, { httpsOptions });
 
+  // Initialize a logger for the bootstrap process
   const logger = new Logger('Bootstrap');
 
-  // Устанавливаем глобальный префикс API
+  // Set a global prefix for all API routes (e.g., /api/endpoint)
   app.setGlobalPrefix('api');
 
-  // Устанавливаем глобальный фильтр для обработки исключений
+  // Apply a global exception filter to handle all uncaught exceptions
   app.useGlobalFilters(new AllExceptionsFilter());
 
-  // Включаем поддержку CORS
+  // Enable CORS to allow cross-origin requests from specified domains
   app.enableCors({
-    origin: ['https://caller.ruble.website', 'http://localhost:3000'], // Разрешённые домены
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Разрешённые методы
-    credentials: true, // Если требуются куки/авторизация
+    origin: ['https://caller.ruble.website', 'http://localhost:3000'], // Allowed origins for CORS
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allowed HTTP methods
+    credentials: true, // Allow credentials (e.g., cookies, authorization headers)
   });
 
-  // Запускаем приложение на порту 3000
+  // Start the application on port 3000
   await app.listen(3000);
+  
+  // Log the application URL after successful startup
   logger.log('Application is running on: https://caller.ruble.website');
 }
 
+// Execute the bootstrap function to start the application
 bootstrap();

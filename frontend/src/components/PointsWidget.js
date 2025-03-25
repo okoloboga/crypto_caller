@@ -1,31 +1,75 @@
+/**
+ * PointsWidget component for the RUBLE Farming App.
+ * This component displays a progress bar for token farming (points accumulation).
+ * Users can accumulate points over time up to a maximum of 50, and claim them to their TON wallet
+ * when the maximum is reached. The component also handles user activity detection to pause/resume
+ * point accumulation and saves progress to the server.
+ */
+
 import React, { useEffect, useState } from 'react';
+
+// Import hook to retrieve the TON wallet address
 import { useTonAddress } from '@tonconnect/ui-react';
+
+// Import API service functions for token withdrawal and points updating
 import { requestTokenWithdrawal, updatePoints } from '../services/apiService';
+
+// Import translation hook for internationalization
 import { useTranslation } from 'react-i18next';
+
+// Import Material-UI components for layout and styling
 import { Box, LinearProgress, Paper } from '@mui/material';
-import { use } from 'i18next';
+
+// Import the app logo for display on the progress bar
 import logoSmall from '../assets/logoSmall.png';
 
+/**
+ * PointsWidget component that manages token farming and displays a progress bar.
+ * @param {Object} props - The component props.
+ * @param {boolean} props.isSubscribed - Indicates if the user is subscribed.
+ * @param {Function} props.showNotification - Function to display a notification message.
+ * @param {number} props.totalPoints - The total points accumulated by the user.
+ * @param {number} props.lastPoints - The last recorded points value.
+ * @param {Date} props.lastUpdated - The timestamp of the last points update.
+ * @param {Function} props.updatePointsData - Function to update points data (totalPoints, lastPoints, lastUpdated).
+ * @returns {JSX.Element} The rendered PointsWidget component.
+ */
 const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints, lastUpdated, updatePointsData }) => {
+  // Translation hook for internationalization
   const { t } = useTranslation();
+
+  // Retrieve the TON wallet address
   const walletAddress = useTonAddress();
+
+  // State for local points tracking
   const [localLastPoints, setLastPoints] = useState(lastPoints);
   const [localTotalPoints, setTotalPoints] = useState(totalPoints);
+
+  // State to track user activity (active/inactive)
   const [isActive, setIsActive] = useState(true);
+
+  // Maximum points that can be accumulated before claiming
   const maxPoints = 50.000;
 
+  // Detect user activity to pause/resume point accumulation
   useEffect(() => {
+    /**
+     * Handle user activity by setting the active state.
+     */
     const handleUserActivity = () => {
       setIsActive(true);
     };
-  
+
+    // Set a timer to mark the user as inactive after 30 seconds of no activity
     const inactivityTimer = setTimeout(() => {
       setIsActive(false);
     }, 30000);
-  
+
+    // Add event listeners for user activity (mouse movement and keypress)
     window.addEventListener('mousemove', handleUserActivity);
     window.addEventListener('keypress', handleUserActivity);
-  
+
+    // Cleanup: Remove event listeners and clear the timer on unmount
     return () => {
       clearTimeout(inactivityTimer);
       window.removeEventListener('mousemove', handleUserActivity);
@@ -33,18 +77,23 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
     };
   }, []);
 
+  // Increment points periodically when the user has a wallet address
   useEffect(() => {
-    if (!isSubscribed || !walletAddress) return;
-  
+    if (!walletAddress) return;
+
+    // Increment points every second
     const interval = setInterval(() => {
       incrementPoints();
     }, 1000);
-  
-    incrementPoints();
-  
-    return () => clearInterval(interval);
-  }, [isSubscribed, walletAddress, lastUpdated]);
 
+    // Initial increment on mount
+    incrementPoints();
+
+    // Cleanup: Clear the interval on unmount
+    return () => clearInterval(interval);
+  }, [walletAddress, lastUpdated]);
+
+  // Update points based on elapsed time since last update
   useEffect(() => {
     if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
       const now = Date.now();
@@ -53,23 +102,31 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
       setLastPoints(newPoints);
 
+      // Save progress to the server if the user is inactive and points have changed significantly
       if (!isActive && Math.abs(newPoints - localLastPoints) >= 1) {
         saveProgressToServer(newPoints);
       }
     }
-  }, [lastUpdated]); 
+  }, [lastUpdated]);
 
+  // Sync local total points with the prop value
   useEffect(() => {
     setTotalPoints(totalPoints);
-  }, [totalPoints]); 
+  }, [totalPoints]);
 
+  // Sync local last points with the prop value
   useEffect(() => {
     setLastPoints(lastPoints);
   }, [lastPoints]);
 
+  // Determine if the progress bar is full and calculate the progress percentage
   const isFull = localLastPoints >= maxPoints;
   const progressValue = isFull ? 100 : (localLastPoints / maxPoints) * 100;
 
+  /**
+   * Save the current points progress to the server.
+   * @param {number} newPoints - The new points value to save.
+   */
   const saveProgressToServer = async (newPoints) => {
     try {
       await updatePoints(walletAddress, newPoints);
@@ -78,37 +135,40 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
     }
   };
 
+  /**
+   * Handle progress bar click to claim points.
+   * If the maximum points are reached, the points are claimed and sent to the user's wallet.
+   */
   const handleProgressBarClick = async () => {
-    if (!isSubscribed) {
-      showNotification(t('noSubscription'));
+    if (localLastPoints < maxPoints) {
+      showNotification(t('notFull')); // Notify if the progress bar is not full
       return;
     }
 
-    if (localLastPoints < maxPoints) {
-      showNotification(t('notFull'));
-      return;
-    }
-  
     if (localLastPoints >= maxPoints) {
-      // showNotification(t('waitListing'));
-      // return;
       try {
         console.log(`Claiming points: ${localLastPoints}`);
-        await requestTokenWithdrawal(walletAddress, maxPoints);
-        const newTotalPoints = localTotalPoints + localLastPoints;
+        await requestTokenWithdrawal(walletAddress, maxPoints); // Send tokens to the wallet
+        const newTotalPoints = 0;
 
+        // Reset points after claiming
         setTotalPoints(newTotalPoints);
         setLastPoints(0);
 
+        // Update parent component with new points data
         updatePointsData(newTotalPoints, 0, new Date());
-        showNotification(t('pointsClaimed'));
+        showNotification(t('pointsClaimed')); // Notify success
       } catch (error) {
         console.error('Error claiming points:', error);
-        showNotification(t('pointsClaimError'));
+        showNotification(t('pointsClaimError')); // Notify error
       }
     }
   };
 
+  /**
+   * Increment points based on elapsed time since the last update.
+   * Points accumulate at a rate of 0.001 per second up to the maximum.
+   */
   const incrementPoints = () => {
     console.log('incrementPoints called, lastUpdated:', lastUpdated);
     if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
@@ -116,11 +176,12 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       const timeElapsed = (now - new Date(lastUpdated).getTime()) / 1000;
       const accumulationRate = 0.001;
       const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
-  
+
       console.log(`Last Update: ${new Date(lastUpdated)}, localLastPoints: ${localLastPoints}, New points: ${newPoints}`);
-  
+
       setLastPoints(newPoints);
-  
+
+      // Save progress to the server if the user is inactive and points have changed significantly
       if (!isActive && Math.abs(newPoints - localLastPoints) >= 1) {
         saveProgressToServer(newPoints);
       }
@@ -136,10 +197,11 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       borderRadius: 8, 
       boxShadow: 3,
       margin: 1, 
-      }}
+    }}
     >
-      {/* Прогресс-бар для накопления очков */}
+      {/* Progress bar for points accumulation */}
       <Box sx={{ position: 'relative', cursor: 'pointer' }} onClick={handleProgressBarClick}>   
+        {/* App logo displayed on the progress bar */}
         <Box
           sx={{
             position: 'absolute',
@@ -148,11 +210,12 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
             transform: 'translateY(-50%)',
             width: '40px',
             height: '40px',
-            backgroundImage: logoSmall, 
+            backgroundImage: `url(${logoSmall})`, // Use the imported logo
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
           }}
         />
+        {/* Linear progress bar showing points accumulation */}
         <LinearProgress
           variant="determinate"
           value={progressValue}
@@ -165,11 +228,12 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
               backgroundColor: isFull ? '#ff55ba' : 'secondary.main',
               borderTopRightRadius: '16px',
               borderBottomRightRadius: '16px',
-              boxShadow: isFull ? '0px 0px 15px 5px rgba(255, 85, 186, 0.8)' : 'none', 
+              boxShadow: isFull ? '0px 0px 15px 5px rgba(255, 85, 186, 0.8)' : 'none',
               transition: 'box-shadow 0.3s ease',
             },
           }}
         />
+        {/* Text overlay showing points or "COLLECT" when full */}
         <Box
           sx={{
             position: 'absolute',
@@ -187,4 +251,5 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
   );
 };
 
+// Export the PointsWidget component as the default export
 export default PointsWidget;
