@@ -34,7 +34,7 @@ import logoSmall from '../assets/logoSmall.png';
  * @param {Function} props.updatePointsData - Function to update points data (totalPoints, lastPoints, lastUpdated).
  * @returns {JSX.Element} The rendered PointsWidget component.
  */
-const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints, lastUpdated, updatePointsData }) => {
+const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, updatePointsData }) => {
   // Translation hook for internationalization
   const { t } = useTranslation();
 
@@ -149,6 +149,7 @@ const PointsWidget = ({ isSubscribed, showNotification, totalPoints, lastPoints,
       try {
         console.log(`Claiming points: ${localLastPoints}`);
         await requestTokenWithdrawal(walletAddress, maxPoints); // Send tokens to the wallet
+        await updatePoints(walletAddress, 0);
         const newTotalPoints = 0;
 
         // Reset points after claiming

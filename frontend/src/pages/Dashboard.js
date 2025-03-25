@@ -158,6 +158,10 @@ const Dashboard = () => {
     setTotalPoints(newTotalPoints);
     setLastPoints(newLastPoints);
     setLastUpdated(newLastUpdated);
+    localStorage.setItem('lastPoints', newLastPoints.toString());
+    localStorage.setItem('totalPoints', newTotalPoints.toString());
+    localStorage.setItem('lastUpdated', newLastUpdated.toISOString());
+    fetchUserData();
   }, []);
 
   /**
