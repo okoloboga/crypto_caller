@@ -96,10 +96,10 @@ const Header = ({ showNotification, handleSubscribe, setHasTonProof }) => {
       if (walletAddress && wallet) {
         checkTonProof();
       }
-    }, 10000);
+    }, 1000);
 
     return () => clearTimeout(timer);
-  }, [walletAddress, wallet, tonConnectUI, showNotification, setHasTonProof, t]);
+  }, [walletAddress, wallet, tonConnectUI]);
 
   /**
    * Handle language change by toggling between English and Russian.
