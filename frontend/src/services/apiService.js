@@ -80,9 +80,7 @@ export const requestTokenWithdrawal = async (walletAddress, amount) => {
  */
 export const updatePoints = async (walletAddress, newPoints) => {
   try {
-    console.log(`Updating points for walletAddress: ${walletAddress} with newPoints: ${newPoints}`);
     const response = await api.post('/user/update-points', { walletAddress, newPoints });
-    console.log('Points successfully updated:', response);
     return response;
   } catch (error) {
     console.error(`Error updating points for walletAddress ${walletAddress}:`, error.message);
