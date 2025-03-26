@@ -55,53 +55,37 @@ for styling and interactivity, and supports language switching for English and R
     
     <!-- Hero Section with Background Video -->
     <section class="hero-section">
-        <!-- Overlay for visual effect on the background video -->
         <div class="hero-overlay"></div>
-        
-        <!-- Background video that auto-plays, loops, and is muted -->
         <video autoplay muted loop class="background-video">
             <source src="assets/background.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
-        
-        <!-- Hero content (logo, title, description) -->
         <div class="hero-content">
-            <!-- Logo linking to the first comic story section -->
             <a href="#comic-story-section-1">
                 <img src="assets/logo.png" alt="Crypto Token Logo" class="logo-center">
             </a>
-            <!-- Hero title (populated dynamically via JavaScript) -->
             <h1 class="hero-title"></h1>
-            <!-- Hero description (populated dynamically via JavaScript) -->
             <p class="hero-description"></p>
         </div>
-        
-        <!-- Disclaimer text (populated dynamically via JavaScript) -->
         <p class="hero-disclaimer"></p>
     </section>
 
-    <!-- Comic-Style Story Section 1 -->
+    <!-- Comic-Style Story Section -->
     <section id="comic-story-section-1" class="comic-story-section">
-        <!-- Marquee overlay with text (populated dynamically via JavaScript) -->
         <div class="marquee-overlay">
             <p class="comic1"></p>
         </div>
-        
-        <!-- Grid of comic panels with fade-in animation -->
         <div class="story-grid fade-in">
-            <!-- Comic panel 1 linking to the video section -->
             <div class="comic-frame">
                 <a href="#video-section">
                     <img src="assets/comic1.jpg" alt="Comic Panel 1" class="darkened">
                 </a>
             </div>
-            <!-- Comic panel 2 linking to the video section -->
             <div class="comic-frame">
                 <a href="#video-section">
                     <img src="assets/comic2.jpg" alt="Comic Panel 2" class="darkened">
                 </a>
             </div>
-            <!-- Comic panel 3 linking to the video section -->
             <div class="comic-frame">
                 <a href="#video-section">
                     <img src="assets/comic3.jpg" alt="Comic Panel 3" class="darkened">
@@ -112,12 +96,8 @@ for styling and interactivity, and supports language switching for English and R
 
     <!-- Video Background Section -->
     <section id="video-section" class="video-background-section">
-        <!-- Video content with fade-in animation -->
         <div class="video-content fade-in">
-            <!-- Video section title (populated dynamically via JavaScript) -->
             <p class="video-title"></p>
-            
-            <!-- Video description list (populated dynamically via JavaScript) -->
             <div class="video-description">
                 <ul>
                     <li class="video-description-1"></li>
@@ -128,34 +108,24 @@ for styling and interactivity, and supports language switching for English and R
                     <li class="video-description-6"></li>
                 </ul>
             </div>
-            
-            <!-- Distribution image linking to the second comic story section -->
             <a href="#comic-story-section-2">
-                <img src="assets/distr.png" alt="Distribution" class="logo-down">
+                <img src="assets/distr.png" alt="Distibution" class="logo-down">
             </a>
         </div>
-        
-        <!-- Overlay for visual effect on the background videos -->
         <div class="video-overlay"></div>
-        
-        <!-- Video slider with multiple background videos -->
         <div class="video-slider">
-            <!-- Video 1 (visible by default) -->
             <video autoplay muted loop class="background-video" id="video1">
                 <source src="assets/background1.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
-            <!-- Video 2 (hidden by default) -->
             <video autoplay muted loop class="background-video" id="video2" style="display: none;">
                 <source src="assets/background2.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
-            <!-- Video 3 (hidden by default) -->
             <video autoplay muted loop class="background-video" id="video3" style="display: none;">
                 <source src="assets/background3.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
-            <!-- Video 4 (hidden by default) -->
             <video autoplay muted loop class="background-video" id="video4" style="display: none;">
                 <source src="assets/background4.mp4" type="video/mp4">
                 Your browser does not support the video tag.
@@ -165,22 +135,16 @@ for styling and interactivity, and supports language switching for English and R
 
     <!-- Second Comic-Style Story Section -->
     <section id="comic-story-section-2" class="comic-story-section">
-        <!-- Marquee overlay with text (populated dynamically via JavaScript) -->
         <div class="marquee-overlay">
             <p class="comic2"></p>
         </div>
-        
-        <!-- Grid of comic panels with fade-in animation -->
         <div class="story-grid fade-in">
-            <!-- Comic panel 4 -->
             <div class="comic-frame">
                 <img src="assets/comic4.jpg" alt="Comic Panel 4" class="darkened">
             </div>
-            <!-- Comic panel 5 -->
             <div class="comic-frame">
                 <img src="assets/comic5.jpg" alt="Comic Panel 5" class="darkened">
             </div>
-            <!-- Comic panel 6 -->
             <div class="comic-frame">
                 <img src="assets/comic6.jpg" alt="Comic Panel 6" class="darkened">
             </div>

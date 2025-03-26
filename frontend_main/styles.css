@@ -209,7 +209,6 @@ body {
     display: block;
 }
 
-
 .marquee-overlay {
     position: absolute;
     top: 0;
@@ -285,8 +284,6 @@ body {
     transition: filter 0.3s ease-in-out;
 }
 
-
-
 /* Comic-Style Story Section */
 @media (max-width: 768px) {
     .story-grid {
@@ -319,6 +316,7 @@ body {
         letter-spacing: 0.7em;
         word-spacing: 1em;
         animation: marquee 45s linear infinite;
+    }
     
 }
 
@@ -429,7 +427,7 @@ body {
 
     .logo-down {
         width: 90px;
-        margin-top: 15px;
+        margin-top: 15px; 
     }
 }
 
@@ -453,5 +451,4 @@ body {
     .video-title {
         font-size: 1.5rem;
     }
-}
 }
