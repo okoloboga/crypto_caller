@@ -95,7 +95,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
     if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
       const now = Date.now();
       const timeElapsed = (now - new Date(lastUpdated).getTime()) / 5000;
-      const accumulationRate = 0.001;
+      const accumulationRate = 0.005;
       const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
       setLastPoints(newPoints);
 
@@ -165,13 +165,13 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
 
   /**
    * Increment points based on elapsed time since the last update.
-   * Points accumulate at a rate of 0.001 per second up to the maximum.
+   * Points accumulate at a rate of 0.005 per 5 seconds up to the maximum.
    */
   const incrementPoints = () => {
     if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
       const now = Date.now();
       const timeElapsed = (now - new Date(lastUpdated).getTime()) / 5000;
-      const accumulationRate = 0.001;
+      const accumulationRate = 0.005;
       const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
 
       setLastPoints(newPoints);

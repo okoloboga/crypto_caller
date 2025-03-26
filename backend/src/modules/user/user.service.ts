@@ -126,7 +126,7 @@ export class UserService {
     const timeElapsed = (now - lastUpdated) / 5000; // Time difference in seconds
 
     // Calculate new points based on accumulation rate
-    const accumulationRate = 0.001;
+    const accumulationRate = 0.005;
     let calculatedPoints = user.points + timeElapsed * accumulationRate;
 
     // Cap points at 100
