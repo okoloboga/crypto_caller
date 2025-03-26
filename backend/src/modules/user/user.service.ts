@@ -113,9 +113,6 @@ export class UserService {
    * @throws Error if the user is not found.
    */
   async updatePoints(walletAddress: string, newPoints: number): Promise<number> {
-    // Log the points update operation
-    console.log(`updatePoints called for walletAddress: ${walletAddress}`);
-
     const user = await this.userRepository.findOne({ where: { walletAddress } });
 
     if (!user) {
@@ -123,25 +120,19 @@ export class UserService {
       throw new Error(`User with walletAddress ${walletAddress} not found.`);
     }
 
-    console.log(`User found: ${JSON.stringify(user, null, 2)}`);
-
     // Calculate the time elapsed since the last update
     const now = Date.now();
     const lastUpdated = user.lastUpdated ? user.lastUpdated.getTime() : now;
-    const timeElapsed = (now - lastUpdated) / 1000; // Time difference in seconds
-
-    console.log(`Last updated: ${user.lastUpdated}, Time elapsed: ${timeElapsed} seconds`);
+    const timeElapsed = (now - lastUpdated) / 5000; // Time difference in seconds
 
     // Calculate new points based on accumulation rate
     const accumulationRate = 0.001;
     let calculatedPoints = user.points + timeElapsed * accumulationRate;
 
-    // Cap points at 50
-    if (calculatedPoints > 50) {
-      calculatedPoints = 50;
+    // Cap points at 100
+    if (calculatedPoints > 100) {
+      calculatedPoints = 100;
     }
-
-    console.log(`New points after calculation: ${calculatedPoints}`);
 
     // Update the user's points, last updated time, and last points
     user.points = calculatedPoints;
@@ -150,7 +141,6 @@ export class UserService {
 
     await this.userRepository.save(user);
 
-    console.log(`Points updated successfully for walletAddress: ${walletAddress}`);
     return calculatedPoints;
   }
 

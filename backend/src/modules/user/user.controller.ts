@@ -107,9 +107,6 @@ export class UserController {
    */
   @Post('update-points')
   async updatePoints(@Body() { walletAddress, newPoints }: { walletAddress: string, newPoints: number }): Promise<number> {
-    // Log the incoming request for debugging
-    console.log(`update-points called with walletAddress: ${walletAddress} and newPoints: ${newPoints}`);
-
     // Validate the presence of required fields
     if (!walletAddress) {
       throw new BadRequestException('Wallet address is required');

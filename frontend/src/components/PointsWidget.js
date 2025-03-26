@@ -20,9 +20,6 @@ import { useTranslation } from 'react-i18next';
 // Import Material-UI components for layout and styling
 import { Box, LinearProgress, Paper } from '@mui/material';
 
-// Import the app logo for display on the progress bar
-import logoSmall from '../assets/logoSmall.png';
-
 /**
  * PointsWidget component that manages token farming and displays a progress bar.
  * @param {Object} props - The component props.
@@ -84,7 +81,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
     // Increment points every second
     const interval = setInterval(() => {
       incrementPoints();
-    }, 1000);
+    }, 5000);
 
     // Initial increment on mount
     incrementPoints();
@@ -97,7 +94,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   useEffect(() => {
     if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
       const now = Date.now();
-      const timeElapsed = (now - new Date(lastUpdated).getTime()) / 1000;
+      const timeElapsed = (now - new Date(lastUpdated).getTime()) / 5000;
       const accumulationRate = 0.001;
       const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
       setLastPoints(newPoints);
@@ -173,7 +170,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   const incrementPoints = () => {
     if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
       const now = Date.now();
-      const timeElapsed = (now - new Date(lastUpdated).getTime()) / 1000;
+      const timeElapsed = (now - new Date(lastUpdated).getTime()) / 5000;
       const accumulationRate = 0.001;
       const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
 
