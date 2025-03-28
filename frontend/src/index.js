@@ -24,10 +24,18 @@ import theme from './theme';
 const manifestUrl = "https://caller.ruble.website/manifest.json";
 
 // Init Telegram Analytics before application rendering
-telegramAnalytics.init({
-  token: process.env.ANALYTICS_RECORDING,
-  appName: process.env.RUBLE_CALLER,
-});
+const analyticsToken = process.env.REACT_APP_ANALYTICS_RECORDING;
+const appName = process.env.REACT_APP_RUBLE_CALLER;
+
+if (!analyticsToken || !appName) {
+  console.error('Analytics token or app name is not provided in .env file');
+} else {
+  telegramAnalytics.init({
+      token: analyticsToken,
+      appName: appName,
+  });
+  console.log('Telegram Analytics initialized successfully');
+}
 
 // Create a root element for rendering the React application
 const root = ReactDOM.createRoot(document.getElementById('root'));
