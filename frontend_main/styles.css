@@ -49,6 +49,13 @@ body {
     margin-left: 25px;
 }
 
+.nav-icon {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
 .top-nav-links {
     display: flex;
     gap: 15px;
