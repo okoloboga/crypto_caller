@@ -14,12 +14,20 @@ import App from './App';
 // Import TonConnectUIProvider to enable TON wallet integration
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
 
+import telegramAnalytics from '@telegram-apps/analytics';
+
 // Import ThemeProvider and the custom theme for Material-UI styling
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
 
 // Define the manifest URL for TON Connect, which provides metadata for wallet integration
 const manifestUrl = "https://caller.ruble.website/manifest.json";
+
+// Init Telegram Analytics before application rendering
+telegramAnalytics.init({
+  token: process.env.ANALYTICS_RECORDING,
+  appName: process.env.RUBLE_CALLER,
+});
 
 // Create a root element for rendering the React application
 const root = ReactDOM.createRoot(document.getElementById('root'));
