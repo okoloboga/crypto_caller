@@ -78,7 +78,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   useEffect(() => {
     if (!walletAddress) return;
 
-    // Increment points every second
+    // Increment points every 5 seconds
     const interval = setInterval(() => {
       incrementPoints();
     }, 5000);
@@ -95,11 +95,11 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
     if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
       const now = Date.now();
       const timeElapsed = (now - new Date(lastUpdated).getTime()) / 5000;
-      const accumulationRate = 0.005;
+      const accumulationRate = 0.001;
       const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
       setLastPoints(newPoints);
 
-      // Save progress to the server if the user is inactive and points have changed significantly
+      //Save progress to the server if the user is inactive and points have changed significantly
       if (!isActive && Math.abs(newPoints - localLastPoints) >= 1) {
         saveProgressToServer(newPoints);
       }
