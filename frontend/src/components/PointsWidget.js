@@ -171,7 +171,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
     if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
       const now = Date.now();
       const timeElapsed = (now - new Date(lastUpdated).getTime()) / 5000;
-      const accumulationRate = 0.005;
+      const accumulationRate = 0.001;
       const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
 
       setLastPoints(newPoints);
