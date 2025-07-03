@@ -26,7 +26,7 @@ def get_main_menu(web_app_url: str, website_url: str, x_url: str, trade_url: str
         inline_keyboard=[
             # Button to open the RUBLE CALLER web app
             [InlineKeyboardButton(text="📞 CALLER", web_app=WebAppInfo(url=web_app_url)),
-             InlineKeyboardButton(text="📈 TRADER", web_app=WebAppInfo(url="https://trade.ruble.website/"))],
+             InlineKeyboardButton(text="📈 TRADER", web_app=WebAppInfo(url="https://t.me/ruble_caller_bot/trader"))],
             # Button to open the RUBLE TRADE URL and contract
             [InlineKeyboardButton(text="🏦 BUY", url=trade_url),
              InlineKeyboardButton(text="🧾 CONTRACT", url="https://tonviewer.com/EQA5QopV0455mb09Nz6iPL3JsX_guIGf77a6l-DtqSQh0aE-")],
