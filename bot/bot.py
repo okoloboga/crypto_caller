@@ -34,11 +34,8 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")  # Telegram bot token
 ADMIN_ID = os.getenv("ADMIN_ID")  # Admin user ID for receiving feedback
 STATS_ID = os.getenv("STATS_IDS")  # IDs for statistics (not used in this script)
-WEB_APP_URL = os.getenv("WEB_APP_URL")  # URL for the web app
-WEBSITE_URL = os.getenv("WEBSITE_URL")  # URL for the website
-TRADE_URL = os.getenv("TRADE_URL")  # URL for trading
-X_URL = os.getenv("X_URL")  # URL for X (e.g., Twitter)
 TICKET_ROUTE = os.getenv("TICKET_ROUTE")  # Backend API route for ticket management
+
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -56,8 +53,45 @@ dp = Dispatcher()
 # Initialize translator hub for internationalization
 translator_hub: TranslatorHub = create_translator_hub()
 
+import urllib.parse
+
 # Dictionary to track user feedback state (whether a user is in the process of submitting feedback)
 user_feedback_state = {}
+
+
+async def get_user_specific_backgammon_url(user: types.User):
+    """
+    Generate a user-specific URL for the Backgammon web app with user data in query parameters.
+    Args:
+        user (types.User): The user for whom the URL is being generated.
+    Returns:
+        str: The user-specific URL for the Backgammon web app.
+    """
+    base_url = "https://backgammon.ruble.website"
+    
+    # Get user profile photos
+    user_photos = await bot.get_user_profile_photos(user.id)
+    avatar_url = ""
+    if user_photos.photos:
+        # Get the file path of the first photo
+        file_path = user_photos.photos[0][-1].file_id
+        # Get the file object
+        file = await bot.get_file(file_path)
+        # Get the file URL
+        avatar_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file.file_path}"
+
+    # Get username or first_name
+    username = user.username if user.username else user.first_name
+
+    # Prepare payload
+    payload = {
+        "telegram_id": user.id,
+        "username": username,
+        "avatar_url": avatar_url
+    }
+    
+    # URL-encode the payload and append to the base URL
+    return f"{base_url}?{urllib.parse.urlencode(payload)}"
 
 '''REQUESTS'''
 
@@ -101,10 +135,11 @@ async def send_welcome(message: types.Message, i18n: TranslatorRunner):
     """
     photo = FSInputFile("main.jpg")  # Load the welcome photo
     caption_text = i18n.welcome_message()  # Get the localized welcome message
+    backgammon_url = await get_user_specific_backgammon_url(message.from_user)
     await message.answer_photo(
         photo,
         caption=caption_text,
-        reply_markup=get_main_menu(WEB_APP_URL, WEBSITE_URL, X_URL, TRADE_URL)  # Attach the main menu keyboard
+        reply_markup=get_main_menu(backgammon_url)  # Attach the main menu keyboard
     )
 
 @dp.callback_query(F.data == "leave_feedback")
@@ -130,7 +165,8 @@ async def cancel_feedback(callback_query: CallbackQuery, i18n: TranslatorRunner)
     """
     user_id = callback_query.from_user.id
     user_feedback_state.pop(user_id, None)  # Remove the user from feedback mode
-    await bot.send_message(user_id, i18n.return_to_menu(), reply_markup=get_main_menu(WEB_APP_URL, WEBSITE_URL, X_URL, TRADE_URL))
+    backgammon_url = await get_user_specific_backgammon_url(callback_query.from_user)
+    await bot.send_message(user_id, i18n.return_to_menu(), reply_markup=get_main_menu(backgammon_url))
     await callback_query.answer()
 
 @dp.message(F.text.startswith("ticket"))
@@ -151,16 +187,18 @@ async def handle_text(message: types.Message, i18n: TranslatorRunner):
 
         # Create a ticket in the backend
         status = create_ticket(message)
+        backgammon_url = await get_user_specific_backgammon_url(message.from_user)
         if status == 201:
-            await message.answer(i18n.feedback_success(), reply_markup=get_main_menu(WEB_APP_URL, WEBSITE_URL, X_URL, TRADE_URL))
+            await message.answer(i18n.feedback_success(), reply_markup=get_main_menu(backgammon_url))
         elif status == 409:
-            await message.answer(i18n.feedback_exists(), reply_markup=get_main_menu(WEB_APP_URL, WEBSITE_URL, X_URL, TRADE_URL))
+            await message.answer(i18n.feedback_exists(), reply_markup=get_main_menu(backgammon_url))
         else:
-            await message.answer(i18n.feedback_error(), reply_markup=get_main_menu(WEB_APP_URL, WEBSITE_URL, X_URL, TRADE_URL))
+            await message.answer(i18n.feedback_error(), reply_markup=get_main_menu(backgammon_url))
 
         user_feedback_state.pop(user_id, None)  # Remove the user from feedback mode
     else:
-        await message.answer(i18n.use_start(), reply_markup=get_main_menu(WEB_APP_URL, WEBSITE_URL, X_URL, TRADE_URL))
+        backgammon_url = await get_user_specific_backgammon_url(message.from_user)
+        await message.answer(i18n.use_start(), reply_markup=get_main_menu(backgammon_url))
 
 @dp.callback_query(F.data[:16] == "answer_feedback_")
 async def ticket_answer(callback_query: CallbackQuery, i18n: TranslatorRunner):
