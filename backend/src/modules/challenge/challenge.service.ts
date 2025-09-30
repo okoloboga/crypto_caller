@@ -88,7 +88,7 @@ export class ChallengeService {
     this.logger.log('masterAt is OK:', masterAt);
 
     // Attempt to retrieve the public key from the blockchain
-    const result = await client.runMethod(
+    const result = await this.client.runMethod(
       masterAt.last.seqno,
       Address.parse(payload.address),
       'get_public_key',

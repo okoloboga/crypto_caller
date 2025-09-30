@@ -5,6 +5,7 @@
  */
 
 import { NestFactory } from '@nestjs/core';
+import { Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './shared/exceptions/all-exceptions.filter';
 import * as dotenv from 'dotenv';

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { TonClient, Address, Cell } from '@ton/ton';
+import { TonClient, Address, Cell, beginCell } from '@ton/ton';
 
 @Injectable()
 export class SubscriptionService {
@@ -29,8 +29,7 @@ export class SubscriptionService {
     try {
       const userAddress = Address.parse(walletAddress);
       
-      const addressCell = new Cell();
-      addressCell.bits.writeAddress(userAddress);
+      const addressCell = beginCell().storeAddress(userAddress).endCell();
 
       const response = await this.client.runMethod(this.contractAddress, 'isSubscribed', [
         { type: 'slice', cell: addressCell },

@@ -3,6 +3,7 @@
 */node_modules
 */build
 test/
+blockchain/node_modules/
 
 # Logs
 logs
