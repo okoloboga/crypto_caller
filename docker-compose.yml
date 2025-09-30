@@ -3,25 +3,13 @@ version: '3.8'
 services:
   # Сервис для backend
   backend:
-    build: ./backend
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
-      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
-      #TWILIO_AUTH_TEST_TOKEN: ${TWILIO_AUTH_TEST_TOKEN}
-      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
-      OKX_API_KEY: ${OKX_API_KEY}
-      OKX_API_SECRET: ${OKX_API_SECRET}
-      OKX_API_PASSPHRASE: ${OKX_API_PASSPHRASE}
-      SSL_KEY: ${SSL_KEY}
-      SSL_CERT: ${SSL_CERT}
-      JETTON_MASTER_ADDRESS: ${JETTON_MASTER_ADDRESS}
-      CENTRAL_WALLET_MNEMONIC: ${CENTRAL_WALLET_MNEMONIC}
-      TON_API_KEY: ${TON_API_KEY}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       - postgres
       - redis

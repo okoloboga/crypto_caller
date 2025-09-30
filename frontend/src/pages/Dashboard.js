@@ -45,6 +45,7 @@ const Dashboard = () => {
 
   // State to track subscription status
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isPolling, setIsPolling] = useState(false); // State for polling subscription status
 
   // State to store the user's tasks
   const [tasks, setTasks] = useState([]);
@@ -71,11 +72,14 @@ const Dashboard = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
   /**
-   * Update the subscription status.
-   * @param {boolean} status - The new subscription status.
+   * Handles the signal from the subscription form to start polling for status updates.
+   * @param {boolean} status - A signal (true) to start polling.
    */
   const handleSubscriptionStatusChange = (status) => {
-    setIsSubscribed(status);
+    if (status === true) {
+      showNotification(t('checkingSubscriptionStatus')); // Inform user
+      setIsPolling(true);
+    }
   };
 
   // Set the document title on component mount
@@ -90,6 +94,29 @@ const Dashboard = () => {
       fetchUserData();
     }
   }, [walletAddress]);
+
+  // Effect for polling the subscription status
+  useEffect(() => {
+    if (!isPolling || !walletAddress) return;
+
+    const pollingId = setInterval(() => {
+      console.log('Polling for subscription status...');
+      checkSubscriptionStatus();
+    }, 5000); // Poll every 5 seconds
+
+    const timeoutId = setTimeout(() => {
+      console.log('Polling timed out.');
+      clearInterval(pollingId);
+      setIsPolling(false);
+      showNotification(t('subscriptionCheckTimeout'));
+    }, 120000); // 2-minute timeout
+
+    // Cleanup function to clear intervals and timeouts
+    return () => {
+      clearInterval(pollingId);
+      clearTimeout(timeoutId);
+    };
+  }, [isPolling, walletAddress]);
 
   // Fetch tasks if the user is subscribed and has a wallet address
   useEffect(() => {
@@ -196,16 +223,31 @@ const Dashboard = () => {
   };
 
   /**
-   * Check the user's subscription status.
-   * Updates the isSubscribed state based on the response.
+   * Check the user's subscription status from the backend.
+   * The backend now returns an expiry timestamp from the blockchain.
    */
   const checkSubscriptionStatus = async () => {
+    if (!walletAddress) return;
     try {
-      const subscriptionStatus = walletAddress ? Boolean(await checkSubscription(walletAddress)) : false;
-      setIsSubscribed(subscriptionStatus);
+      const result = await checkSubscription(walletAddress);
+      // Check if the expiry timestamp is in the future
+      const isNowSubscribed = result && result.expiresAt && (result.expiresAt * 1000 > Date.now());
+      
+      if (isNowSubscribed) {
+        if (isPolling) {
+          showNotification(t('subscriptionActivated'));
+        }
+        setIsSubscribed(true);
+        setIsPolling(false); // Stop polling on success
+      } else {
+        setIsSubscribed(false);
+      }
     } catch (error) {
       console.error('Error checking subscription status:', error);
       setIsSubscribed(false);
+      if (isPolling) {
+        setIsPolling(false); // Stop polling on error
+      }
     }
   };
 

@@ -14,7 +14,7 @@ import { ChallengeModule } from './modules/challenge/challenge.module'; // Impor
 import { AppController } from './app.controller'; // Import AppController for basic app routes
 import { BullModule } from '@nestjs/bull'; // Import BullModule for queue management
 import { PriceMonitorModule } from './modules/price-monitor/price-monitor.module'; // Import PriceMonitorModule for price monitoring
-import { TicketModule } from './modules/tickets/tickets.module'; // Import TicketModule for ticket management
+import { SubscriptionModule } from './modules/subscription/subscription.module'; // Import module for subscription handling
 import { TonModule } from './modules/ton/ton.module'; // Import TonModule for TON blockchain integration
 import { WithdrawalController } from './modules/ton/withdrawal.controller'; // Import WithdrawalController for withdrawal endpoints
 
@@ -27,12 +27,12 @@ import { WithdrawalController } from './modules/ton/withdrawal.controller'; // I
   imports: [
     // Feature modules for different parts of the application
     ChallengeModule, // Handles challenge generation for TON proof
-    TicketModule, // Manages tickets for user feedback
     UserModule, // Manages user data and subscriptions
     TaskModule, // Manages tasks for price monitoring
     TonModule, // Handles TON blockchain interactions
     NotificationModule, // Manages notifications
     PriceMonitorModule, // Monitors cryptocurrency prices
+    SubscriptionModule, // Handles subscription logic and verification
 
     // Configure Bull for queue management with Redis
     BullModule.forRoot({

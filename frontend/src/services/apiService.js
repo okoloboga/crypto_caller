@@ -108,45 +108,36 @@ export const claimPoints = async (walletAddress, points) => {
 };
 
 /**
- * Check the subscription status of a user.
- * @param {string} walletAddress - The TON wallet address of the user.
- * @returns {Promise<Object>} The server response with the subscription status.
+ * Get the subscription configuration from the backend.
+ * @returns {Promise<Object>} The subscription configuration including contract address and price.
  * @throws {Error} If the request fails.
  */
-export const checkSubscription = async (walletAddress) => {
-  console.log(`Checking subscription status for walletAddress: ${walletAddress}`);
+export const getSubscriptionConfig = async () => {
+  console.log('Fetching subscription config');
   try {
-    const response = await api.get('/user/subscription-status', {
-      params: { walletAddress },
-    });
-    console.log('Subscription status successfully checked:', response);
+    const response = await api.get('/subscription/config');
+    console.log('Subscription config successfully fetched:', response);
     return response;
   } catch (error) {
-    console.error(`Error checking subscription for walletAddress ${walletAddress}:`, error.message);
+    console.error('Error fetching subscription config:', error.message);
     throw error;
   }
 };
 
 /**
- * Create a subscription for a user.
+ * Check the subscription status of a user by querying the backend, which checks the blockchain.
  * @param {string} walletAddress - The TON wallet address of the user.
- * @param {string} phoneNumber - The user's phone number for receiving calls.
- * @param {string} signedChallenge - The signed challenge for verification.
- * @returns {Promise<Object>} The server response confirming the subscription creation.
+ * @returns {Promise<Object>} The server response with the subscription status (e.g., { expiresAt: number }).
  * @throws {Error} If the request fails.
  */
-export const createSubscription = async (walletAddress, phoneNumber, signedChallenge) => {
-  console.log(`Creating subscription for walletAddress: ${walletAddress}`);
+export const checkSubscription = async (walletAddress) => {
+  console.log(`Checking subscription status for walletAddress: ${walletAddress}`);
   try {
-    const response = await api.post('/user/subscription', {
-      walletAddress,
-      phoneNumber,
-      signedChallenge,
-    });
-    console.log('Subscription successfully created:', response);
+    const response = await api.get(`/subscription/${walletAddress}`);
+    console.log('Subscription status successfully checked:', response);
     return response;
   } catch (error) {
-    console.error(`Error creating subscription for walletAddress ${walletAddress}:`, error.message);
+    console.error(`Error checking subscription for walletAddress ${walletAddress}:`, error.message);
     throw error;
   }
 };

@@ -11,7 +11,7 @@ import React, { useState, useEffect } from 'react';
 import { useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 
 // Import API service functions for user data, subscription, and challenge verification
-import { getUserByWalletAddress, updatePhoneNumber, createSubscription, checkSubscription, getChallenge, verifyChallenge } from '../services/apiService';
+import { getUserByWalletAddress, updatePhoneNumber, getSubscriptionConfig, checkSubscription, getChallenge, verifyChallenge } from '../services/apiService';
 
 // Import translation hook for internationalization
 import { useTranslation } from 'react-i18next';
@@ -223,8 +223,8 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
 
   /**
    * Handle the subscription registration process.
-   * Validates the phone number, processes the payment (0.75 TON), verifies the TON proof,
-   * and creates the subscription on the server.
+   * Validates phone number, verifies wallet, fetches subscription contract details,
+   * and sends a transaction to the smart contract to activate the subscription.
    */
   const handleRegister = async () => {
     console.log('Starting handleRegister');
@@ -246,44 +246,44 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
       ensureWalletConnected();
       console.log('Connected wallet:', walletAddress);
 
-      // Define the transaction for subscription payment (0.75 TON)
+      // 1. Fetch subscription configuration from the backend
+      const config = await getSubscriptionConfig();
+      if (!config.contractAddress || !config.price) {
+        throw new Error('Failed to get subscription config from backend.');
+      }
+      
+      // 2. Define the transaction for the smart contract
       const txSubscription = {
         validUntil: Math.floor(Date.now() / 1000) + 60,
-        network: 'mainnet',
         messages: [
           {
-            address: process.env.TON_WALLET || 'UQB26VtCk8H5o23Gk_fW80wCncY-kcWQ4LBEx6PDabmi5CLh',
-            amount: "750000000", // 0.75 TON in nanoTON
+            address: config.contractAddress,
+            amount: (parseFloat(config.price) * 10**9).toString(), // Convert price to nanoTON
           },
         ],
       };
 
-      // Fetch and sign the challenge for TON proof
+      // 3. (Optional but good practice) Verify wallet ownership via TON Proof
       const challenge = await getChallenge(walletAddress);
       const tonProof = await connectWalletWithProof(challenge);
-      console.log('Received TON Proof:', tonProof, 'For wallet:', walletAddress);
-
-      // Verify the TON proof
       const isValid = await verifyChallenge(walletAddress, tonProof, wallet.account);
-      console.log('TON Proof verification result:', isValid);
-
-      if (!isValid || isValid === false) {
+      if (!isValid) {
         throw new Error('TON Proof failed verification.');
       }
+      
+      // 4. Update phone number on the backend BEFORE payment
+      await updatePhoneNumber(walletAddress, newPhoneNumber);
 
-      // Send the transaction for payment
-      console.log('Sending transaction...');
+      // 5. Send the transaction to the smart contract
+      console.log(`Sending transaction to contract: ${config.contractAddress}`);
       await tonConnectUI.sendTransaction(txSubscription);
-      console.log('Transaction completed successfully.');
-      showNotification(t('transactionSuccess'));
+      
+      showNotification(t('transactionSuccess')); // "Transaction sent successfully!"
+      
+      // 6. Close the form and trigger the parent component to start polling for status change
+      onSubscriptionChange(true); // This will now signal the Dashboard to start polling
+      onCancel(); // Close the subscription form
 
-      // Register the subscription on the server
-      console.log('Registering subscription on the server...');
-      await createSubscription(walletAddress, newPhoneNumber, tonProof);
-      setIsSubscribed(true);
-      console.log('Subscription successfully activated.');
-      showNotification(t('subscriptionActivated'));
-      onSubscriptionChange(true);
     } catch (error) {
       console.error('Error in handleRegister:', error);
       showNotification(t('activationFailed'));

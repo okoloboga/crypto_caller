@@ -4,10 +4,12 @@
  * (such as API prefix, exception filters, and CORS), and starts the server on port 3000.
  */
 
-import { NestFactory } from '@nestjs/core'; // Import NestFactory to create the NestJS application
-import { AppModule } from './app.module'; // Import the root module of the application
-import { Logger } from '@nestjs/common'; // Import Logger for logging application events
-import { AllExceptionsFilter } from './shared/exceptions/all-exceptions.filter'; // Import custom exception filter
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './shared/exceptions/all-exceptions.filter';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 import { readFileSync } from 'fs'; // Import readFileSync to read SSL certificate files
 
 /**

@@ -28,8 +28,12 @@ export class ChallengeService {
    * Sets up the TonClient4 instance with the mainnet endpoint.
    */
   constructor() {
+    const endpoint = process.env.TON_NETWORK === 'testnet' 
+      ? 'https://testnet-v4.tonhubapi.com' 
+      : 'https://mainnet-v4.tonhubapi.com';
+
     this.client = new TonClient4({
-      endpoint: 'https://mainnet-v4.tonhubapi.com', // TON mainnet API endpoint
+      endpoint,
     });
   }
 
@@ -79,14 +83,8 @@ export class ChallengeService {
     const stateInit = loadStateInit(Cell.fromBase64(payload.proof.state_init).beginParse());
     this.logger.log('stateInit is OK');
 
-    // Initialize a new TON client (redundant since this.client is already initialized in constructor)
-    const client = new TonClient4({
-      endpoint: 'https://mainnet-v4.tonhubapi.com',
-    });
-    this.logger.log('client is OK:', client);
-
     // Get the latest block from the TON blockchain
-    const masterAt = await client.getLastBlock();
+    const masterAt = await this.client.getLastBlock();
     this.logger.log('masterAt is OK:', masterAt);
 
     // Attempt to retrieve the public key from the blockchain
