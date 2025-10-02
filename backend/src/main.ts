@@ -11,21 +11,15 @@ import { AllExceptionsFilter } from './shared/exceptions/all-exceptions.filter';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
-import { readFileSync } from 'fs'; // Import readFileSync to read SSL certificate files
+// SSL certificates are handled by nginx reverse proxy
 
 /**
  * Bootstrap function to initialize and start the NestJS application.
  * Configures HTTPS, global API prefix, exception handling, CORS, and starts the server.
  */
 async function bootstrap() {
-  // Configure HTTPS options by reading SSL key and certificate from environment variables
-  const httpsOptions = {
-    key: readFileSync(process.env.SSL_KEY), // Path to the SSL private key
-    cert: readFileSync(process.env.SSL_CERT), // Path to the SSL certificate
-  };
-  
-  // Create the NestJS application with HTTPS support
-  const app = await NestFactory.create(AppModule, { httpsOptions });
+  // Create the NestJS application in HTTP mode (SSL handled by nginx)
+  const app = await NestFactory.create(AppModule);
 
   // Initialize a logger for the bootstrap process
   const logger = new Logger('Bootstrap');
@@ -47,7 +41,7 @@ async function bootstrap() {
   await app.listen(3000);
   
   // Log the application URL after successful startup
-  logger.log('Application is running on: https://caller.ruble.website');
+  logger.log('Backend API is running on: http://localhost:3000 (SSL handled by nginx)');
 }
 
 // Execute the bootstrap function to start the application

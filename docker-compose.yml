@@ -18,6 +18,22 @@ services:
     networks:
       - default
 
+  # Сервис для relayer
+  relayer:
+    build:
+      context: ./relayer
+      dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    ports:
+      - "3002:3001"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - default
+    restart: unless-stopped
+
   # Сервис для Postgres
   postgres:
     image: postgres:15

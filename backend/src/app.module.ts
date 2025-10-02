@@ -7,6 +7,7 @@
 
 import { Module } from '@nestjs/common'; // Import Module decorator for defining NestJS modules
 import { TypeOrmModule } from '@nestjs/typeorm'; // Import TypeOrmModule for database integration
+import { HttpModule } from '@nestjs/axios'; // Import HttpModule for HTTP requests
 import { UserModule } from './modules/user/user.module'; // Import UserModule for user-related features
 import { TaskModule } from './modules/task/task.module'; // Import TaskModule for task-related features
 import { NotificationModule } from './modules/notification/notification.module'; // Import NotificationModule for notifications
@@ -17,6 +18,7 @@ import { PriceMonitorModule } from './modules/price-monitor/price-monitor.module
 import { SubscriptionModule } from './modules/subscription/subscription.module'; // Import module for subscription handling
 import { TonModule } from './modules/ton/ton.module'; // Import TonModule for TON blockchain integration
 import { WithdrawalController } from './modules/ton/withdrawal.controller'; // Import WithdrawalController for withdrawal endpoints
+import { RelayerModule } from './modules/relayer/relayer.module'; // Import RelayerModule for relayer integration
 
 /**
  * AppModule class defining the root module of the application.
@@ -33,6 +35,7 @@ import { WithdrawalController } from './modules/ton/withdrawal.controller'; // I
     NotificationModule, // Manages notifications
     PriceMonitorModule, // Monitors cryptocurrency prices
     SubscriptionModule, // Handles subscription logic and verification
+    RelayerModule, // Handles relayer integration
 
     // Configure Bull for queue management with Redis
     BullModule.forRoot({
