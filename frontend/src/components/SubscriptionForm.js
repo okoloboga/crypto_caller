@@ -294,8 +294,17 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
       console.log('🔍 DEBUG: Final transaction before sending:', JSON.stringify(txSubscription, null, 2));
       console.log('🔍 DEBUG: Amount being sent:', txSubscription.messages[0].amount, 'nanoTON');
       console.log('🔍 DEBUG: Amount in TON:', (parseInt(txSubscription.messages[0].amount) / 10**9), 'TON');
+      console.log('🔍 DEBUG: TON Connect UI state:', tonConnectUI);
+      console.log('🔍 DEBUG: Wallet info:', wallet);
+      console.log('🔍 DEBUG: User agent:', navigator.userAgent);
       
-      await tonConnectUI.sendTransaction(txSubscription);
+      try {
+        const result = await tonConnectUI.sendTransaction(txSubscription);
+        console.log('🔍 DEBUG: Transaction result:', result);
+      } catch (error) {
+        console.error('🔍 DEBUG: Transaction error:', error);
+        throw error;
+      }
       
       showNotification(t('transactionSuccess')); // "Transaction sent successfully!"
       
