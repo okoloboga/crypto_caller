@@ -248,9 +248,22 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
 
       // 1. Fetch subscription configuration from the backend
       const config = await getSubscriptionConfig();
+      console.log('🔍 DEBUG: Config received from API:', config);
+      console.log('🔍 DEBUG: Contract address:', config.contractAddress);
+      console.log('🔍 DEBUG: Price from config:', config.price);
+      console.log('🔍 DEBUG: Price type:', typeof config.price);
+      
       if (!config.contractAddress || !config.price) {
         throw new Error('Failed to get subscription config from backend.');
       }
+      
+      const priceFloat = parseFloat(config.price);
+      const amountNanoTON = priceFloat * 10**9;
+      const amountString = amountNanoTON.toString();
+      
+      console.log('🔍 DEBUG: Price parsed as float:', priceFloat);
+      console.log('🔍 DEBUG: Amount in nanoTON:', amountNanoTON);
+      console.log('🔍 DEBUG: Amount as string:', amountString);
       
       // 2. Define the transaction for the smart contract
       const txSubscription = {
@@ -258,10 +271,12 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
         messages: [
           {
             address: config.contractAddress,
-            amount: (parseFloat(config.price) * 10**9).toString(), // Convert price to nanoTON
+            amount: amountString, // Convert price to nanoTON
           },
         ],
       };
+      
+      console.log('🔍 DEBUG: Transaction object:', JSON.stringify(txSubscription, null, 2));
 
       // 3. (Optional but good practice) Verify wallet ownership via TON Proof
       const challenge = await getChallenge(walletAddress);
@@ -275,7 +290,11 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
       await updatePhoneNumber(walletAddress, newPhoneNumber);
 
       // 5. Send the transaction to the smart contract
-      console.log(`Sending transaction to contract: ${config.contractAddress}`);
+      console.log(`🔍 DEBUG: Sending transaction to contract: ${config.contractAddress}`);
+      console.log('🔍 DEBUG: Final transaction before sending:', JSON.stringify(txSubscription, null, 2));
+      console.log('🔍 DEBUG: Amount being sent:', txSubscription.messages[0].amount, 'nanoTON');
+      console.log('🔍 DEBUG: Amount in TON:', (parseInt(txSubscription.messages[0].amount) / 10**9), 'TON');
+      
       await tonConnectUI.sendTransaction(txSubscription);
       
       showNotification(t('transactionSuccess')); // "Transaction sent successfully!"
