@@ -34,16 +34,6 @@ services:
       - default
     restart: unless-stopped
 
-  # Сервис для frontend
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3003:80"
-    networks:
-      - default
-
   # Сервис для Postgres
   postgres:
     image: postgres:15
@@ -95,15 +85,12 @@ services:
       - "443:443"
     depends_on:
       - backend
-      - frontend
     networks:
       - default
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./frontend_main:/usr/share/nginx/main:ro          # Для ruble.website
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
-    volumes_from:
-      - frontend:ro
     command: ["nginx", "-g", "daemon off;"]
 
 volumes:
