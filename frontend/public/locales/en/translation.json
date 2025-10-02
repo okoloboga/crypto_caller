@@ -40,6 +40,10 @@
     "noSubscription": "Pay for a subscription!",
     "tryConnection": "Connect wallet correct",
     "retryConnection": "Incorrect wallet connection, disconnect and try again",
-    "waitListing": "Wait for RUBLE listing!"
+    "waitListing": "Wait for RUBLE listing!",
+    "browserTransactionInfo": "Please check your Telegram app to confirm the transaction",
+    "transactionDeclined": "Transaction was declined by user",
+    "openTelegramApp": "Please open your Telegram app to confirm the transaction",
+    "transactionError": "Transaction failed. Please try again."
   }
   

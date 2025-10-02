@@ -270,12 +270,36 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
       console.log('🔍 DEBUG: TON Connect UI state:', tonConnectUI);
       console.log('🔍 DEBUG: Wallet info:', wallet);
       console.log('🔍 DEBUG: User agent:', navigator.userAgent);
+      console.log('🔍 DEBUG: Wallet open method:', wallet?.openMethod);
       
       try {
+        // Show different messages based on platform and open method
+        if (wallet?.openMethod === 'qrcode' && !navigator.userAgent.includes('Telegram')) {
+          showNotification(t('browserTransactionInfo') || 'Please check your Telegram app or scan QR code if it appears');
+          
+          // Try to open Telegram app if possible
+          setTimeout(() => {
+            if (wallet?.universalLink) {
+              console.log('🔗 Trying to open Telegram app:', wallet.universalLink);
+              window.open(wallet.universalLink, '_blank');
+            }
+          }, 1000);
+        }
+        
         const result = await tonConnectUI.sendTransaction(txSubscription);
         console.log('🔍 DEBUG: Transaction result:', result);
       } catch (error) {
         console.error('🔍 DEBUG: Transaction error:', error);
+        
+        // Provide helpful error messages based on the error
+        if (error.message.includes('User declined')) {
+          showNotification(t('transactionDeclined') || 'Transaction was declined');
+        } else if (error.message.includes('qrcode') || wallet?.openMethod === 'qrcode') {
+          showNotification(t('openTelegramApp') || 'Please open your Telegram app to confirm the transaction');
+        } else {
+          showNotification(t('transactionError') || 'Transaction failed. Please try again.');
+        }
+        
         throw error;
       }
       

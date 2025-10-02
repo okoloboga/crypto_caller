@@ -40,6 +40,10 @@
     "noSubscription": "Оплати подписку!",
     "tryConnection": "Подключи кошелёк",
     "retryConnection": "Кошелёк подключился некорректно, отключи и попробуй ещё раз",
-    "waitListing": "Ожидай листинга RUBLE!"
+    "waitListing": "Ожидай листинга RUBLE!",
+    "browserTransactionInfo": "Проверьте ваше приложение Telegram для подтверждения транзакции",
+    "transactionDeclined": "Транзакция отклонена пользователем",
+    "openTelegramApp": "Откройте приложение Telegram для подтверждения транзакции",
+    "transactionError": "Ошибка транзакции. Попробуйте еще раз."
   }
   
