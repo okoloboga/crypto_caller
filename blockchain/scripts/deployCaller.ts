@@ -6,7 +6,7 @@ import * as QRCode from 'qrcode-terminal';
 export async function run(provider: NetworkProvider) {
   // ⚙️ Задай параметры
   const owner = Address.parse('UQB26VtCk8H5o23Gk_fW80wCncY-kcWQ4LBEx6PDabmi5CLh');
-  const stonRouter = Address.parse('UQDIkS1d_Lhd7EDttTtcmr9Xzg78uEMDEsYFde-PZCgfoOtU'); // адрес relayer
+  const stonRouter = Address.parse('UQCpIGMtcP6OQH17MacwuwMKyuOF5F8LwBhU2NElKZtyGI4Y'); // адрес relayer
   const jettonMaster = Address.parse('EQA5QopV0455mb09Nz6iPL3JsX_guIGf77a6l-DtqSQh0aE-'); // можно фейковый
   const minPayment = toNano('0.1'); // минимальный платеж (вместо фиксированной цены)
   const period = 30n * 24n * 3600n; // 30 дней

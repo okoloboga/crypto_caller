@@ -202,13 +202,19 @@ export class TonService {
         return null;
       }
 
+      // Skip transactions without valid source address or zero value
+      if (!tx.in_msg.source || !tx.in_msg.value || BigInt(tx.in_msg.value) === 0n) {
+        this.logger.debug(`Skipping transaction ${tx.transaction_id.lt}: invalid source or zero value`);
+        return null;
+      }
+
       return {
         lt: tx.transaction_id.lt,
         hash: tx.transaction_id.hash,
-        fromAddress: tx.in_msg.source || '',
+        fromAddress: tx.in_msg.source,
         toAddress: tx.in_msg.destination || '',
-        valueNanotons: BigInt(tx.in_msg.value || '0'),
-        userAddress: tx.in_msg.source || '',
+        valueNanotons: BigInt(tx.in_msg.value),
+        userAddress: tx.in_msg.source,
         body: tx.in_msg.body ? this.parseMessageBody(tx.in_msg.body) : undefined,
       };
     } catch (error) {
