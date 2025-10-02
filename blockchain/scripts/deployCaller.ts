@@ -5,7 +5,7 @@ import * as QRCode from 'qrcode-terminal';
 
 export async function run(provider: NetworkProvider) {
   // ⚙️ Задай параметры
-  const owner = Address.parse('UQB26VtCk8H5o23Gk_fW80wCncY-kcWQ4LBEx6PDabmi5CLh');
+  const owner = Address.parse('UQDIkS1d_Lhd7EDttTtcmr9Xzg78uEMDEsYFde-PZCgfoOtU');
   const stonRouter = Address.parse('UQCpIGMtcP6OQH17MacwuwMKyuOF5F8LwBhU2NElKZtyGI4Y'); // адрес relayer
   const jettonMaster = Address.parse('EQA5QopV0455mb09Nz6iPL3JsX_guIGf77a6l-DtqSQh0aE-'); // можно фейковый
   const minPayment = toNano('0.1'); // минимальный платеж (вместо фиксированной цены)
@@ -36,11 +36,11 @@ export async function run(provider: NetworkProvider) {
   console.log('');
   console.log('⏳ Waiting for payment...');
 
-  // 🚀 Отправляем транзакцию деплоя
+  // 🚀 Отправляем транзакцию деплоя (используем OwnerPause как в тестах)
   await subscription.send(
     provider.sender(),
     { value: toNano('0.05') }, // на газ
-    { $$type: 'Subscribe' }
+    { $$type: 'OwnerPause', flag: false } // активируем контракт через owner сообщение
   );
 
   // ⏳ Ждём подтверждения
@@ -54,7 +54,8 @@ export async function run(provider: NetworkProvider) {
   console.log('   Min Payment:', minPayment.toString(), 'nanotons (0.1 TON)');
   console.log('   Period:', period.toString(), 'seconds (30 days)');
   console.log('');
-  console.log('💡 Note: Price is now flexible and controlled by backend .env');
+  console.log('💡 Note: Contract deployed successfully without Subscribe call');
   console.log('   Contract accepts any payment >= 0.1 TON');
   console.log('   Backend controls actual subscription price via SUBSCRIPTION_PRICE');
+  console.log('   Users can now send Subscribe messages to activate subscriptions');
 }
