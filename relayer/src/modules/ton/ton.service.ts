@@ -147,6 +147,12 @@ export class TonService {
 
       for (const tx of transactions) {
         try {
+          // Skip aborted/failed transactions
+          if (tx.aborted === true) {
+            this.logger.debug(`Skipping aborted transaction: ${tx.transaction_id?.hash || 'unknown'}`);
+            continue;
+          }
+
           // Parse transaction from API response format
           const parsed = this.parseApiTransaction(tx);
           if (parsed) {
@@ -528,6 +534,13 @@ export class TonService {
       );
       throw error;
     }
+  }
+
+  /**
+   * Get relayer address
+   */
+  getRelayerAddress(): string {
+    return this.relayerAddress.toString();
   }
 
   /**
