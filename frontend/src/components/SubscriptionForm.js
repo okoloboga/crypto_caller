@@ -47,30 +47,12 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
   const [hasShownNotification, setHasShownNotification] = useState(false);
   const [challenge, setChallenge] = useState(null);
 
-  // Fetch the challenge for wallet verification when the wallet address changes
+  // Check if wallet has TON proof when wallet changes
   useEffect(() => {
-    /**
-     * Fetch the challenge for TON proof verification.
-     */
-    const fetchChallenge = async () => {
-      if (walletAddress) {
-        const fetchedChallenge = await getChallenge(walletAddress);
-        setChallenge(fetchedChallenge);
-      }
-    };
-
-    fetchChallenge();
-  }, [walletAddress]);
-
-  // Sign the challenge with TON proof when the wallet address and challenge are available
-  useEffect(() => {
-    if (walletAddress && challenge) {
-      setTimeout(async () => {
-        const tonProof = await connectWalletWithProof(challenge);
-        console.log('TON Proof:', tonProof);
-      }, 500);
+    if (walletAddress && wallet?.connectItems?.tonProof) {
+      console.log('✅ SubscriptionForm: TON Proof available');
     }
-  }, [walletAddress, challenge]);
+  }, [walletAddress, wallet]);
 
   // Fetch user data and subscription status when the wallet address changes
   useEffect(() => {
@@ -101,16 +83,6 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
 
     fetchUserData();
   }, [walletAddress, t, hasShownNotification]);
-
-  // Re-sign the challenge with TON proof after a delay when the wallet address changes
-  useEffect(() => {
-    if (walletAddress) {
-      setTimeout(async () => {
-        const tonProof = await connectWalletWithProof(challenge);
-        console.log('TON Proof:', tonProof);
-      }, 500); // Delay to ensure data is fully loaded
-    }
-  }, [walletAddress]);
 
   /**
    * Ensure the wallet is connected, throwing an error if not.

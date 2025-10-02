@@ -52,53 +52,43 @@ const Header = ({ showNotification, handleSubscribe, setHasTonProof }) => {
   // Effect to handle TON proof verification when wallet address or wallet changes
   useEffect(() => {
     /**
-     * Refresh the TON Connect payload with a new challenge.
-     * @param {string|null} challenge - The challenge string for TON proof.
-     */
-    const refreshPayload = async (challenge) => {
-      tonConnectUI.setConnectRequestParameters({ state: "loading" });
-
-      if (challenge) {
-        tonConnectUI.setConnectRequestParameters({
-          state: "ready",
-          value: { tonProof: challenge },
-        });
-      } else {
-        tonConnectUI.setConnectRequestParameters(null);
-      }
-    };
-
-    /**
      * Check the TON proof for wallet verification.
      * Updates the hasTonProof state based on the verification result.
      */
     const checkTonProof = async () => {
-      if (!walletAddress) return;
+      if (!walletAddress || !wallet) {
+        setHasTonProof(false);
+        return;
+      }
 
-      const challenge = await getChallenge(walletAddress);
+      // Check if wallet already has TON proof
+      if (wallet.connectItems?.tonProof && 'proof' in wallet.connectItems.tonProof) {
+        console.log('✅ TON Proof found in wallet:', wallet.connectItems.tonProof);
+        setHasTonProof(true);
+        return;
+      }
 
+      // If no proof, try to get challenge and set up connection parameters
       try {
-        await refreshPayload(challenge);
-
-        if (wallet.connectItems?.tonProof) {
-          console.log('TON Proof:', wallet.connectItems.tonProof);
-          setHasTonProof(true);
-        } else {
-          setHasTonProof(false);
-          setTimeout(() => showNotification(t('retryConnection')), 2000);
+        const challenge = await getChallenge(walletAddress);
+        
+        if (challenge) {
+          tonConnectUI.setConnectRequestParameters({
+            state: "ready",
+            value: { tonProof: challenge },
+          });
+          console.log('🔄 Challenge set for TON Proof');
         }
+        
+        setHasTonProof(false);
       } catch (error) {
-        console.error('Error checking tonProof:', error);
+        console.error('❌ Error setting up TON proof:', error);
+        setHasTonProof(false);
       }
     };
 
-    const timer = setTimeout(() => {
-      if (walletAddress && wallet) {
-        checkTonProof();
-      }
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    // Check immediately if wallet is already connected
+    checkTonProof();
   }, [walletAddress, wallet, tonConnectUI]);
 
   /**
