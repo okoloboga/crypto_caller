@@ -5,27 +5,25 @@ FROM node:18 AS build
 WORKDIR /app
 
 # Копируем package.json и package-lock.json
-# COPY package*.json ./
+COPY package*.json ./
 
 # Установка зависимостей
-# RUN npm install --legacy-peer-deps
+RUN npm install --legacy-peer-deps
 
 # Копируем все остальные файлы проекта
-# COPY . .
+COPY . .
 
 # Собираем проект
-# RUN npm run build
+RUN npm run build
 
 # Разворачиваем сервер с готовым билдом
 FROM nginx:alpine
 
 # Копируем билд фронтенда в папку для nginx
-# COPY --from=build /app/build /usr/share/nginx/html
+COPY --from=build /app/build /usr/share/nginx/html
 
 # Настройка порта, на котором будет работать nginx
 EXPOSE 80
 
 # Запуск nginx
-# CMD ["nginx", "-g", "daemon off;"]
-
-CMD ["cp", "-r", "/app/build", "/output"]
+CMD ["nginx", "-g", "daemon off;"]
