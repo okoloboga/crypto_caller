@@ -10,6 +10,9 @@ import React, { useState, useEffect } from 'react';
 // Import TON Connect hooks for wallet integration
 import { useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 
+// Import TON SDK for creating proper message payloads
+import { beginCell } from '@ton/core';
+
 // Import API service functions for user data, subscription, and challenge verification
 import { getUserByWalletAddress, updatePhoneNumber, getSubscriptionConfig, checkSubscription, getChallenge, verifyChallenge } from '../services/apiService';
 
@@ -237,14 +240,25 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
       console.log('🔍 DEBUG: Amount in nanoTON:', amountNanoTON);
       console.log('🔍 DEBUG: Amount as string:', amountString);
       
-      // 2. Define the transaction for the smart contract
+      // 2. Create proper Subscribe message payload using TON SDK
+      // Subscribe message has opcode 0x01 and no other data
+      const subscribeCell = beginCell()
+        .storeUint(0x01, 32) // Subscribe opcode
+        .storeUint(0, 64)    // Query ID (optional, using 0)
+        .endCell();
+      
+      const subscribePayload = subscribeCell.toBoc().toString('base64');
+      
+      console.log('🔍 DEBUG: Subscribe payload (base64):', subscribePayload);
+      
+      // 3. Define the transaction for the smart contract
       const txSubscription = {
         validUntil: Math.floor(Date.now() / 1000) + 60,
         messages: [
           {
             address: config.contractAddress,
             amount: amountString, // Convert price to nanoTON
-            payload: "te6cckEBAQEAAgAAAQ==", // Subscribe message (opcode 0x01)
+            payload: subscribePayload, // Proper Subscribe message
           },
         ],
       };
