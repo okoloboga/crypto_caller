@@ -272,6 +272,7 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
           {
             address: config.contractAddress,
             amount: amountString, // Convert price to nanoTON
+            payload: "te6cckEBAQEAAgAAAQ==", // Subscribe message (opcode 0x01)
           },
         ],
       };
