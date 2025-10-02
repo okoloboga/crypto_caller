@@ -8,6 +8,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
+// Add polyfills for TON SDK compatibility in browser
+import { Buffer } from 'buffer';
+import process from 'process';
+
 // Import the main App component
 import App from './App';
 
@@ -19,6 +23,10 @@ import telegramAnalytics from '@telegram-apps/analytics';
 // Import ThemeProvider and the custom theme for Material-UI styling
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
+
+// Set up polyfills after imports
+window.Buffer = Buffer;
+window.process = process;
 
 // Define the manifest URL for TON Connect, which provides metadata for wallet integration
 const manifestUrl = "https://caller.ruble.website/manifest.json";
