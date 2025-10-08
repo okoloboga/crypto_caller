@@ -33,11 +33,11 @@ export class SwapService {
     });
 
     // Initialize Router using new DEX v2.1 API
-    this.router = this.client.open(
-      DEX.v2_1.Router.CPI.create(
-        "kQALh-JBBIKK7gr0o4AVf9JZnEsFndqO0qTCyT-D-yBsWk0v" // CPI Router v2.1.0
-      )
-    );
+        this.router = this.client.open(
+          DEX.v2_1.Router.CPI.create(
+            "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt" // CPI Router v2.1.0 MAINNET
+          )
+        );
 
     this.logger.log("STON.fi Router initialized successfully");
   }
@@ -113,7 +113,7 @@ export class SwapService {
         "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v2.1.0 MAINNET
       );
 
-      // Get user's jetton wallet address for swap
+      // Get user's jetton wallet address for delivery
       const userAddr = Address.parse(userAddress);
       const userJettonWalletAddress = await this.tonService.getJettonWalletAddressForUser(userAddress);
       this.logger.debug(`[DEBUG] User jetton wallet address: ${userJettonWalletAddress}`);
@@ -123,10 +123,14 @@ export class SwapService {
         userWalletAddress: this.config.relayerWalletAddress, // Relayer address, not user address
         proxyTon: proxyTon,
         offerAmount: amountNanotons,
-        askJettonAddress: userJettonWalletAddress, // User's jetton wallet address
+        askJettonAddress: jettonMasterAddress, // Jetton master address (not user wallet)
         minAskAmount: expectedJettonAmount.toString(),
         queryId: Date.now(),
         referralAddress: undefined,
+        // Add receiver address for proper jetton delivery
+        additionalData: {
+          receiverAddress: userJettonWalletAddress, // Where jettons should be delivered
+        },
       });
       
       this.logger.debug(`[DEBUG] Swap transaction parameters:`, {
@@ -134,7 +138,8 @@ export class SwapService {
         gasAmount: swapTxParams.gasAmount,
         payloadSize: swapTxParams.payload ? swapTxParams.payload.bits.length : 0,
         userWallet: this.config.relayerWalletAddress,
-        askJetton: jettonMasterAddress
+        askJetton: jettonMasterAddress,
+        receiverAddress: userJettonWalletAddress
       });
 
       this.logger.log(
