@@ -1,8 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { RelayerConfig } from "../../config/relayer.config";
-import { Router } from "@ston-fi/sdk";
-import TonWeb from "tonweb";
+import { DEX, pTON } from "@ston-fi/sdk";
+import { TonClient } from "@ton/ton";
 import { TonService } from "../ton/ton.service";
 
 export interface SwapResult {
@@ -15,8 +15,8 @@ export interface SwapResult {
 export class SwapService {
   private readonly logger = new Logger(SwapService.name);
   private readonly config: RelayerConfig;
-  private readonly router: Router;
-  private readonly provider: any;
+  private readonly router: any;
+  private readonly client: TonClient;
 
   constructor(
     private configService: ConfigService,
@@ -26,19 +26,18 @@ export class SwapService {
 
     this.logger.log("Initializing STON.fi Router with updated API...");
 
-    // Initialize STON.fi SDK with new API (2025)
-    this.provider = new TonWeb.HttpProvider(
-      "https://toncenter.com/api/v2/jsonRPC",
-      {
-        apiKey: process.env.TON_API_KEY,
-      },
-    );
-
-    // Initialize Router with correct parameters
-    this.router = new Router(this.provider, {
-      revision: "V1",
-      address: "EQD0vdSA_NedR9uvH89M6hp2wBk1d4anQ2uH8HQSk8R71C4",
+    // Initialize TON client
+    this.client = new TonClient({
+      endpoint: "https://toncenter.com/api/v2/jsonRPC",
+      apiKey: process.env.TON_API_KEY,
     });
+
+    // Initialize Router using new DEX v2.1 API
+    this.router = this.client.open(
+      DEX.v2_1.Router.CPI.create(
+        "kQALh-JBBIKK7gr0o4AVf9JZnEsFndqO0qTCyT-D-yBsWk0v" // CPI Router v2.1.0
+      )
+    );
 
     this.logger.log("STON.fi Router initialized successfully");
   }
@@ -109,13 +108,18 @@ export class SwapService {
       // Build swap transaction using STON.fi SDK with correct parameters
       this.logger.debug(`[DEBUG] Building swap transaction: ${amountNanotons} nanotons -> jettons`);
       
+      // Create pTON instance for swap
+      const proxyTon = pTON.v2_1.create(
+        "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px" // pTON v2.1.0
+      );
+
       // IMPORTANT: Relayer performs swap from its own wallet, not user's wallet
-      const swapTxParams = await this.router.buildSwapProxyTonTxParams({
+      const swapTxParams = await this.router.getSwapTonToJettonTxParams({
         userWalletAddress: this.config.relayerWalletAddress, // Relayer address, not user address
-        proxyTonAddress: "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez", // ProxyTON
-        offerAmount: new TonWeb.utils.BN(amountNanotons.toString()),
+        proxyTon: proxyTon,
+        offerAmount: amountNanotons,
         askJettonAddress: jettonMasterAddress, // Jetton master address
-        minAskAmount: new TonWeb.utils.BN(expectedJettonAmount.toString()), // Use expected amount as minimum
+        minAskAmount: expectedJettonAmount.toString(),
         queryId: Date.now(),
         referralAddress: undefined,
       });
@@ -247,10 +251,15 @@ export class SwapService {
       const jettonMasterAddress = this.config.jettonMasterAddress;
       this.logger.debug(`[DEBUG] Using jetton master address: ${jettonMasterAddress}`);
 
+      // Create pTON instance for pool lookup
+      const proxyTon = pTON.v2_1.create(
+        "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px" // pTON v2.1.0
+      );
+
       // Get pool using STON.fi router with correct parameters
       const pool = await this.router.getPool({
         jettonAddresses: [
-          "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez", // ProxyTON
+          proxyTon.address, // pTON address
           jettonMasterAddress, // Jetton master address
         ],
       });
@@ -320,9 +329,14 @@ export class SwapService {
       // Check pool liquidity using STON.fi with correct parameters
       this.logger.debug(`[DEBUG] Checking pool for TON <-> Jetton Master (${jettonMasterAddress})`);
       
+      // Create pTON instance for pool lookup
+      const proxyTon = pTON.v2_1.create(
+        "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px" // pTON v2.1.0
+      );
+
       const pool = await this.router.getPool({
         jettonAddresses: [
-          "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez", // ProxyTON
+          proxyTon.address, // pTON address
           jettonMasterAddress, // Jetton master address (not wallet)
         ],
       });
