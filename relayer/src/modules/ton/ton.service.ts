@@ -79,6 +79,8 @@ export class TonService {
 
   private async initializeWallet() {
     try {
+      this.logger.log("[DEBUG] Initializing relayer wallet...");
+      
       // Try to parse as mnemonic first
       const mnemonic = this.config.relayerPrivateKey.split(" ");
       if (mnemonic.length === 24) {
@@ -88,7 +90,7 @@ export class TonService {
           workchain: 0,
           publicKey: this.keyPair.publicKey,
         });
-        this.logger.log("Wallet initialized from mnemonic");
+        this.logger.log("[DEBUG] Wallet initialized from mnemonic");
       } else {
         // Assume it's a hex private key
         const privateKey = Buffer.from(this.config.relayerPrivateKey, "hex");
@@ -100,11 +102,47 @@ export class TonService {
           workchain: 0,
           publicKey: this.keyPair.publicKey,
         });
-        this.logger.log("Wallet initialized from private key");
+        this.logger.log("[DEBUG] Wallet initialized from private key");
       }
+
+      // Verify wallet state in network
+      await this.verifyWalletState();
+      
     } catch (error) {
-      this.logger.error("Failed to initialize wallet:", error);
+      this.logger.error("[DEBUG] Failed to initialize wallet:", error);
       throw new Error("Invalid relayer private key format");
+    }
+  }
+
+  /**
+   * Verify wallet state in network
+   */
+  private async verifyWalletState(): Promise<void> {
+    try {
+      this.logger.debug("[DEBUG] Verifying wallet state in network...");
+      
+      const walletContract = this.client.open(this.relayerWallet);
+      const balance = await walletContract.getBalance();
+      
+      this.logger.log(`[DEBUG] Relayer wallet balance: ${balance} nanotons`);
+      
+      if (balance === 0n) {
+        this.logger.warn("[DEBUG] Relayer wallet has zero balance - this may cause issues");
+      }
+      
+      // Check if wallet is active
+      const accountState = await this.client.getAccount(this.relayerAddress);
+      this.logger.debug(`[DEBUG] Wallet account state: ${accountState.state.type}`);
+      
+      if (accountState.state.type === 'uninitialized') {
+        this.logger.warn("[DEBUG] Wallet is uninitialized - needs activation");
+      }
+      
+      this.logger.log("[DEBUG] Wallet state verification completed");
+      
+    } catch (error) {
+      this.logger.error(`[DEBUG] Failed to verify wallet state: ${error.message}`);
+      throw error;
     }
   }
 
@@ -402,8 +440,11 @@ export class TonService {
     value: bigint,
     body?: Cell | any,
   ): Promise<string> {
+    this.logger.debug(`[DEBUG] Starting internal message send to: ${to}, value: ${value}`);
+    
     // Wait for seqno lock to be free
     while (this.seqnoLock) {
+      this.logger.debug("[DEBUG] Waiting for seqno lock to be free...");
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     
@@ -415,6 +456,15 @@ export class TonService {
 
       // Parse address if string
       const toAddress = typeof to === "string" ? Address.parse(to) : to;
+      this.logger.debug(`[DEBUG] Parsed destination address: ${toAddress.toString()}`);
+
+      // Check wallet balance before sending
+      const balance = await walletContract.getBalance();
+      this.logger.debug(`[DEBUG] Current wallet balance: ${balance} nanotons`);
+      
+      if (balance < value + BigInt(this.config.gasForCallback)) {
+        throw new Error(`Insufficient balance: ${balance} < ${value + BigInt(this.config.gasForCallback)}`);
+      }
 
       // Get fresh seqno with retry
       let seqno: number;
@@ -424,11 +474,11 @@ export class TonService {
       while (retryCount < maxRetries) {
         try {
           seqno = await walletContract.getSeqno();
-          this.logger.debug(`Got seqno: ${seqno} (attempt ${retryCount + 1})`);
+          this.logger.debug(`[DEBUG] Got seqno: ${seqno} (attempt ${retryCount + 1})`);
           break;
         } catch (seqnoError) {
           retryCount++;
-          this.logger.warn(`Failed to get seqno (attempt ${retryCount}): ${seqnoError.message}`);
+          this.logger.warn(`[DEBUG] Failed to get seqno (attempt ${retryCount}): ${seqnoError.message}`);
           if (retryCount >= maxRetries) {
             throw new Error(`Failed to get seqno after ${maxRetries} attempts: ${seqnoError.message}`);
           }
@@ -444,7 +494,7 @@ export class TonService {
         bounce: false,
       });
 
-      this.logger.debug(`Sending transaction with seqno: ${seqno} to ${toAddress.toString()}`);
+      this.logger.debug(`[DEBUG] Sending transaction with seqno: ${seqno} to ${toAddress.toString()}`);
 
       // Send message using wallet contract with retry on seqno error
       retryCount = 0;
@@ -455,26 +505,29 @@ export class TonService {
             secretKey: this.keyPair.secretKey,
             messages: [internalMessage],
           });
+          this.logger.debug(`[DEBUG] Transaction sent successfully on attempt ${retryCount + 1}`);
           break;
         } catch (sendError) {
           retryCount++;
-          this.logger.warn(`Send attempt ${retryCount} failed: ${sendError.message}`);
+          this.logger.warn(`[DEBUG] Send attempt ${retryCount} failed: ${sendError.message}`);
           
           // If it's a seqno error (exit code 33), get fresh seqno and retry
           if (sendError.message.includes('exitcode=33') || sendError.message.includes('exit code 33')) {
-            this.logger.warn(`Seqno error detected, getting fresh seqno...`);
+            this.logger.warn(`[DEBUG] Seqno error detected, getting fresh seqno...`);
             try {
               seqno = await walletContract.getSeqno();
-              this.logger.debug(`Updated seqno to: ${seqno}`);
+              this.logger.debug(`[DEBUG] Updated seqno to: ${seqno}`);
             } catch (seqnoError) {
-              this.logger.error(`Failed to get fresh seqno: ${seqnoError.message}`);
+              this.logger.error(`[DEBUG] Failed to get fresh seqno: ${seqnoError.message}`);
             }
           }
           
           if (retryCount >= maxRetries) {
+            this.logger.error(`[DEBUG] All send attempts failed after ${maxRetries} retries`);
             throw sendError;
           }
           
+          this.logger.debug(`[DEBUG] Retrying in ${2000 * retryCount}ms...`);
           await new Promise(resolve => setTimeout(resolve, 2000 * retryCount));
         }
       }
@@ -483,15 +536,17 @@ export class TonService {
       const txHash = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
       this.logger.log(
-        `Internal message sent: ${toAddress.toString()}, value: ${value}, seqno: ${seqno}, hash: ${txHash}`,
+        `[DEBUG] Internal message sent successfully: ${toAddress.toString()}, value: ${value}, seqno: ${seqno}, hash: ${txHash}`,
       );
       return txHash;
     } catch (error) {
-      this.logger.error(`Failed to send internal message: ${error.message}`);
+      this.logger.error(`[DEBUG] Failed to send internal message: ${error.message}`);
+      this.logger.error(`[DEBUG] Error details:`, error);
       throw error;
     } finally {
       // Always release the lock
       this.seqnoLock = false;
+      this.logger.debug("[DEBUG] Released seqno lock");
     }
   }
 

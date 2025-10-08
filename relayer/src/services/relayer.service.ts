@@ -88,6 +88,7 @@ export class RelayerService implements OnModuleInit {
    */
   private async processTransaction(tx: ParsedTransaction): Promise<void> {
     const startTime = Date.now();
+    this.logger.log(`[DEBUG] Processing transaction ${tx.lt} for user ${tx.userAddress}, amount: ${tx.valueNanotons} nanotons`);
 
     try {
       // Check if transaction already processed
@@ -96,7 +97,7 @@ export class RelayerService implements OnModuleInit {
       });
 
       if (existingTx) {
-        // Transaction already processed - no need to log (reduces noise)
+        this.logger.debug(`[DEBUG] Transaction ${tx.lt} already processed, skipping`);
         return;
       }
 
@@ -112,6 +113,7 @@ export class RelayerService implements OnModuleInit {
       });
 
       await this.transactionRepository.save(transaction);
+      this.logger.log(`[DEBUG] Created transaction record for ${tx.lt}`);
 
       this.monitoringService.logTransactionStart(
         tx.lt,
@@ -120,6 +122,7 @@ export class RelayerService implements OnModuleInit {
       );
 
       // Perform swap
+      this.logger.log(`[DEBUG] Starting swap for transaction ${tx.lt}`);
       const swapResult = await this.swapService.performSwap(
         tx.valueNanotons,
         tx.userAddress,
@@ -127,12 +130,16 @@ export class RelayerService implements OnModuleInit {
       );
 
       if (!swapResult.success) {
+        this.logger.error(`[DEBUG] Swap failed for transaction ${tx.lt}: ${swapResult.error}`);
         // Swap failed - send refund
         await this.handleSwapFailure(transaction, swapResult.error);
         return;
       }
 
+      this.logger.log(`[DEBUG] Swap successful for transaction ${tx.lt}, received ${swapResult.jettonAmount} jettons`);
+
       // Perform burn
+      this.logger.log(`[DEBUG] Starting burn for transaction ${tx.lt}`);
       const burnResult = await this.burnService.burnJetton(
         swapResult.jettonAmount,
         tx.userAddress,
@@ -140,6 +147,7 @@ export class RelayerService implements OnModuleInit {
       );
 
       if (!burnResult.success) {
+        this.logger.error(`[DEBUG] Burn failed for transaction ${tx.lt}: ${burnResult.error}`);
         // Burn failed - send refund
         await this.handleBurnFailure(
           transaction,
@@ -149,7 +157,10 @@ export class RelayerService implements OnModuleInit {
         return;
       }
 
+      this.logger.log(`[DEBUG] Burn successful for transaction ${tx.lt}`);
+
       // Send success callback
+      this.logger.log(`[DEBUG] Sending success callback for transaction ${tx.lt}`);
       await this.tonService.sendOnSwapCallback(
         tx.userAddress,
         swapResult.jettonAmount,
@@ -164,6 +175,8 @@ export class RelayerService implements OnModuleInit {
 
       // Record metrics
       const processingTime = Date.now() - startTime;
+      this.logger.log(`[DEBUG] Transaction ${tx.lt} completed successfully in ${processingTime}ms`);
+      
       this.metricsService.recordTransaction(
         true,
         swapResult.jettonAmount,
@@ -177,6 +190,8 @@ export class RelayerService implements OnModuleInit {
         swapResult.jettonAmount,
       );
     } catch (error) {
+      this.logger.error(`[DEBUG] Error processing transaction ${tx.lt}: ${error.message}`);
+      this.logger.error(`[DEBUG] Error details:`, error);
       this.monitoringService.logError(error, "processTransaction", tx.lt);
 
       // Update transaction status
@@ -209,8 +224,32 @@ export class RelayerService implements OnModuleInit {
     transaction: TransactionEntity,
     error?: string,
   ): Promise<void> {
+    this.logger.error(`[DEBUG] Handling swap failure for transaction ${transaction.lt}: ${error}`);
+    
     try {
+      // Check relayer balance before attempting refund
+      const relayerBalance = await this.tonService.getWalletBalance();
+      this.logger.debug(`[DEBUG] Relayer balance before refund: ${relayerBalance} nanotons`);
+      
+      if (relayerBalance < BigInt(transaction.amountNanotons) + BigInt(this.config.gasForCallback)) {
+        this.logger.error(`[DEBUG] Insufficient relayer balance for refund: ${relayerBalance} < ${BigInt(transaction.amountNanotons) + BigInt(this.config.gasForCallback)}`);
+        
+        // Mark as failed if insufficient balance for refund
+        transaction.status = TransactionStatus.FAILED;
+        transaction.errorMessage = `Swap failed: ${error}. Insufficient balance for refund: ${relayerBalance}`;
+        transaction.processedAt = new Date();
+        await this.transactionRepository.save(transaction);
+        
+        this.monitoringService.logError(
+          new Error(`Insufficient balance for refund: ${relayerBalance}`),
+          "handleSwapFailure",
+          transaction.lt,
+        );
+        return;
+      }
+
       // Send refund
+      this.logger.log(`[DEBUG] Sending refund to user ${transaction.userAddress}: ${transaction.amountNanotons} nanotons`);
       await this.tonService.sendRefundUser(
         transaction.userAddress,
         BigInt(transaction.amountNanotons),
@@ -222,8 +261,12 @@ export class RelayerService implements OnModuleInit {
       transaction.processedAt = new Date();
       await this.transactionRepository.save(transaction);
 
+      this.logger.log(`[DEBUG] Refund sent successfully for transaction ${transaction.lt}`);
       this.monitoringService.logTransactionComplete(transaction.lt, false);
     } catch (refundError) {
+      this.logger.error(`[DEBUG] Refund failed for transaction ${transaction.lt}: ${refundError.message}`);
+      this.logger.error(`[DEBUG] Refund error details:`, refundError);
+      
       this.monitoringService.logError(
         refundError,
         "handleSwapFailure",
@@ -233,7 +276,11 @@ export class RelayerService implements OnModuleInit {
       // Mark as failed if refund also failed
       transaction.status = TransactionStatus.FAILED;
       transaction.errorMessage = `Swap failed: ${error}. Refund failed: ${refundError.message}`;
+      transaction.processedAt = new Date();
       await this.transactionRepository.save(transaction);
+      
+      // Log for manual intervention
+      this.logger.error(`[DEBUG] CRITICAL: Transaction ${transaction.lt} requires manual intervention - both swap and refund failed`);
     }
   }
 
@@ -245,8 +292,33 @@ export class RelayerService implements OnModuleInit {
     jettonAmount: bigint,
     error?: string,
   ): Promise<void> {
+    this.logger.error(`[DEBUG] Handling burn failure for transaction ${transaction.lt}: ${error}`);
+    this.logger.debug(`[DEBUG] Jetton amount that failed to burn: ${jettonAmount}`);
+    
     try {
+      // Check relayer balance before attempting refund
+      const relayerBalance = await this.tonService.getWalletBalance();
+      this.logger.debug(`[DEBUG] Relayer balance before refund: ${relayerBalance} nanotons`);
+      
+      if (relayerBalance < BigInt(transaction.amountNanotons) + BigInt(this.config.gasForCallback)) {
+        this.logger.error(`[DEBUG] Insufficient relayer balance for refund: ${relayerBalance} < ${BigInt(transaction.amountNanotons) + BigInt(this.config.gasForCallback)}`);
+        
+        // Mark as failed if insufficient balance for refund
+        transaction.status = TransactionStatus.FAILED;
+        transaction.errorMessage = `Burn failed: ${error}. Insufficient balance for refund: ${relayerBalance}`;
+        transaction.processedAt = new Date();
+        await this.transactionRepository.save(transaction);
+        
+        this.monitoringService.logError(
+          new Error(`Insufficient balance for refund: ${relayerBalance}`),
+          "handleBurnFailure",
+          transaction.lt,
+        );
+        return;
+      }
+
       // Send refund
+      this.logger.log(`[DEBUG] Sending refund to user ${transaction.userAddress}: ${transaction.amountNanotons} nanotons`);
       await this.tonService.sendRefundUser(
         transaction.userAddress,
         BigInt(transaction.amountNanotons),
@@ -258,8 +330,12 @@ export class RelayerService implements OnModuleInit {
       transaction.processedAt = new Date();
       await this.transactionRepository.save(transaction);
 
+      this.logger.log(`[DEBUG] Refund sent successfully for transaction ${transaction.lt}`);
       this.monitoringService.logTransactionComplete(transaction.lt, false);
     } catch (refundError) {
+      this.logger.error(`[DEBUG] Refund failed for transaction ${transaction.lt}: ${refundError.message}`);
+      this.logger.error(`[DEBUG] Refund error details:`, refundError);
+      
       this.monitoringService.logError(
         refundError,
         "handleBurnFailure",
@@ -269,7 +345,11 @@ export class RelayerService implements OnModuleInit {
       // Mark as failed if refund also failed
       transaction.status = TransactionStatus.FAILED;
       transaction.errorMessage = `Burn failed: ${error}. Refund failed: ${refundError.message}`;
+      transaction.processedAt = new Date();
       await this.transactionRepository.save(transaction);
+      
+      // Log for manual intervention
+      this.logger.error(`[DEBUG] CRITICAL: Transaction ${transaction.lt} requires manual intervention - both burn and refund failed`);
     }
   }
 

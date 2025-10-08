@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { RelayerConfig } from "../../config/relayer.config";
-import { Router, ROUTER_REVISION, ROUTER_REVISION_ADDRESS } from "@ston-fi/sdk";
+import { Router } from "@ston-fi/sdk";
 import TonWeb from "tonweb";
 import { TonService } from "../ton/ton.service";
 
@@ -24,17 +24,24 @@ export class SwapService {
   ) {
     this.config = this.configService.get<RelayerConfig>("relayer");
 
-    // Initialize STON.fi SDK (same RPC as backend)
+    this.logger.log("Initializing STON.fi Router with updated API...");
+
+    // Initialize STON.fi SDK with new API (2025)
     this.provider = new TonWeb.HttpProvider(
       "https://toncenter.com/api/v2/jsonRPC",
       {
         apiKey: process.env.TON_API_KEY,
       },
     );
-    this.router = new Router(this.provider, {
-      revision: ROUTER_REVISION.V1,
-      address: ROUTER_REVISION_ADDRESS.V1,
+
+    // Initialize Router with new API structure
+    this.router = new Router({
+      apiEndpoint: "https://api.ston.fi",
+      rpcEndpoint: "https://toncenter.com/api/v2/jsonRPC",
+      apiKey: process.env.TON_API_KEY,
     });
+
+    this.logger.log("STON.fi Router initialized successfully");
   }
 
   /**
@@ -93,33 +100,37 @@ export class SwapService {
   ): Promise<SwapResult> {
     try {
       this.logger.log(
-        `Building STON.fi swap transaction: ${amountNanotons} nanotons -> jettons`,
+        `[DEBUG] Building STON.fi swap transaction: ${amountNanotons} nanotons -> jettons`,
       );
 
-      // Get jetton wallet address from master contract
-      const jettonWalletAddress = await this.getJettonWalletAddress();
-      this.logger.debug(`Building swap with jetton wallet: ${jettonWalletAddress}`);
+      // Get jetton master address (not wallet address)
+      const jettonMasterAddress = this.config.jettonMasterAddress;
+      this.logger.debug(`[DEBUG] Using jetton master address: ${jettonMasterAddress}`);
 
-      // Build swap transaction using STON.fi SDK
-      this.logger.debug(`Building swap transaction: ${amountNanotons} nanotons -> jettons`);
+      // Build swap transaction using STON.fi SDK with correct parameters
+      this.logger.debug(`[DEBUG] Building swap transaction: ${amountNanotons} nanotons -> jettons`);
+      
+      // IMPORTANT: Relayer performs swap from its own wallet, not user's wallet
       const swapTxParams = await this.router.buildSwapProxyTonTxParams({
-        userWalletAddress: userAddress,
+        userWalletAddress: this.config.relayerWalletAddress, // Relayer address, not user address
         proxyTonAddress: "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez", // ProxyTON
         offerAmount: new TonWeb.utils.BN(amountNanotons.toString()),
-        askJettonAddress: this.config.jettonMasterAddress, // Use jetton master address for swap
-        minAskAmount: new TonWeb.utils.BN(1), // Minimum 1 jetton unit
+        askJettonAddress: jettonMasterAddress, // Jetton master address
+        minAskAmount: new TonWeb.utils.BN(expectedJettonAmount.toString()), // Use expected amount as minimum
         queryId: Date.now(),
         referralAddress: undefined,
       });
       
-      this.logger.debug(`Swap transaction parameters:`, {
+      this.logger.debug(`[DEBUG] Swap transaction parameters:`, {
         to: swapTxParams.to.toString(),
         gasAmount: swapTxParams.gasAmount,
-        payloadSize: swapTxParams.payload ? swapTxParams.payload.bits.length : 0
+        payloadSize: swapTxParams.payload ? swapTxParams.payload.bits.length : 0,
+        userWallet: this.config.relayerWalletAddress,
+        askJetton: jettonMasterAddress
       });
 
       this.logger.log(
-        `Swap transaction built: to=${swapTxParams.to}, amount=${swapTxParams.gasAmount}`,
+        `[DEBUG] Swap transaction built: to=${swapTxParams.to}, amount=${swapTxParams.gasAmount}`,
       );
 
       // Send transaction using TonService
@@ -129,7 +140,7 @@ export class SwapService {
         swapTxParams.payload,
       );
 
-      this.logger.log(`Swap transaction sent: ${txHash}`);
+      this.logger.log(`[DEBUG] Swap transaction sent: ${txHash}`);
 
       // Wait for transaction confirmation
       const confirmed = await this.waitForTransactionConfirmation(
@@ -138,6 +149,7 @@ export class SwapService {
       ); // 30 seconds timeout
 
       if (!confirmed) {
+        this.logger.error(`[DEBUG] Transaction confirmation timeout for ${txHash}`);
         return {
           jettonAmount: 0n,
           success: false,
@@ -147,19 +159,20 @@ export class SwapService {
 
       // Get actual jetton amount received
       const actualJettonAmount = await this.getActualJettonAmount(
-        userAddress,
+        this.config.relayerWalletAddress, // Check relayer's jetton balance
         txId,
         expectedJettonAmount,
       );
 
-      this.logger.log(`Swap completed: received ${actualJettonAmount} jettons`);
+      this.logger.log(`[DEBUG] Swap completed: received ${actualJettonAmount} jettons`);
 
       return {
         jettonAmount: actualJettonAmount,
         success: true,
       };
     } catch (error) {
-      this.logger.error(`STON.fi swap failed: ${error.message}`);
+      this.logger.error(`[DEBUG] STON.fi swap failed: ${error.message}`);
+      this.logger.error(`[DEBUG] Error details:`, error);
       return {
         jettonAmount: 0n,
         success: false,
@@ -199,18 +212,26 @@ export class SwapService {
    * Get actual jetton amount received from swap
    */
   private async getActualJettonAmount(
-    userAddress: string,
+    relayerAddress: string,
     txId: string,
     fallbackAmount: bigint,
   ): Promise<bigint> {
     try {
+      this.logger.debug(`[DEBUG] Getting actual jetton amount for relayer: ${relayerAddress}`);
+      
+      // Get relayer's jetton wallet address
+      const jettonWalletAddress = await this.tonService.getJettonWalletAddress();
+      this.logger.debug(`[DEBUG] Relayer jetton wallet: ${jettonWalletAddress.toString()}`);
+
       // Get jetton wallet data
       const jettonWallet = await this.tonService.getJettonWalletContract();
       const walletData = await jettonWallet.getData();
 
+      this.logger.debug(`[DEBUG] Jetton wallet balance: ${walletData.balance.toString()}`);
       return walletData.balance;
     } catch (error) {
-      this.logger.error(`Failed to get jetton amount: ${error.message}`);
+      this.logger.error(`[DEBUG] Failed to get jetton amount: ${error.message}`);
+      this.logger.error(`[DEBUG] Error details:`, error);
       // Return expected amount as fallback
       return fallbackAmount;
     }
@@ -221,45 +242,48 @@ export class SwapService {
    */
   async getSwapRate(): Promise<bigint> {
     try {
-      // Get jetton wallet address dynamically
-      const jettonWalletAddress = await this.getJettonWalletAddress();
-      this.logger.debug(`Getting swap rate for pTON -> ${jettonWalletAddress}`);
+      this.logger.debug(`[DEBUG] Getting swap rate for TON -> Jetton`);
 
-      // Get pool using STON.fi router
+      // Use jetton master address (not wallet address)
+      const jettonMasterAddress = this.config.jettonMasterAddress;
+      this.logger.debug(`[DEBUG] Using jetton master address: ${jettonMasterAddress}`);
+
+      // Get pool using STON.fi router with correct parameters
       const pool = await this.router.getPool({
         jettonAddresses: [
-          "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez",
-          jettonWalletAddress, // Use actual jetton wallet address
+          "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez", // ProxyTON
+          jettonMasterAddress, // Jetton master address
         ],
       });
 
-      this.logger.debug(`Pool lookup for rate calculation: ${pool ? 'found' : 'not found'}`);
+      this.logger.debug(`[DEBUG] Pool lookup for rate calculation: ${pool ? 'found' : 'not found'}`);
       if (!pool) {
-        this.logger.warn("Pool not found, using fallback rate");
+        this.logger.warn("[DEBUG] Pool not found, using fallback rate");
         return 10000n; // Fallback rate
       }
-      this.logger.debug(`Using pool ${pool.address} for rate calculation`);
+      this.logger.debug(`[DEBUG] Using pool ${pool.address} for rate calculation`);
 
       // Get pool data to calculate rate
       const poolData = await pool.getData();
-      this.logger.debug(`Pool reserves: reserve0=${poolData.reserve0.toString()}, reserve1=${poolData.reserve1.toString()}`);
+      this.logger.debug(`[DEBUG] Pool reserves: reserve0=${poolData.reserve0.toString()}, reserve1=${poolData.reserve1.toString()}`);
 
       // Calculate rate: jetton_reserve / ton_reserve
       const tonReserve = poolData.reserve0;
       const jettonReserve = poolData.reserve1;
 
       if (tonReserve.isZero() || jettonReserve.isZero()) {
-        this.logger.warn("Pool reserves are zero, using fallback rate");
+        this.logger.warn("[DEBUG] Pool reserves are zero, using fallback rate");
         return 10000n;
       }
 
       // Calculate rate with some slippage protection
       const rate = jettonReserve.div(tonReserve).mul(95).div(100); // 5% slippage protection
 
-      this.logger.log(`Current swap rate: 1 TON = ${rate.toString()} jettons`);
+      this.logger.log(`[DEBUG] Current swap rate: 1 TON = ${rate.toString()} jettons`);
       return BigInt(rate.toString());
     } catch (error) {
-      this.logger.error(`Failed to get swap rate: ${error.message}`);
+      this.logger.error(`[DEBUG] Failed to get swap rate: ${error.message}`);
+      this.logger.error(`[DEBUG] Error details:`, error);
       // Return fallback rate on error
       return 10000n;
     }
@@ -270,44 +294,57 @@ export class SwapService {
    */
   async canSwap(amountNanotons: bigint): Promise<boolean> {
     try {
+      this.logger.debug(`[DEBUG] Starting swap possibility check for amount: ${amountNanotons} nanotons`);
+
       // Basic amount constraints
       const minSwapAmount = 1000000n; // 0.001 TON minimum
       const maxSwapAmount = 1000000000000n; // 1000 TON maximum
 
       if (amountNanotons < minSwapAmount || amountNanotons > maxSwapAmount) {
+        this.logger.warn(`[DEBUG] Amount ${amountNanotons} is outside valid range (${minSwapAmount}-${maxSwapAmount})`);
         return false;
       }
 
-      // Get jetton wallet address dynamically
-      const jettonWalletAddress = await this.getJettonWalletAddress();
-      this.logger.debug(`Using jetton wallet address: ${jettonWalletAddress}`);
+      // Check relayer balance first
+      const relayerBalance = await this.tonService.getWalletBalance();
+      this.logger.debug(`[DEBUG] Relayer balance: ${relayerBalance} nanotons`);
+      
+      if (relayerBalance < amountNanotons + BigInt(this.config.gasForCallback)) {
+        this.logger.warn(`[DEBUG] Insufficient relayer balance: ${relayerBalance} < ${amountNanotons + BigInt(this.config.gasForCallback)}`);
+        return false;
+      }
 
-      // Check pool liquidity using STON.fi
-      this.logger.debug(`Checking pool for pTON <-> Jetton (${jettonWalletAddress})`);
+      // Get jetton master address (not wallet address)
+      const jettonMasterAddress = this.config.jettonMasterAddress;
+      this.logger.debug(`[DEBUG] Using jetton master address: ${jettonMasterAddress}`);
+
+      // Check pool liquidity using STON.fi with correct parameters
+      this.logger.debug(`[DEBUG] Checking pool for TON <-> Jetton Master (${jettonMasterAddress})`);
       
       const pool = await this.router.getPool({
         jettonAddresses: [
-          "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez",
-          jettonWalletAddress, // Use actual jetton wallet address
+          "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez", // ProxyTON
+          jettonMasterAddress, // Jetton master address (not wallet)
         ],
       });
 
-      this.logger.debug(`Pool lookup result: ${pool ? 'found' : 'not found'}`);
+      this.logger.debug(`[DEBUG] Pool lookup result: ${pool ? 'found' : 'not found'}`);
       if (!pool) {
-        this.logger.warn("No pool found for pTON <-> Jetton pair");
+        this.logger.warn("[DEBUG] No pool found for TON <-> Jetton Master pair");
         return false;
       }
-      this.logger.debug(`Using pool: ${pool.address}`);
+      
+      this.logger.debug(`[DEBUG] Using pool: ${pool.address}`);
 
       const poolData = await pool.getData();
-      this.logger.debug(`Pool data: reserve0=${poolData.reserve0.toString()}, reserve1=${poolData.reserve1.toString()}`);
+      this.logger.debug(`[DEBUG] Pool data: reserve0=${poolData.reserve0.toString()}, reserve1=${poolData.reserve1.toString()}`);
 
       // Check if pool has enough liquidity
       const tonReserve = poolData.reserve0;
       const jettonReserve = poolData.reserve1;
 
       if (tonReserve.isZero() || jettonReserve.isZero()) {
-        this.logger.warn("Pool has zero reserves, swap not possible");
+        this.logger.warn("[DEBUG] Pool has zero reserves, swap not possible");
         return false;
       }
 
@@ -315,17 +352,18 @@ export class SwapService {
       const maxReasonableAmount = tonReserve.div(10); // Max 10% of pool
       if (amountNanotons > BigInt(maxReasonableAmount.toString())) {
         this.logger.warn(
-          `Requested amount ${amountNanotons} too large for pool size`,
+          `[DEBUG] Requested amount ${amountNanotons} too large for pool size (max: ${maxReasonableAmount.toString()})`,
         );
         return false;
       }
 
       this.logger.log(
-        `Swap check passed: amount=${amountNanotons}, tonReserve=${tonReserve.toString()}`,
+        `[DEBUG] Swap check passed: amount=${amountNanotons}, tonReserve=${tonReserve.toString()}, jettonReserve=${jettonReserve.toString()}`,
       );
       return true;
     } catch (error) {
-      this.logger.error(`Failed to check swap possibility: ${error.message}`);
+      this.logger.error(`[DEBUG] Failed to check swap possibility: ${error.message}`);
+      this.logger.error(`[DEBUG] Error details:`, error);
       return false;
     }
   }
@@ -335,20 +373,20 @@ export class SwapService {
    */
   private async getJettonWalletAddress(): Promise<string> {
     try {
-      this.logger.debug(`Getting jetton wallet address for relayer: ${this.tonService.getRelayerAddress()}`);
-      this.logger.debug(`Using jetton master: ${this.config.jettonMasterAddress}`);
+      this.logger.debug(`[DEBUG] Getting jetton wallet address for relayer: ${this.tonService.getRelayerAddress()}`);
+      this.logger.debug(`[DEBUG] Using jetton master: ${this.config.jettonMasterAddress}`);
       
       // Get jetton wallet address from master contract using TonService
       const jettonWalletAddress = await this.tonService.getJettonWalletAddress();
       
-      this.logger.log(`Jetton wallet address for relayer: ${jettonWalletAddress.toString()}`);
+      this.logger.log(`[DEBUG] Jetton wallet address for relayer: ${jettonWalletAddress.toString()}`);
       return jettonWalletAddress.toString();
     } catch (error) {
-      this.logger.error(`Failed to get jetton wallet address: ${error.message}`);
-      this.logger.error(`Error details:`, error);
+      this.logger.error(`[DEBUG] Failed to get jetton wallet address: ${error.message}`);
+      this.logger.error(`[DEBUG] Error details:`, error);
       
       // Fallback to master address if wallet address lookup fails
-      this.logger.warn("Falling back to jetton master address");
+      this.logger.warn("[DEBUG] Falling back to jetton master address");
       return this.config.jettonMasterAddress;
     }
   }
