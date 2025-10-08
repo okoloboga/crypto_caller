@@ -462,9 +462,36 @@ export class TonService {
       const toAddress = typeof to === "string" ? Address.parse(to) : to;
       this.logger.debug(`[DEBUG] Parsed destination address: ${toAddress.toString()}`);
 
-      // Check wallet balance before sending
-      const balance = await walletContract.getBalance();
-      this.logger.debug(`[DEBUG] Current wallet balance: ${balance} nanotons`);
+      // Check wallet balance before sending - use multiple methods for reliability
+      let balance: bigint;
+      try {
+        // Try getBalance first
+        balance = await walletContract.getBalance();
+        this.logger.debug(`[DEBUG] Wallet balance (getBalance): ${balance} nanotons`);
+        
+        // If balance seems wrong (0 or very low), try alternative method
+        if (balance === 0n || balance < 1000000n) {
+          this.logger.warn(`[DEBUG] Balance seems low, trying alternative method...`);
+          const accountState = await this.client.getContractState(this.relayerAddress);
+          if (accountState.balance) {
+            balance = accountState.balance;
+            this.logger.debug(`[DEBUG] Wallet balance (getContractState): ${balance} nanotons`);
+          }
+        }
+      } catch (balanceError) {
+        this.logger.warn(`[DEBUG] Failed to get balance via getBalance: ${balanceError.message}`);
+        // Fallback to getContractState
+        try {
+          const accountState = await this.client.getContractState(this.relayerAddress);
+          balance = accountState.balance || 0n;
+          this.logger.debug(`[DEBUG] Wallet balance (fallback): ${balance} nanotons`);
+        } catch (fallbackError) {
+          this.logger.error(`[DEBUG] Failed to get balance via fallback: ${fallbackError.message}`);
+          throw new Error(`Failed to get wallet balance: ${fallbackError.message}`);
+        }
+      }
+      
+      this.logger.debug(`[DEBUG] Final wallet balance: ${balance} nanotons`);
       
       if (balance < value + BigInt(this.config.gasForCallback)) {
         throw new Error(`Insufficient balance: ${balance} < ${value + BigInt(this.config.gasForCallback)}`);

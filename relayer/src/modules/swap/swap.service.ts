@@ -339,7 +339,7 @@ export class SwapService {
         "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px" // pTON v2.1.0
       );
 
-      this.logger.debug(`[DEBUG] pTON instance created: ${JSON.stringify(proxyTon)}`);
+      this.logger.debug(`[DEBUG] pTON instance created: ${proxyTon.address?.toString() || 'no address'}`);
 
       try {
         const pool = await this.router.getPool({
@@ -350,7 +350,7 @@ export class SwapService {
         });
 
         this.logger.debug(`[DEBUG] Pool lookup result: ${pool ? 'found' : 'not found'}`);
-        this.logger.debug(`[DEBUG] Pool details: ${JSON.stringify(pool)}`);
+        this.logger.debug(`[DEBUG] Pool details: address=${pool.address?.toString()}, reserves=${pool.reserves ? 'available' : 'not available'}`);
         
         if (!pool) {
           this.logger.warn("[DEBUG] No pool found for TON <-> Jetton Master pair");
