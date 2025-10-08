@@ -643,4 +643,40 @@ export class TonService {
       throw error;
     }
   }
+
+  /**
+   * Get jetton wallet address for a specific user
+   */
+  async getJettonWalletAddressForUser(userAddress: string): Promise<string> {
+    try {
+      this.logger.debug(`[DEBUG] Getting jetton wallet address for user: ${userAddress}`);
+      
+      // Parse user address
+      const userAddr = Address.parse(userAddress);
+      
+      // Get jetton master address from config
+      const jettonMasterAddress = this.config.jettonMasterAddress;
+      this.logger.debug(`[DEBUG] Using jetton master: ${jettonMasterAddress}`);
+      
+      // Get jetton wallet address for user by calling get_wallet_address on jetton master
+      const jettonMaster = Address.parse(jettonMasterAddress);
+      const result = await this.client.runMethod(
+        jettonMaster,
+        "get_wallet_address",
+        [
+          {
+            type: "slice",
+            cell: beginCell().storeAddress(userAddr).endCell(),
+          },
+        ],
+      );
+
+      const jettonWalletAddress = result.stack.readAddress();
+      this.logger.debug(`[DEBUG] User jetton wallet address: ${jettonWalletAddress}`);
+      return jettonWalletAddress.toString();
+    } catch (error) {
+      this.logger.error(`[DEBUG] Failed to get user jetton wallet address: ${error.message}`);
+      throw error;
+    }
+  }
 }

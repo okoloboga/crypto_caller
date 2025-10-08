@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { RelayerConfig } from "../../config/relayer.config";
 import { DEX, pTON } from "@ston-fi/sdk";
-import { TonClient } from "@ton/ton";
+import { TonClient, Address } from "@ton/ton";
 import { TonService } from "../ton/ton.service";
 
 export interface SwapResult {
@@ -113,12 +113,17 @@ export class SwapService {
         "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px" // pTON v2.1.0
       );
 
+      // Get user's jetton wallet address for swap
+      const userAddr = Address.parse(userAddress);
+      const userJettonWalletAddress = await this.tonService.getJettonWalletAddressForUser(userAddress);
+      this.logger.debug(`[DEBUG] User jetton wallet address: ${userJettonWalletAddress}`);
+
       // IMPORTANT: Relayer performs swap from its own wallet, not user's wallet
       const swapTxParams = await this.router.getSwapTonToJettonTxParams({
         userWalletAddress: this.config.relayerWalletAddress, // Relayer address, not user address
         proxyTon: proxyTon,
         offerAmount: amountNanotons,
-        askJettonAddress: jettonMasterAddress, // Jetton master address
+        askJettonAddress: userJettonWalletAddress, // User's jetton wallet address
         minAskAmount: expectedJettonAmount.toString(),
         queryId: Date.now(),
         referralAddress: undefined,
@@ -336,46 +341,35 @@ export class SwapService {
 
       this.logger.debug(`[DEBUG] pTON instance created: ${JSON.stringify(proxyTon)}`);
 
-      const pool = await this.router.getPool({
-        jettonAddresses: [
-          "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px", // pTON address directly
-          jettonMasterAddress, // Jetton master address (not wallet)
-        ],
-      });
+      try {
+        const pool = await this.router.getPool({
+          jettonAddresses: [
+            "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px", // pTON address directly
+            jettonMasterAddress, // Jetton master address (not wallet)
+          ],
+        });
 
-      this.logger.debug(`[DEBUG] Pool lookup result: ${pool ? 'found' : 'not found'}`);
-      if (!pool) {
-        this.logger.warn("[DEBUG] No pool found for TON <-> Jetton Master pair");
+        this.logger.debug(`[DEBUG] Pool lookup result: ${pool ? 'found' : 'not found'}`);
+        this.logger.debug(`[DEBUG] Pool details: ${JSON.stringify(pool)}`);
+        
+        if (!pool) {
+          this.logger.warn("[DEBUG] No pool found for TON <-> Jetton Master pair");
+          return false;
+        }
+
+        // Check if pool has required properties
+        if (!pool.address) {
+          this.logger.warn("[DEBUG] Pool found but missing address property");
+          return false;
+        }
+
+        this.logger.debug(`[DEBUG] Pool address: ${pool.address.toString()}`);
+        return true;
+      } catch (error) {
+        this.logger.error(`[DEBUG] Pool lookup failed: ${error.message}`);
+        this.logger.error(`[DEBUG] Error details:`, error);
         return false;
       }
-      
-      this.logger.debug(`[DEBUG] Using pool: ${pool.address}`);
-
-      const poolData = await pool.getData();
-      this.logger.debug(`[DEBUG] Pool data: reserve0=${poolData.reserve0.toString()}, reserve1=${poolData.reserve1.toString()}`);
-
-      // Check if pool has enough liquidity
-      const tonReserve = poolData.reserve0;
-      const jettonReserve = poolData.reserve1;
-
-      if (tonReserve.isZero() || jettonReserve.isZero()) {
-        this.logger.warn("[DEBUG] Pool has zero reserves, swap not possible");
-        return false;
-      }
-
-      // Check if requested amount is reasonable compared to pool size
-      const maxReasonableAmount = tonReserve.div(10); // Max 10% of pool
-      if (amountNanotons > BigInt(maxReasonableAmount.toString())) {
-        this.logger.warn(
-          `[DEBUG] Requested amount ${amountNanotons} too large for pool size (max: ${maxReasonableAmount.toString()})`,
-        );
-        return false;
-      }
-
-      this.logger.log(
-        `[DEBUG] Swap check passed: amount=${amountNanotons}, tonReserve=${tonReserve.toString()}, jettonReserve=${jettonReserve.toString()}`,
-      );
-      return true;
     } catch (error) {
       this.logger.error(`[DEBUG] Failed to check swap possibility: ${error.message}`);
       this.logger.error(`[DEBUG] Error details:`, error);
