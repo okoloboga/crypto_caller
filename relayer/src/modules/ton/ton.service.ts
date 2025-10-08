@@ -497,6 +497,20 @@ export class TonService {
         throw new Error(`Insufficient balance: ${balance} < ${value + BigInt(this.config.gasForCallback)}`);
       }
 
+      // Check wallet state before getting seqno
+      try {
+        const accountState = await this.client.getContractState(this.relayerAddress);
+        this.logger.debug(`[DEBUG] Wallet state before transaction: ${accountState.state}`);
+        
+        if (accountState.state === 'uninitialized') {
+          this.logger.warn("[DEBUG] Wallet is uninitialized - cannot send transactions");
+          throw new Error("Wallet is uninitialized - needs activation");
+        }
+      } catch (stateError) {
+        this.logger.warn(`[DEBUG] Could not check wallet state: ${stateError.message}`);
+        // Continue anyway, but log the warning
+      }
+
       // Get fresh seqno with retry
       let seqno: number;
       let retryCount = 0;

@@ -342,6 +342,8 @@ export class SwapService {
       this.logger.debug(`[DEBUG] pTON instance created: ${proxyTon.address?.toString() || 'no address'}`);
 
       try {
+        this.logger.debug(`[DEBUG] Looking up pool with jetton addresses: [${"kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px"}, ${jettonMasterAddress}]`);
+        
         const pool = await this.router.getPool({
           jettonAddresses: [
             "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px", // pTON address directly
@@ -350,20 +352,24 @@ export class SwapService {
         });
 
         this.logger.debug(`[DEBUG] Pool lookup result: ${pool ? 'found' : 'not found'}`);
-        this.logger.debug(`[DEBUG] Pool details: address=${pool.address?.toString()}, reserves=${pool.reserves ? 'available' : 'not available'}`);
         
         if (!pool) {
           this.logger.warn("[DEBUG] No pool found for TON <-> Jetton Master pair");
           return false;
         }
 
+        // Log pool properties safely
+        this.logger.debug(`[DEBUG] Pool type: ${typeof pool}`);
+        this.logger.debug(`[DEBUG] Pool keys: ${Object.keys(pool || {}).join(', ')}`);
+        
         // Check if pool has required properties
         if (!pool.address) {
           this.logger.warn("[DEBUG] Pool found but missing address property");
+          this.logger.debug(`[DEBUG] Available pool properties: ${Object.keys(pool).join(', ')}`);
           return false;
         }
 
-        this.logger.debug(`[DEBUG] Pool address: ${pool.address.toString()}`);
+        this.logger.debug(`[DEBUG] Pool address: ${pool.address?.toString() || 'no address'}`);
         return true;
       } catch (error) {
         this.logger.error(`[DEBUG] Pool lookup failed: ${error.message}`);
