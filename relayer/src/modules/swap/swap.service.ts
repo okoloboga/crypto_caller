@@ -259,7 +259,7 @@ export class SwapService {
       // Get pool using STON.fi router with correct parameters
       const pool = await this.router.getPool({
         jettonAddresses: [
-          proxyTon.address, // pTON address
+          "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px", // pTON address directly
           jettonMasterAddress, // Jetton master address
         ],
       });
@@ -334,9 +334,11 @@ export class SwapService {
         "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px" // pTON v2.1.0
       );
 
+      this.logger.debug(`[DEBUG] pTON instance created: ${JSON.stringify(proxyTon)}`);
+
       const pool = await this.router.getPool({
         jettonAddresses: [
-          proxyTon.address, // pTON address
+          "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px", // pTON address directly
           jettonMasterAddress, // Jetton master address (not wallet)
         ],
       });
