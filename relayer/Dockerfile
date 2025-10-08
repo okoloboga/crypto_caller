@@ -5,15 +5,15 @@ WORKDIR /app
 # Copy package files first
 COPY package*.json ./
 
-# Install dependencies with clean cache
-RUN npm ci --only=production --no-audit --no-fund && \
-    npm cache clean --force
+# Clean npm cache and install only production dependencies
+RUN npm cache clean --force && \
+    npm install --only=production --no-audit --no-fund --no-optional
 
 # Copy source code
 COPY . .
 
-# Install dev dependencies for build
-RUN npm install --only=dev --no-audit --no-fund
+# Install dev dependencies for build (without optional dependencies)
+RUN npm install --only=dev --no-audit --no-fund --no-optional
 
 # Build the application
 RUN npm run build
@@ -21,8 +21,10 @@ RUN npm run build
 # Remove dev dependencies after build
 RUN npm prune --production
 
-# Clean npm cache
-RUN npm cache clean --force
+# Clean npm cache and remove unnecessary files
+RUN npm cache clean --force && \
+    rm -rf /root/.npm && \
+    rm -rf /tmp/*
 
 # Expose port
 EXPOSE 3001
