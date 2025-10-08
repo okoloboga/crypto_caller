@@ -131,11 +131,15 @@ export class TonService {
       }
       
       // Check if wallet is active
-      const accountState = await this.client.getAccount(this.relayerAddress);
-      this.logger.debug(`[DEBUG] Wallet account state: ${accountState.state.type}`);
-      
-      if (accountState.state.type === 'uninitialized') {
-        this.logger.warn("[DEBUG] Wallet is uninitialized - needs activation");
+      try {
+        const accountState = await this.client.getContractState(this.relayerAddress);
+        this.logger.debug(`[DEBUG] Wallet account state: ${accountState.state}`);
+        
+        if (accountState.state === 'uninitialized') {
+          this.logger.warn("[DEBUG] Wallet is uninitialized - needs activation");
+        }
+      } catch (accountError) {
+        this.logger.warn(`[DEBUG] Could not get account state: ${accountError.message}`);
       }
       
       this.logger.log("[DEBUG] Wallet state verification completed");

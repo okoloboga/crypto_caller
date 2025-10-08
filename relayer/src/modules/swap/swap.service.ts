@@ -34,11 +34,10 @@ export class SwapService {
       },
     );
 
-    // Initialize Router with new API structure
-    this.router = new Router({
-      apiEndpoint: "https://api.ston.fi",
-      rpcEndpoint: "https://toncenter.com/api/v2/jsonRPC",
-      apiKey: process.env.TON_API_KEY,
+    // Initialize Router with correct parameters
+    this.router = new Router(this.provider, {
+      revision: "V1",
+      address: "EQD0vdSA_NedR9uvH89M6hp2wBk1d4anQ2uH8HQSk8R71C4",
     });
 
     this.logger.log("STON.fi Router initialized successfully");
