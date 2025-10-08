@@ -110,7 +110,7 @@ export class SwapService {
       
       // Create pTON instance for swap
       const proxyTon = pTON.v2_1.create(
-        "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px" // pTON v2.1.0
+        "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v2.1.0 MAINNET
       );
 
       // Get user's jetton wallet address for swap
@@ -258,13 +258,13 @@ export class SwapService {
 
       // Create pTON instance for pool lookup
       const proxyTon = pTON.v2_1.create(
-        "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px" // pTON v2.1.0
+        "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v2.1.0 MAINNET
       );
 
       // Get pool using STON.fi router with correct parameters
       const pool = await this.router.getPool({
         jettonAddresses: [
-          "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px", // pTON address directly
+          "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez", // pTON address directly
           jettonMasterAddress, // Jetton master address
         ],
       });
@@ -336,17 +336,17 @@ export class SwapService {
       
       // Create pTON instance for pool lookup
       const proxyTon = pTON.v2_1.create(
-        "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px" // pTON v2.1.0
+        "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v2.1.0 MAINNET
       );
 
       this.logger.debug(`[DEBUG] pTON instance created: ${proxyTon.address?.toString() || 'no address'}`);
 
       try {
-        this.logger.debug(`[DEBUG] Looking up pool with jetton addresses: [${"kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px"}, ${jettonMasterAddress}]`);
+        this.logger.debug(`[DEBUG] Looking up pool with jetton addresses: [${"EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez"}, ${jettonMasterAddress}]`);
         
         const pool = await this.router.getPool({
           jettonAddresses: [
-            "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px", // pTON address directly
+            "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez", // pTON address directly
             jettonMasterAddress, // Jetton master address (not wallet)
           ],
         });
