@@ -110,7 +110,7 @@ export class TonService {
       
     } catch (error) {
       this.logger.error("[DEBUG] Failed to initialize wallet:", error);
-      throw new Error("Invalid relayer private key format");
+      throw new Error(`Wallet initialization failed: ${error.message}`);
     }
   }
 
@@ -503,8 +503,27 @@ export class TonService {
         this.logger.debug(`[DEBUG] Wallet state before transaction: ${accountState.state}`);
         
         if (accountState.state === 'uninitialized') {
-          this.logger.warn("[DEBUG] Wallet is uninitialized - cannot send transactions");
-          throw new Error("Wallet is uninitialized - needs activation");
+          this.logger.warn("[DEBUG] Wallet is uninitialized - attempting to initialize...");
+          
+          // Try to initialize wallet by sending a small amount to itself
+          try {
+            await this.initializeWallet();
+            this.logger.log("[DEBUG] Wallet initialization attempted");
+            
+            // Wait a bit for initialization to complete
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Check state again
+            const newState = await this.client.getContractState(this.relayerAddress);
+            this.logger.debug(`[DEBUG] Wallet state after initialization: ${newState.state}`);
+            
+            if (newState.state === 'uninitialized') {
+              throw new Error("Wallet initialization failed - still uninitialized");
+            }
+          } catch (initError) {
+            this.logger.error(`[DEBUG] Failed to initialize wallet: ${initError.message}`);
+            throw new Error(`Wallet is uninitialized and initialization failed: ${initError.message}`);
+          }
         }
       } catch (stateError) {
         this.logger.warn(`[DEBUG] Could not check wallet state: ${stateError.message}`);
@@ -556,6 +575,13 @@ export class TonService {
           retryCount++;
           this.logger.warn(`[DEBUG] Send attempt ${retryCount} failed: ${sendError.message}`);
           
+          // Check for specific error types
+          if (sendError.message.includes('Failed to unpack account state')) {
+            this.logger.error(`[DEBUG] Account state error - wallet may be uninitialized or corrupted`);
+            this.logger.error(`[DEBUG] This usually means the wallet needs to be activated or has insufficient balance`);
+            throw new Error(`Account state error: ${sendError.message}`);
+          }
+          
           // If it's a seqno error (exit code 33), get fresh seqno and retry
           if (sendError.message.includes('exitcode=33') || sendError.message.includes('exit code 33')) {
             this.logger.warn(`[DEBUG] Seqno error detected, getting fresh seqno...`);
@@ -569,6 +595,7 @@ export class TonService {
           
           if (retryCount >= maxRetries) {
             this.logger.error(`[DEBUG] All send attempts failed after ${maxRetries} retries`);
+            this.logger.error(`[DEBUG] Error details:`, sendError);
             throw sendError;
           }
           

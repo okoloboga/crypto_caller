@@ -368,13 +368,13 @@ export class SwapService {
         this.logger.debug(`[DEBUG] Pool keys: ${Object.keys(pool || {}).join(', ')}`);
         
         // Check if pool has required properties
-        if (!pool.address) {
+        if (!pool || !pool.address) {
           this.logger.warn("[DEBUG] Pool found but missing address property");
-          this.logger.debug(`[DEBUG] Available pool properties: ${Object.keys(pool).join(', ')}`);
+          this.logger.debug(`[DEBUG] Available pool properties: ${pool ? Object.keys(pool).join(', ') : 'pool is null/undefined'}`);
           return false;
         }
 
-        this.logger.debug(`[DEBUG] Pool address: ${pool.address?.toString() || 'no address'}`);
+        this.logger.debug(`[DEBUG] Pool address: ${pool.address.toString()}`);
         return true;
       } catch (error) {
         this.logger.error(`[DEBUG] Pool lookup failed: ${error.message}`);
