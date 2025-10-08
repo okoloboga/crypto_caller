@@ -12,6 +12,9 @@ RUN npm cache clean --force && \
 # Copy source code
 COPY . .
 
+# Clean any existing build artifacts to ensure fresh compilation
+RUN rm -rf dist/
+
 # Install dev dependencies for build (without optional dependencies)
 RUN npm install --only=dev --no-audit --no-fund --no-optional
 
