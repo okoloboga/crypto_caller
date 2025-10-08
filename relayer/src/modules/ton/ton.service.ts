@@ -395,10 +395,10 @@ export class TonService {
         amount,
       );
 
-      // Send internal message
+      // Send internal message with full refund amount + gas
       await this.sendInternalMessage(
         subscriptionContract,
-        BigInt(this.config.gasForCallback),
+        amount + BigInt(this.config.gasForCallback),
         messageBody,
       );
 

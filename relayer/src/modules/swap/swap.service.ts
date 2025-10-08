@@ -33,10 +33,9 @@ export class SwapService {
     });
 
     // Initialize Router using DEX v1 API (mainnet address is v1)
+        const routerAddress = Address.parse("EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt");
         this.router = this.client.open(
-          DEX.v1.Router.create(
-            "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt" // Router v1.0 MAINNET
-          )
+          DEX.v1.Router.create(routerAddress)
         );
 
     this.logger.log("STON.fi Router initialized successfully");
@@ -120,16 +119,16 @@ export class SwapService {
 
       // IMPORTANT: Relayer performs swap from its own wallet, not user's wallet
       const swapTxParams = await this.router.getSwapTonToJettonTxParams({
-        userWalletAddress: this.config.relayerWalletAddress, // Relayer address, not user address
+        userWalletAddress: Address.parse(this.config.relayerWalletAddress), // Relayer address, not user address
         proxyTon: proxyTon,
         offerAmount: amountNanotons,
-        askJettonAddress: jettonMasterAddress, // Jetton master address (not user wallet)
+        askJettonAddress: Address.parse(jettonMasterAddress), // Jetton master address (not user wallet)
         minAskAmount: expectedJettonAmount.toString(),
-        queryId: Date.now(),
+        queryId: BigInt(Date.now()),
         referralAddress: undefined,
         // Add receiver address for proper jetton delivery
         additionalData: {
-          receiverAddress: userJettonWalletAddress, // Where jettons should be delivered
+          receiverAddress: Address.parse(userJettonWalletAddress), // Where jettons should be delivered
         },
       });
       
@@ -266,13 +265,11 @@ export class SwapService {
         "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v1.0 MAINNET
       );
 
-      // Get pool using STON.fi router with correct parameters
-      const pool = await this.router.getPool({
-        jettonAddresses: [
-          "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez", // pTON address directly
-          jettonMasterAddress, // Jetton master address
-        ],
-      });
+      // Get pool using STON.fi router with correct parameters (Router v1 API)
+      const pool = await this.router.getPool([
+        Address.parse("EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez"), // pTON mainnet
+        Address.parse(jettonMasterAddress), // Jetton master address
+      ]);
 
       this.logger.debug(`[DEBUG] Pool lookup for rate calculation: ${pool ? 'found' : 'not found'}`);
       if (!pool) {
@@ -353,52 +350,20 @@ export class SwapService {
         this.logger.debug(`[DEBUG] Router instance: ${this.router ? 'exists' : 'null'}`);
         this.logger.debug(`[DEBUG] Router type: ${typeof this.router}`);
         
-        // Try different API approaches for Router v1
-        let pool;
-        try {
-          // Method 1: Direct getPool call
-          this.logger.debug(`[DEBUG] Trying direct getPool call...`);
-          pool = await this.router.getPool({
-            jettonAddresses: [
-              "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez", // pTON address directly
-              jettonMasterAddress, // Jetton master address (not wallet)
-            ],
-          });
-        } catch (poolError) {
-          this.logger.warn(`[DEBUG] Direct getPool failed: ${poolError.message}`);
-          
-          try {
-            // Method 2: Try with different parameter format
-            this.logger.debug(`[DEBUG] Trying alternative getPool format...`);
-            pool = await this.router.getPool([
-              "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez",
-              jettonMasterAddress,
-            ]);
-          } catch (altError) {
-            this.logger.warn(`[DEBUG] Alternative getPool failed: ${altError.message}`);
-            throw poolError; // Throw original error
-          }
-        }
-
-        this.logger.debug(`[DEBUG] Pool lookup result: ${pool ? 'found' : 'not found'}`);
+        // Router v1 API requires array of Address objects, not strings
+        this.logger.debug(`[DEBUG] Looking up pool with jetton addresses: [${"EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez"}, ${jettonMasterAddress}]`);
         
+        const pool = await this.router.getPool([
+          Address.parse("EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez"), // pTON mainnet
+          Address.parse(jettonMasterAddress), // Jetton master address
+        ]);
+
         if (!pool) {
-          this.logger.warn("[DEBUG] No pool found for TON <-> Jetton Master pair");
+          this.logger.warn("[DEBUG] No pool found or insufficient liquidity");
           return false;
         }
 
-        // Log pool properties safely
-        this.logger.debug(`[DEBUG] Pool type: ${typeof pool}`);
-        this.logger.debug(`[DEBUG] Pool keys: ${Object.keys(pool || {}).join(', ')}`);
-        
-        // Check if pool has required properties
-        if (!pool || !pool.address) {
-          this.logger.warn("[DEBUG] Pool found but missing address property");
-          this.logger.debug(`[DEBUG] Available pool properties: ${pool ? Object.keys(pool).join(', ') : 'pool is null/undefined'}`);
-          return false;
-        }
-
-        this.logger.debug(`[DEBUG] Pool address: ${pool.address.toString()}`);
+        this.logger.debug(`[DEBUG] Pool found at: ${pool.address.toString()}`);
         return true;
       } catch (error) {
         this.logger.error(`[DEBUG] Pool lookup failed: ${error.message}`);
