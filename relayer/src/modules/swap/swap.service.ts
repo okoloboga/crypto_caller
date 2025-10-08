@@ -273,10 +273,16 @@ export class SwapService {
 
       this.logger.debug(`[DEBUG] Pool lookup for rate calculation: ${pool ? 'found' : 'not found'}`);
       if (!pool) {
-        this.logger.warn("[DEBUG] Pool not found, using fallback rate");
+        this.logger.warn("[DEBUG] Pool not found (undefined), using fallback rate");
         return 10000n; // Fallback rate
       }
-      this.logger.debug(`[DEBUG] Using pool ${pool.address} for rate calculation`);
+      
+      if (!pool.address) {
+        this.logger.warn("[DEBUG] Pool found but missing address property, using fallback rate");
+        return 10000n; // Fallback rate
+      }
+      
+      this.logger.debug(`[DEBUG] Using pool ${pool.address.toString()} for rate calculation`);
 
       // Get pool data to calculate rate
       const poolData = await pool.getData();
@@ -359,7 +365,12 @@ export class SwapService {
         ]);
 
         if (!pool) {
-          this.logger.warn("[DEBUG] No pool found or insufficient liquidity");
+          this.logger.warn("[DEBUG] Pool not found (undefined) - insufficient liquidity or wrong jetton address");
+          return false;
+        }
+
+        if (!pool.address) {
+          this.logger.warn("[DEBUG] Pool found but missing address property - check STON.fi API compatibility");
           return false;
         }
 

@@ -86,11 +86,13 @@ export class TonService {
       if (mnemonic.length === 24) {
         // It's a mnemonic
         this.keyPair = await mnemonicToWalletKey(mnemonic);
+        // Use walletId for V4R2 mainnet (698983191 is the standard walletId for V4R2)
         this.relayerWallet = WalletContractV4.create({
           workchain: 0,
           publicKey: this.keyPair.publicKey,
+          walletId: 698983191, // V4R2 mainnet walletId
         });
-        this.logger.log("[DEBUG] Wallet initialized from mnemonic");
+        this.logger.log("[DEBUG] Wallet initialized from mnemonic (V4R2 mainnet)");
       } else {
         // Assume it's a hex private key
         const privateKey = Buffer.from(this.config.relayerPrivateKey, "hex");
@@ -98,11 +100,13 @@ export class TonService {
           publicKey: privateKey.slice(32),
           secretKey: privateKey,
         };
+        // Use walletId for V4R2 mainnet (698983191 is the standard walletId for V4R2)
         this.relayerWallet = WalletContractV4.create({
           workchain: 0,
           publicKey: this.keyPair.publicKey,
+          walletId: 698983191, // V4R2 mainnet walletId
         });
-        this.logger.log("[DEBUG] Wallet initialized from private key");
+        this.logger.log("[DEBUG] Wallet initialized from private key (V4R2 mainnet)");
       }
 
       // Verify wallet state in network
