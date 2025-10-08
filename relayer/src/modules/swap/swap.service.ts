@@ -349,12 +349,36 @@ export class SwapService {
       try {
         this.logger.debug(`[DEBUG] Looking up pool with jetton addresses: [${"EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez"}, ${jettonMasterAddress}]`);
         
-        const pool = await this.router.getPool({
-          jettonAddresses: [
-            "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez", // pTON address directly
-            jettonMasterAddress, // Jetton master address (not wallet)
-          ],
-        });
+        // Log router state before call
+        this.logger.debug(`[DEBUG] Router instance: ${this.router ? 'exists' : 'null'}`);
+        this.logger.debug(`[DEBUG] Router type: ${typeof this.router}`);
+        
+        // Try different API approaches for Router v1
+        let pool;
+        try {
+          // Method 1: Direct getPool call
+          this.logger.debug(`[DEBUG] Trying direct getPool call...`);
+          pool = await this.router.getPool({
+            jettonAddresses: [
+              "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez", // pTON address directly
+              jettonMasterAddress, // Jetton master address (not wallet)
+            ],
+          });
+        } catch (poolError) {
+          this.logger.warn(`[DEBUG] Direct getPool failed: ${poolError.message}`);
+          
+          try {
+            // Method 2: Try with different parameter format
+            this.logger.debug(`[DEBUG] Trying alternative getPool format...`);
+            pool = await this.router.getPool([
+              "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez",
+              jettonMasterAddress,
+            ]);
+          } catch (altError) {
+            this.logger.warn(`[DEBUG] Alternative getPool failed: ${altError.message}`);
+            throw poolError; // Throw original error
+          }
+        }
 
         this.logger.debug(`[DEBUG] Pool lookup result: ${pool ? 'found' : 'not found'}`);
         

@@ -539,6 +539,13 @@ export class TonService {
         try {
           seqno = await walletContract.getSeqno();
           this.logger.debug(`[DEBUG] Got seqno: ${seqno} (attempt ${retryCount + 1})`);
+          
+          // Check if seqno is 0 - this might indicate wallet issues
+          if (seqno === 0) {
+            this.logger.warn(`[DEBUG] Seqno is 0 - this might indicate wallet synchronization issues`);
+            this.logger.warn(`[DEBUG] Wallet might need to be activated or has transaction history problems`);
+          }
+          
           break;
         } catch (seqnoError) {
           retryCount++;
@@ -559,6 +566,15 @@ export class TonService {
       });
 
       this.logger.debug(`[DEBUG] Sending transaction with seqno: ${seqno} to ${toAddress.toString()}`);
+      
+      // Log detailed transaction info
+      this.logger.debug(`[DEBUG] Transaction details:`);
+      this.logger.debug(`[DEBUG] - To: ${toAddress.toString()}`);
+      this.logger.debug(`[DEBUG] - Value: ${value} nanotons`);
+      this.logger.debug(`[DEBUG] - Body type: ${body ? typeof body : 'no body'}`);
+      this.logger.debug(`[DEBUG] - Body cell: ${body ? 'present' : 'null'}`);
+      this.logger.debug(`[DEBUG] - Wallet address: ${this.relayerAddress}`);
+      this.logger.debug(`[DEBUG] - Key pair: ${this.keyPair ? 'present' : 'missing'}`);
 
       // Send message using wallet contract with retry on seqno error
       retryCount = 0;
