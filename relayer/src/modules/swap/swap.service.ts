@@ -32,10 +32,10 @@ export class SwapService {
       apiKey: process.env.TON_API_KEY,
     });
 
-    // Initialize Router using new DEX v2.1 API
+    // Initialize Router using DEX v1 API (mainnet address is v1)
         this.router = this.client.open(
-          DEX.v2_1.Router.CPI.create(
-            "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt" // CPI Router v2.1.0 MAINNET
+          DEX.v1.Router.create(
+            "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt" // Router v1.0 MAINNET
           )
         );
 
@@ -109,8 +109,8 @@ export class SwapService {
       this.logger.debug(`[DEBUG] Building swap transaction: ${amountNanotons} nanotons -> jettons`);
       
       // Create pTON instance for swap
-      const proxyTon = pTON.v2_1.create(
-        "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v2.1.0 MAINNET
+      const proxyTon = pTON.v1.create(
+        "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v1.0 MAINNET
       );
 
       // Get user's jetton wallet address for delivery
@@ -262,8 +262,8 @@ export class SwapService {
       this.logger.debug(`[DEBUG] Using jetton master address: ${jettonMasterAddress}`);
 
       // Create pTON instance for pool lookup
-      const proxyTon = pTON.v2_1.create(
-        "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v2.1.0 MAINNET
+      const proxyTon = pTON.v1.create(
+        "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v1.0 MAINNET
       );
 
       // Get pool using STON.fi router with correct parameters
@@ -340,8 +340,8 @@ export class SwapService {
       this.logger.debug(`[DEBUG] Checking pool for TON <-> Jetton Master (${jettonMasterAddress})`);
       
       // Create pTON instance for pool lookup
-      const proxyTon = pTON.v2_1.create(
-        "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v2.1.0 MAINNET
+      const proxyTon = pTON.v1.create(
+        "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v1.0 MAINNET
       );
 
       this.logger.debug(`[DEBUG] pTON instance created: ${proxyTon.address?.toString() || 'no address'}`);
