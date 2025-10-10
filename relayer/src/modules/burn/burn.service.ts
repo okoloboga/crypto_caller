@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Address, toNano } from "@ton/ton";
+import { Address, toNano, beginCell, Cell } from "@ton/ton";
 import { TonService } from "../ton/ton.service";
 import { RelayerConfig } from "../../config/relayer.config";
 
@@ -97,16 +97,19 @@ export class BurnService {
       // Build burn message body
       const burnBody = this.buildBurnMessageBody(jettonAmount);
 
+      this.logger.debug(`[DEBUG] Burn message body created: ${burnBody ? 'valid Cell' : 'invalid'}`);
+      this.logger.debug(`[DEBUG] Sending burn to jetton wallet: ${jettonWalletAddress}`);
+      this.logger.debug(`[DEBUG] Burn amount: ${jettonAmount}, gas: 0.1 TON`);
+
       // Send message to jetton wallet using TonService
-      await this.tonService.sendInternalMessage(
-        Address.parse(jettonWalletAddress),
+      const txHash = await this.tonService.sendInternalMessage(
+        jettonWalletAddress,
         toNano("0.1"), // Gas for burn operation
         burnBody,
       );
 
-      const txHash = `burn_${Date.now()}_${jettonAmount}`;
       this.logger.log(
-        `Sent burn message to ${jettonWalletAddress}: ${jettonAmount} jettons`,
+        `Sent burn message to ${jettonWalletAddress}: ${jettonAmount} jettons (tx: ${txHash})`,
       );
 
       return txHash;
@@ -120,24 +123,23 @@ export class BurnService {
    * Build burn message body for jetton wallet
    * Opcode: 0x595f07bc (burn)
    */
-  private buildBurnMessageBody(jettonAmount: bigint): any {
-    // TODO: Implement proper message body construction
-    // This should create a message with:
+  private buildBurnMessageBody(jettonAmount: bigint): Cell {
+    // Jetton burn message structure:
     // - op: 0x595f07bc (burn)
     // - query_id: unique identifier
     // - amount: jettonAmount
-    // - response_destination: relayer address
-    // - custom_payload: null
-    // - forward_ton_amount: gas for forward message
+    // - response_destination: relayer address (where to send excess gas)
+    
+    const burnBody = beginCell()
+      .storeUint(0x595f07bc, 32) // Opcode for burn
+      .storeUint(BigInt(Date.now()), 64) // Query ID
+      .storeCoins(jettonAmount) // Amount to burn
+      .storeAddress(Address.parse(this.config.relayerWalletAddress)) // Response destination
+      .endCell();
 
-    return {
-      op: 0x595f07bc,
-      queryId: Date.now(),
-      amount: jettonAmount,
-      responseDestination: this.config.relayerWalletAddress,
-      customPayload: null,
-      forwardTonAmount: 1000000n, // 0.001 TON for gas
-    };
+    this.logger.debug(`[DEBUG] Built burn message body: ${burnBody.bits.length} bits`);
+    
+    return burnBody;
   }
 
   /**

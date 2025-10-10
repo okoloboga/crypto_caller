@@ -37,25 +37,48 @@ Relayer получает TON от контракта и должен:
 
 ---
 
-### 🔄 Проблема №3: gasAmount vs value в Router v2.2 (В ПРОЦЕССЕ 2025-10-10)
+### ✅ Проблема №3: gasAmount vs value в Router v2.2 (РЕШЕНО 2025-10-10)
 
-**Статус:** 🔄 ИСПРАВЛЯЕТСЯ
+**Статус:** ✅ ИСПРАВЛЕНО
 
 **Проблема:** Router v2.2 возвращает `value` вместо `gasAmount` в swapTxParams
-
-**Лог ошибки:**
-```
-"allKeys": ["to", "value", "body"]
-"hasAmount": false
-"hasTonAmount": false  
-"hasValue": true
-```
 
 **Решение:**
 - Использовать `swapTxParams.value` вместо `swapTxParams.gasAmount`
 - Добавлен fallback: `swapTxParams.value || swapTxParams.gasAmount`
 
-**Ожидаемый результат:** `BigInt(swapTxParams.value)` вместо `BigInt(undefined)`
+**Результат:** 
+- `Value (gas): 410000000` - корректное значение!
+- `Swap completed: received 1000000 jettons` - swap успешен!
+
+---
+
+### 🔄 Проблема №4: Burn message body не создается (В ПРОЦЕССЕ 2025-10-10)
+
+**Статус:** 🔄 ИСПРАВЛЯЕТСЯ
+
+**Проблема:** `buildBurnMessageBody()` возвращает обычный объект вместо `Cell`
+
+**Лог ошибки:**
+```
+Cannot read properties of undefined (reading 'length')
+Body type: object
+Body cell: present
+```
+
+**Решение:**
+- Исправлено: создается правильный `Cell` через `beginCell()`
+- Burn message body:
+  ```typescript
+  beginCell()
+    .storeUint(0x595f07bc, 32) // Opcode for burn
+    .storeUint(queryId, 64)
+    .storeCoins(jettonAmount)
+    .storeAddress(responseDestination)
+    .endCell()
+  ```
+
+**Ожидаемый результат:** Burn транзакция должна успешно отправляться
 
 ---
 
