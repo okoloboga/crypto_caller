@@ -24,7 +24,7 @@ export class SwapService {
   ) {
     this.config = this.configService.get<RelayerConfig>("relayer");
 
-    this.logger.log("Initializing STON.fi Router with updated API...");
+    this.logger.log("Initializing STON.fi Router with SDK API...");
 
     // Initialize TON client
     this.client = new TonClient({
@@ -32,11 +32,11 @@ export class SwapService {
       apiKey: process.env.TON_API_KEY,
     });
 
-    // Initialize Router using DEX v1 API (mainnet address is v1)
-        const routerAddress = Address.parse("EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt");
-        this.router = this.client.open(
-          DEX.v1.Router.create(routerAddress)
-        );
+    // Initialize Router using DEX v1 API
+    // Note: We create the router instance which has getPool() method
+    const routerAddress = Address.parse("EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt");
+    const routerContract = DEX.v1.Router.create(routerAddress);
+    this.router = this.client.open(routerContract);
 
     this.logger.log("STON.fi Router initialized successfully");
   }
@@ -275,10 +275,33 @@ export class SwapService {
       );
 
       // Get pool using STON.fi router with correct parameters (Router v1 API)
-      const pool = await this.router.getPool([
-        Address.parse("EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez"), // pTON mainnet
-        Address.parse(jettonMasterAddress), // Jetton master address
-      ]);
+      // Parse addresses and log them
+      const ptonAddress = Address.parse("EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez");
+      const jettonAddress = Address.parse(jettonMasterAddress);
+      
+      this.logger.debug(`[DEBUG] pTON address for rate: ${ptonAddress.toString()}`);
+      this.logger.debug(`[DEBUG] Jetton address for rate: ${jettonAddress.toString()}`);
+      this.logger.debug(`[DEBUG] Address array for rate: [${ptonAddress.toString()}, ${jettonAddress.toString()}]`);
+      
+      // Get pool address using router's getPoolAddress method
+      const poolAddress = await this.router.getPoolAddress({
+        token0: ptonAddress.toString(),
+        token1: jettonAddress.toString(),
+      });
+      
+      this.logger.debug(`[DEBUG] Pool address from router for rate: ${poolAddress}`);
+      
+      // Create pool instance
+      const pool = poolAddress ? this.client.open(DEX.v1.Pool.create(Address.parse(poolAddress))) : null;
+
+      // Add detailed logging for pool object
+      this.logger.debug(`[DEBUG] Pool object for rate: ${JSON.stringify(pool)}`);
+      this.logger.debug(`[DEBUG] Pool type: ${typeof pool}`);
+      this.logger.debug(`[DEBUG] Pool address type: ${typeof pool?.address}`);
+      this.logger.debug(`[DEBUG] Pool address value: ${pool?.address}`);
+      this.logger.debug(`[DEBUG] Pool keys: ${pool ? Object.keys(pool) : 'null'}`);
+      this.logger.debug(`[DEBUG] Pool constructor: ${pool?.constructor?.name || 'unknown'}`);
+      this.logger.debug(`[DEBUG] Pool toString: ${pool?.toString?.() || 'no toString method'}`);
 
       this.logger.debug(`[DEBUG] Pool lookup for rate calculation: ${pool ? 'found' : 'not found'}`);
       if (!pool) {
@@ -291,29 +314,40 @@ export class SwapService {
         return 10000n; // Fallback rate
       }
       
-      this.logger.debug(`[DEBUG] Using pool ${pool.address.toString()} for rate calculation`);
+      // Safe toString call with additional check
+      try {
+        this.logger.debug(`[DEBUG] Using pool ${pool.address.toString()} for rate calculation`);
+      } catch (toStringError) {
+        this.logger.error(`[DEBUG] Failed to convert pool address to string for rate: ${toStringError.message}`);
+        this.logger.error(`[DEBUG] Pool address object:`, pool.address);
+        this.logger.warn("[DEBUG] Using fallback rate due to toString error");
+        return 10000n; // Fallback rate
+      }
 
       // Get pool data to calculate rate
-      const poolData = await pool.getData();
+      const poolData = await pool.getPoolData();
       this.logger.debug(`[DEBUG] Pool reserves: reserve0=${poolData.reserve0.toString()}, reserve1=${poolData.reserve1.toString()}`);
 
       // Calculate rate: jetton_reserve / ton_reserve
       const tonReserve = poolData.reserve0;
       const jettonReserve = poolData.reserve1;
 
-      if (tonReserve.isZero() || jettonReserve.isZero()) {
+      if (tonReserve === 0n || jettonReserve === 0n) {
         this.logger.warn("[DEBUG] Pool reserves are zero, using fallback rate");
         return 10000n;
       }
 
       // Calculate rate with some slippage protection
-      const rate = jettonReserve.div(tonReserve).mul(95).div(100); // 5% slippage protection
+      const rate = (jettonReserve * 95n) / (tonReserve * 100n); // 5% slippage protection
 
       this.logger.log(`[DEBUG] Current swap rate: 1 TON = ${rate.toString()} jettons`);
-      return BigInt(rate.toString());
+      return rate;
     } catch (error) {
       this.logger.error(`[DEBUG] Failed to get swap rate: ${error.message}`);
       this.logger.error(`[DEBUG] Error details:`, error);
+      this.logger.error(`[DEBUG] Error stack:`, error.stack);
+      this.logger.error(`[DEBUG] Error name: ${error.name}`);
+      this.logger.error(`[DEBUG] Error constructor: ${error.constructor?.name}`);
       // Return fallback rate on error
       return 10000n;
     }
@@ -367,14 +401,40 @@ export class SwapService {
         // Log router state before call
         this.logger.debug(`[DEBUG] Router instance: ${this.router ? 'exists' : 'null'}`);
         this.logger.debug(`[DEBUG] Router type: ${typeof this.router}`);
+        this.logger.debug(`[DEBUG] Router constructor: ${this.router?.constructor?.name || 'unknown'}`);
+        this.logger.debug(`[DEBUG] Router methods: ${this.router ? Object.getOwnPropertyNames(Object.getPrototypeOf(this.router)) : 'null'}`);
+        this.logger.debug(`[DEBUG] Router getPool method: ${typeof this.router?.getPool}`);
         
         // Router v1 API requires array of Address objects, not strings
         this.logger.debug(`[DEBUG] Looking up pool with jetton addresses: [${"EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez"}, ${jettonMasterAddress}]`);
         
-        const pool = await this.router.getPool([
-          Address.parse("EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez"), // pTON mainnet
-          Address.parse(jettonMasterAddress), // Jetton master address
-        ]);
+        // Parse addresses and log them
+        const ptonAddress = Address.parse("EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez");
+        const jettonAddress = Address.parse(jettonMasterAddress);
+        
+        this.logger.debug(`[DEBUG] pTON address: ${ptonAddress.toString()}`);
+        this.logger.debug(`[DEBUG] Jetton address: ${jettonAddress.toString()}`);
+        this.logger.debug(`[DEBUG] Address array: [${ptonAddress.toString()}, ${jettonAddress.toString()}]`);
+        
+        // Get pool address using router's getPoolAddress method
+        const poolAddress = await this.router.getPoolAddress({
+          token0: ptonAddress.toString(),
+          token1: jettonAddress.toString(),
+        });
+        
+        this.logger.debug(`[DEBUG] Pool address from router: ${poolAddress}`);
+        
+        // Create pool instance
+        const pool = poolAddress ? this.client.open(DEX.v1.Pool.create(Address.parse(poolAddress))) : null;
+
+        // Add detailed logging for pool object
+        this.logger.debug(`[DEBUG] Pool object: ${JSON.stringify(pool)}`);
+        this.logger.debug(`[DEBUG] Pool type: ${typeof pool}`);
+        this.logger.debug(`[DEBUG] Pool address type: ${typeof pool?.address}`);
+        this.logger.debug(`[DEBUG] Pool address value: ${pool?.address}`);
+        this.logger.debug(`[DEBUG] Pool keys: ${pool ? Object.keys(pool) : 'null'}`);
+        this.logger.debug(`[DEBUG] Pool constructor: ${pool?.constructor?.name || 'unknown'}`);
+        this.logger.debug(`[DEBUG] Pool toString: ${pool?.toString?.() || 'no toString method'}`);
 
         if (!pool) {
           this.logger.warn("[DEBUG] Pool not found (undefined) - insufficient liquidity or wrong jetton address");
@@ -386,11 +446,22 @@ export class SwapService {
           return false;
         }
 
-        this.logger.debug(`[DEBUG] Pool found at: ${pool.address.toString()}`);
+        // Safe toString call with additional check
+        try {
+          this.logger.debug(`[DEBUG] Pool found at: ${pool.address.toString()}`);
+        } catch (toStringError) {
+          this.logger.error(`[DEBUG] Failed to convert pool address to string: ${toStringError.message}`);
+          this.logger.error(`[DEBUG] Pool address object:`, pool.address);
+          return false;
+        }
+        
         return true;
       } catch (error) {
         this.logger.error(`[DEBUG] Pool lookup failed: ${error.message}`);
         this.logger.error(`[DEBUG] Error details:`, error);
+        this.logger.error(`[DEBUG] Error stack:`, error.stack);
+        this.logger.error(`[DEBUG] Error name: ${error.name}`);
+        this.logger.error(`[DEBUG] Error constructor: ${error.constructor?.name}`);
         return false;
       }
     } catch (error) {
