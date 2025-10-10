@@ -54,6 +54,9 @@ export class SwapService {
     );
 
     try {
+      // Ensure wallet is initialized before proceeding
+      await this.tonService.forceWalletInitialization();
+      
       // Check if we can perform the swap
       const canSwap = await this.canSwap(amountNanotons);
       if (!canSwap) {
@@ -231,6 +234,9 @@ export class SwapService {
     try {
       this.logger.debug(`[DEBUG] Getting actual jetton amount for relayer: ${relayerAddress}`);
       
+      // Ensure wallet is initialized before proceeding
+      await this.tonService.forceWalletInitialization();
+      
       // Get relayer's jetton wallet address
       const jettonWalletAddress = await this.tonService.getJettonWalletAddress();
       this.logger.debug(`[DEBUG] Relayer jetton wallet: ${jettonWalletAddress.toString()}`);
@@ -255,6 +261,9 @@ export class SwapService {
   async getSwapRate(): Promise<bigint> {
     try {
       this.logger.debug(`[DEBUG] Getting swap rate for TON -> Jetton`);
+
+      // Ensure wallet is initialized before proceeding
+      await this.tonService.forceWalletInitialization();
 
       // Use jetton master address (not wallet address)
       const jettonMasterAddress = this.config.jettonMasterAddress;
@@ -316,6 +325,9 @@ export class SwapService {
   async canSwap(amountNanotons: bigint): Promise<boolean> {
     try {
       this.logger.debug(`[DEBUG] Starting swap possibility check for amount: ${amountNanotons} nanotons`);
+
+      // Ensure wallet is initialized before proceeding
+      await this.tonService.forceWalletInitialization();
 
       // Basic amount constraints
       const minSwapAmount = 1000000n; // 0.001 TON minimum
@@ -395,6 +407,9 @@ export class SwapService {
     try {
       this.logger.debug(`[DEBUG] Getting jetton wallet address for relayer: ${this.tonService.getRelayerAddress()}`);
       this.logger.debug(`[DEBUG] Using jetton master: ${this.config.jettonMasterAddress}`);
+      
+      // Ensure wallet is initialized before proceeding
+      await this.tonService.forceWalletInitialization();
       
       // Get jetton wallet address from master contract using TonService
       const jettonWalletAddress = await this.tonService.getJettonWalletAddress();

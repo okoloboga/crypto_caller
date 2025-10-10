@@ -31,6 +31,8 @@ export class TonService {
   private readonly config: RelayerConfig;
   private keyPair: { publicKey: Buffer; secretKey: Buffer };
   private seqnoLock = false; // Prevent parallel seqno usage
+  private walletInitialized = false; // Track wallet initialization state
+  private walletInitPromise: Promise<void> | null = null; // Store initialization promise
 
   constructor(private configService: ConfigService) {
     // Add axios interceptors for better error handling (like in working project)
@@ -65,16 +67,65 @@ export class TonService {
       apiKey: process.env.TON_API_KEY,
     });
 
-    // Initialize relayer wallet
-    this.initializeWallet().catch((error) => {
-      this.logger.error("Failed to initialize wallet:", error);
-    });
-
     this.relayerAddress = Address.parse(this.config.relayerWalletAddress);
 
     this.logger.log(
       `TON service initialized for relayer: ${this.relayerAddress.toString()}`,
     );
+  }
+
+  /**
+   * Ensure wallet is initialized before any operation
+   */
+  private async ensureWalletInitialized(): Promise<void> {
+    if (this.walletInitialized) {
+      return;
+    }
+
+    // If initialization is already in progress, wait for it
+    if (this.walletInitPromise) {
+      this.logger.debug("[DEBUG] Wallet initialization already in progress, waiting...");
+      await this.walletInitPromise;
+      return;
+    }
+
+    // Start initialization
+    this.walletInitPromise = this.initializeWalletWithRetry();
+    await this.walletInitPromise;
+  }
+
+  /**
+   * Initialize wallet with retry mechanism
+   */
+  private async initializeWalletWithRetry(): Promise<void> {
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        this.logger.log(`[DEBUG] Initializing relayer wallet... (attempt ${attempt}/${maxRetries})`);
+        
+        await this.initializeWallet();
+        
+        this.walletInitialized = true;
+        this.logger.log("[DEBUG] Wallet initialization completed successfully");
+        return;
+        
+      } catch (error) {
+        lastError = error as Error;
+        this.logger.error(`[DEBUG] Wallet initialization attempt ${attempt} failed: ${error.message}`);
+        
+        if (attempt < maxRetries) {
+          const delay = 2000 * attempt; // Exponential backoff
+          this.logger.log(`[DEBUG] Retrying wallet initialization in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    // All attempts failed
+    this.logger.error(`[DEBUG] Wallet initialization failed after ${maxRetries} attempts`);
+    throw new Error(`Wallet initialization failed after ${maxRetries} attempts: ${lastError?.message}`);
   }
 
   private async initializeWallet() {
@@ -161,6 +212,9 @@ export class TonService {
     limit: number = 25,
   ): Promise<ParsedTransaction[]> {
     try {
+      // Ensure wallet is initialized before proceeding
+      await this.ensureWalletInitialized();
+      
       this.logger.debug(`Requesting transactions for address: ${this.relayerAddress.toString()}`);
       this.logger.debug(`Request params: limit=${limit}`);
       
@@ -359,6 +413,9 @@ export class TonService {
     success: boolean,
   ): Promise<void> {
     try {
+      // Ensure wallet is initialized before proceeding
+      await this.ensureWalletInitialized();
+      
       const subscriptionContract = Address.parse(
         this.config.subscriptionContractAddress,
       );
@@ -390,6 +447,9 @@ export class TonService {
    */
   async sendRefundUser(userAddress: string, amount: bigint): Promise<void> {
     try {
+      // Ensure wallet is initialized before proceeding
+      await this.ensureWalletInitialized();
+      
       const subscriptionContract = Address.parse(
         this.config.subscriptionContractAddress,
       );
@@ -449,6 +509,9 @@ export class TonService {
     body?: Cell | any,
   ): Promise<string> {
     this.logger.debug(`[DEBUG] Starting internal message send to: ${to}, value: ${value}`);
+    
+    // Ensure wallet is initialized before proceeding
+    await this.ensureWalletInitialized();
     
     // Wait for seqno lock to be free
     while (this.seqnoLock) {
@@ -647,6 +710,9 @@ export class TonService {
    */
   async getWalletBalance(): Promise<bigint> {
     try {
+      // Ensure wallet is initialized before proceeding
+      await this.ensureWalletInitialized();
+      
       const balance = await this.client.getBalance(this.relayerAddress);
       return balance;
     } catch (error) {
@@ -660,6 +726,9 @@ export class TonService {
    */
   async getJettonWalletAddress(): Promise<Address> {
     try {
+      // Ensure wallet is initialized before proceeding
+      await this.ensureWalletInitialized();
+      
       const jettonMaster = Address.parse(this.config.jettonMasterAddress);
 
       // Call get_wallet_address method on jetton master
@@ -691,6 +760,30 @@ export class TonService {
   }
 
   /**
+   * Force wallet initialization (public method)
+   */
+  async forceWalletInitialization(): Promise<void> {
+    this.logger.log("[DEBUG] Force wallet initialization requested");
+    await this.ensureWalletInitialized();
+  }
+
+  /**
+   * Check if wallet is initialized
+   */
+  isWalletInitialized(): boolean {
+    return this.walletInitialized;
+  }
+
+  /**
+   * Reset wallet initialization state (for debugging)
+   */
+  resetWalletInitialization(): void {
+    this.logger.log("[DEBUG] Resetting wallet initialization state");
+    this.walletInitialized = false;
+    this.walletInitPromise = null;
+  }
+
+  /**
    * Get TON client instance
    */
   getClient(): TonClient {
@@ -701,6 +794,9 @@ export class TonService {
    * Get jetton wallet contract
    */
   async getJettonWalletContract() {
+    // Ensure wallet is initialized before proceeding
+    await this.ensureWalletInitialized();
+    
     // This would return a jetton wallet contract instance
     // For now, we'll use a simplified approach
     // In production, you would import and use the actual jetton wallet contract
@@ -717,6 +813,9 @@ export class TonService {
    */
   async getTransaction(txHash: string): Promise<any> {
     try {
+      // Ensure wallet is initialized before proceeding
+      await this.ensureWalletInitialized();
+      
       // Mock implementation - in production, query the blockchain
       // For now, simulate successful transaction after 5 seconds
       await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -738,6 +837,9 @@ export class TonService {
   async getJettonWalletAddressForUser(userAddress: string): Promise<string> {
     try {
       this.logger.debug(`[DEBUG] Getting jetton wallet address for user: ${userAddress}`);
+      
+      // Ensure wallet is initialized before proceeding
+      await this.ensureWalletInitialized();
       
       // Parse user address
       const userAddr = Address.parse(userAddress);
