@@ -290,9 +290,11 @@ export class SwapService {
       });
       
       this.logger.debug(`[DEBUG] Pool address from router for rate: ${poolAddress}`);
+      this.logger.debug(`[DEBUG] Pool address type for rate: ${typeof poolAddress}`);
+      this.logger.debug(`[DEBUG] Pool address constructor for rate: ${poolAddress?.constructor?.name || 'null'}`);
       
-      // Create pool instance
-      const pool = poolAddress ? this.client.open(DEX.v1.Pool.create(Address.parse(poolAddress))) : null;
+      // Create pool instance - ensure poolAddress is string before parsing
+      const pool = poolAddress ? this.client.open(DEX.v1.Pool.create(Address.parse(poolAddress.toString()))) : null;
 
       // Add detailed logging for pool object
       this.logger.debug(`[DEBUG] Pool object for rate: ${JSON.stringify(pool)}`);
@@ -423,9 +425,11 @@ export class SwapService {
         });
         
         this.logger.debug(`[DEBUG] Pool address from router: ${poolAddress}`);
+        this.logger.debug(`[DEBUG] Pool address type: ${typeof poolAddress}`);
+        this.logger.debug(`[DEBUG] Pool address constructor: ${poolAddress?.constructor?.name || 'null'}`);
         
-        // Create pool instance
-        const pool = poolAddress ? this.client.open(DEX.v1.Pool.create(Address.parse(poolAddress))) : null;
+        // Create pool instance - ensure poolAddress is string before parsing
+        const pool = poolAddress ? this.client.open(DEX.v1.Pool.create(Address.parse(poolAddress.toString()))) : null;
 
         // Add detailed logging for pool object
         this.logger.debug(`[DEBUG] Pool object: ${JSON.stringify(pool)}`);
