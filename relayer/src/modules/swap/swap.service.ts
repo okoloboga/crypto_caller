@@ -293,17 +293,36 @@ export class SwapService {
       this.logger.debug(`[DEBUG] Pool address type for rate: ${typeof poolAddress}`);
       this.logger.debug(`[DEBUG] Pool address constructor for rate: ${poolAddress?.constructor?.name || 'null'}`);
       
+      // Compare with known working pool address
+      const knownWorkingPool = "EQCJKn-99vd6GEUKTkVEyFwmha33lxtb2oo-eMsU0tFGIZbf";
+      this.logger.debug(`[DEBUG] Known working pool address for rate: ${knownWorkingPool}`);
+      this.logger.debug(`[DEBUG] Addresses match for rate: ${poolAddress?.toString() === knownWorkingPool}`);
+      
       // Create pool instance - ensure poolAddress is string before parsing
       const pool = poolAddress ? this.client.open(DEX.v1.Pool.create(Address.parse(poolAddress.toString()))) : null;
 
-      // Add detailed logging for pool object
-      this.logger.debug(`[DEBUG] Pool object for rate: ${JSON.stringify(pool)}`);
+      // Add detailed logging for pool object (avoid JSON.stringify with BigInt)
+      this.logger.debug(`[DEBUG] Pool object exists for rate: ${pool ? 'yes' : 'no'}`);
       this.logger.debug(`[DEBUG] Pool type: ${typeof pool}`);
       this.logger.debug(`[DEBUG] Pool address type: ${typeof pool?.address}`);
       this.logger.debug(`[DEBUG] Pool address value: ${pool?.address}`);
       this.logger.debug(`[DEBUG] Pool keys: ${pool ? Object.keys(pool) : 'null'}`);
       this.logger.debug(`[DEBUG] Pool constructor: ${pool?.constructor?.name || 'unknown'}`);
       this.logger.debug(`[DEBUG] Pool toString: ${pool?.toString?.() || 'no toString method'}`);
+      
+      // Try to get pool data for debugging
+      if (pool) {
+        try {
+          this.logger.debug(`[DEBUG] Attempting to get pool data for rate...`);
+          const poolData = await pool.getPoolData();
+          this.logger.debug(`[DEBUG] Pool data retrieved successfully for rate`);
+          this.logger.debug(`[DEBUG] Pool reserve0 for rate: ${poolData.reserve0.toString()}`);
+          this.logger.debug(`[DEBUG] Pool reserve1 for rate: ${poolData.reserve1.toString()}`);
+            this.logger.debug(`[DEBUG] Pool protocol fee for rate: ${poolData.protocolFee.toString()}`);
+        } catch (poolDataError) {
+          this.logger.error(`[DEBUG] Failed to get pool data for rate: ${poolDataError.message}`);
+        }
+      }
 
       this.logger.debug(`[DEBUG] Pool lookup for rate calculation: ${pool ? 'found' : 'not found'}`);
       if (!pool) {
@@ -428,17 +447,36 @@ export class SwapService {
         this.logger.debug(`[DEBUG] Pool address type: ${typeof poolAddress}`);
         this.logger.debug(`[DEBUG] Pool address constructor: ${poolAddress?.constructor?.name || 'null'}`);
         
+        // Compare with known working pool address
+        const knownWorkingPool = "EQCJKn-99vd6GEUKTkVEyFwmha33lxtb2oo-eMsU0tFGIZbf";
+        this.logger.debug(`[DEBUG] Known working pool address: ${knownWorkingPool}`);
+        this.logger.debug(`[DEBUG] Addresses match: ${poolAddress?.toString() === knownWorkingPool}`);
+        
         // Create pool instance - ensure poolAddress is string before parsing
         const pool = poolAddress ? this.client.open(DEX.v1.Pool.create(Address.parse(poolAddress.toString()))) : null;
 
-        // Add detailed logging for pool object
-        this.logger.debug(`[DEBUG] Pool object: ${JSON.stringify(pool)}`);
+        // Add detailed logging for pool object (avoid JSON.stringify with BigInt)
+        this.logger.debug(`[DEBUG] Pool object exists: ${pool ? 'yes' : 'no'}`);
         this.logger.debug(`[DEBUG] Pool type: ${typeof pool}`);
         this.logger.debug(`[DEBUG] Pool address type: ${typeof pool?.address}`);
         this.logger.debug(`[DEBUG] Pool address value: ${pool?.address}`);
         this.logger.debug(`[DEBUG] Pool keys: ${pool ? Object.keys(pool) : 'null'}`);
         this.logger.debug(`[DEBUG] Pool constructor: ${pool?.constructor?.name || 'unknown'}`);
         this.logger.debug(`[DEBUG] Pool toString: ${pool?.toString?.() || 'no toString method'}`);
+        
+        // Try to get pool data for debugging
+        if (pool) {
+          try {
+            this.logger.debug(`[DEBUG] Attempting to get pool data...`);
+            const poolData = await pool.getPoolData();
+            this.logger.debug(`[DEBUG] Pool data retrieved successfully`);
+            this.logger.debug(`[DEBUG] Pool reserve0: ${poolData.reserve0.toString()}`);
+            this.logger.debug(`[DEBUG] Pool reserve1: ${poolData.reserve1.toString()}`);
+            this.logger.debug(`[DEBUG] Pool protocol fee: ${poolData.protocolFee.toString()}`);
+          } catch (poolDataError) {
+            this.logger.error(`[DEBUG] Failed to get pool data: ${poolDataError.message}`);
+          }
+        }
 
         if (!pool) {
           this.logger.warn("[DEBUG] Pool not found (undefined) - insufficient liquidity or wrong jetton address");
