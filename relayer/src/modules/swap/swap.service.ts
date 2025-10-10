@@ -123,24 +123,17 @@ export class SwapService {
         "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v1.0 MAINNET
       );
 
-      // Get user's jetton wallet address for delivery
-      const userAddr = Address.parse(userAddress);
-      const userJettonWalletAddress = await this.tonService.getJettonWalletAddressForUser(userAddress);
-      this.logger.debug(`[DEBUG] User jetton wallet address: ${userJettonWalletAddress}`);
-
       // IMPORTANT: Relayer performs swap from its own wallet, not user's wallet
+      // In Router v1, jettons are automatically sent to the wallet that performs the swap (relayer)
       const swapTxParams = await this.router.getSwapTonToJettonTxParams({
         userWalletAddress: Address.parse(this.config.relayerWalletAddress), // Relayer address, not user address
         proxyTon: proxyTon,
         offerAmount: amountNanotons,
-        askJettonAddress: Address.parse(jettonMasterAddress), // Jetton master address (not user wallet)
+        askJettonAddress: Address.parse(jettonMasterAddress), // Jetton master address
         minAskAmount: expectedJettonAmount.toString(),
         queryId: BigInt(Date.now()),
         referralAddress: undefined,
-        // Add receiver address for proper jetton delivery
-        additionalData: {
-          receiverAddress: Address.parse(userJettonWalletAddress), // Where jettons should be delivered
-        },
+        // Note: additionalData is not supported in Router v1 - jettons go to relayer wallet
       });
       
       this.logger.log(`[DEBUG] ✅ Swap transaction parameters built successfully:`);
@@ -149,7 +142,7 @@ export class SwapService {
       this.logger.log(`[DEBUG]   - Payload size: ${swapTxParams.payload ? swapTxParams.payload.bits.length : 0} bits`);
       this.logger.log(`[DEBUG]   - Swap from: ${this.config.relayerWalletAddress} (relayer)`);
       this.logger.log(`[DEBUG]   - Asking for: ${jettonMasterAddress} (jetton master)`);
-      this.logger.log(`[DEBUG]   - Deliver to: ${userJettonWalletAddress} (user jetton wallet)`);
+      this.logger.log(`[DEBUG]   - Jettons will be delivered to: ${this.config.relayerWalletAddress} (relayer wallet)`);
       this.logger.log(`[DEBUG]   - Amount in: ${amountNanotons} nanotons`);
       this.logger.log(`[DEBUG]   - Expected out: ${expectedJettonAmount} jettons`);
 
