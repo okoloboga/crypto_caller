@@ -283,19 +283,17 @@ export class SwapService {
       this.logger.debug(`[DEBUG] Jetton address for rate: ${jettonAddress.toString()}`);
       this.logger.debug(`[DEBUG] Address array for rate: [${ptonAddress.toString()}, ${jettonAddress.toString()}]`);
       
-      // Use router.getPool() to get the correct pool instance (handles V1/V2 automatically)
-      this.logger.debug(`[DEBUG] Using router.getPool() to get pool instance for rate`);
-      const pool = await this.router.getPool([ptonAddress, jettonAddress]);
+      // Use hardcoded working pool address with DEX.v2_1.Pool (V2.1 SDK for V2 contract)
+      const workingPoolAddress = "EQCJKn-99vd6GEUKTkVEyFwmha33lxtb2oo-eMsU0tFGIZbf";
+      this.logger.debug(`[DEBUG] Using hardcoded working pool address for rate: ${workingPoolAddress}`);
       
-      this.logger.debug(`[DEBUG] Pool from router for rate: ${pool ? 'found' : 'not found'}`);
+      const pool = this.client.open(DEX.v2_1.Pool.create(Address.parse(workingPoolAddress)));
+      
+      this.logger.debug(`[DEBUG] Pool created with hardcoded address for rate: ${pool ? 'success' : 'failed'}`);
       this.logger.debug(`[DEBUG] Pool type for rate: ${typeof pool}`);
       this.logger.debug(`[DEBUG] Pool constructor for rate: ${pool?.constructor?.name || 'null'}`);
-      
-      // Compare with known working pool address
-      const knownWorkingPool = "EQCJKn-99vd6GEUKTkVEyFwmha33lxtb2oo-eMsU0tFGIZbf";
-      this.logger.debug(`[DEBUG] Known working pool address for rate: ${knownWorkingPool}`);
       this.logger.debug(`[DEBUG] Pool address for rate: ${pool?.address?.toString() || 'N/A'}`);
-      this.logger.debug(`[DEBUG] Addresses match for rate: ${pool?.address?.toString() === knownWorkingPool}`);
+      this.logger.debug(`[DEBUG] Using DEX.v2_1.Pool for stonfi_pool_v2 contract for rate`);
 
       // Add detailed logging for pool object (avoid JSON.stringify with BigInt)
       this.logger.debug(`[DEBUG] Pool object exists for rate: ${pool ? 'yes' : 'no'}`);
@@ -433,19 +431,17 @@ export class SwapService {
         this.logger.debug(`[DEBUG] Jetton address: ${jettonAddress.toString()}`);
         this.logger.debug(`[DEBUG] Address array: [${ptonAddress.toString()}, ${jettonAddress.toString()}]`);
         
-        // Use router.getPool() to get the correct pool instance (handles V1/V2 automatically)
-        this.logger.debug(`[DEBUG] Using router.getPool() to get pool instance`);
-        const pool = await this.router.getPool([ptonAddress, jettonAddress]);
+        // Use hardcoded working pool address with DEX.v2_1.Pool (V2.1 SDK for V2 contract)
+        const workingPoolAddress = "EQCJKn-99vd6GEUKTkVEyFwmha33lxtb2oo-eMsU0tFGIZbf";
+        this.logger.debug(`[DEBUG] Using hardcoded working pool address: ${workingPoolAddress}`);
         
-        this.logger.debug(`[DEBUG] Pool from router: ${pool ? 'found' : 'not found'}`);
+        const pool = this.client.open(DEX.v2_1.Pool.create(Address.parse(workingPoolAddress)));
+        
+        this.logger.debug(`[DEBUG] Pool created with hardcoded address: ${pool ? 'success' : 'failed'}`);
         this.logger.debug(`[DEBUG] Pool type: ${typeof pool}`);
         this.logger.debug(`[DEBUG] Pool constructor: ${pool?.constructor?.name || 'null'}`);
-        
-        // Compare with known working pool address
-        const knownWorkingPool = "EQCJKn-99vd6GEUKTkVEyFwmha33lxtb2oo-eMsU0tFGIZbf";
-        this.logger.debug(`[DEBUG] Known working pool address: ${knownWorkingPool}`);
         this.logger.debug(`[DEBUG] Pool address: ${pool?.address?.toString() || 'N/A'}`);
-        this.logger.debug(`[DEBUG] Addresses match: ${pool?.address?.toString() === knownWorkingPool}`);
+        this.logger.debug(`[DEBUG] Using DEX.v2_1.Pool for stonfi_pool_v2 contract`);
 
         // Add detailed logging for pool object (avoid JSON.stringify with BigInt)
         this.logger.debug(`[DEBUG] Pool object exists: ${pool ? 'yes' : 'no'}`);
