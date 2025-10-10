@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import {
   TonClient,
   WalletContractV4,
+  WalletContractV5R1,
   Address,
   beginCell,
   Cell,
@@ -26,7 +27,7 @@ export interface ParsedTransaction {
 export class TonService {
   private readonly logger = new Logger(TonService.name);
   private readonly client: TonClient;
-  private relayerWallet: WalletContractV4;
+  private relayerWallet: WalletContractV5R1;
   private readonly relayerAddress: Address;
   private readonly config: RelayerConfig;
   private keyPair: { publicKey: Buffer; secretKey: Buffer };
@@ -137,13 +138,12 @@ export class TonService {
       if (mnemonic.length === 24) {
         // It's a mnemonic
         this.keyPair = await mnemonicToWalletKey(mnemonic);
-        // Use walletId for V4R2 mainnet (698983191 is the standard walletId for V4R2)
-        this.relayerWallet = WalletContractV4.create({
+        // Use V5R1 wallet (no walletId needed)
+        this.relayerWallet = WalletContractV5R1.create({
           workchain: 0,
           publicKey: this.keyPair.publicKey,
-          walletId: 698983191, // V4R2 mainnet walletId
         });
-        this.logger.log("[DEBUG] Wallet initialized from mnemonic (V4R2 mainnet)");
+        this.logger.log("[DEBUG] Wallet initialized from mnemonic (V5R1 mainnet)");
       } else {
         // Assume it's a hex private key
         const privateKey = Buffer.from(this.config.relayerPrivateKey, "hex");
@@ -151,13 +151,12 @@ export class TonService {
           publicKey: privateKey.slice(32),
           secretKey: privateKey,
         };
-        // Use walletId for V4R2 mainnet (698983191 is the standard walletId for V4R2)
-        this.relayerWallet = WalletContractV4.create({
+        // Use V5R1 wallet (no walletId needed)
+        this.relayerWallet = WalletContractV5R1.create({
           workchain: 0,
           publicKey: this.keyPair.publicKey,
-          walletId: 698983191, // V4R2 mainnet walletId
         });
-        this.logger.log("[DEBUG] Wallet initialized from private key (V4R2 mainnet)");
+        this.logger.log("[DEBUG] Wallet initialized from private key (V5R1 mainnet)");
       }
 
       // Verify wallet state in network
@@ -175,6 +174,21 @@ export class TonService {
   private async verifyWalletState(): Promise<void> {
     try {
       this.logger.debug("[DEBUG] Verifying wallet state in network...");
+      
+      // Check if generated address matches expected address
+      const generatedAddress = this.relayerWallet.address.toString();
+      const expectedAddress = this.relayerAddress.toString();
+      
+      this.logger.log(`[DEBUG] Generated wallet address: ${generatedAddress}`);
+      this.logger.log(`[DEBUG] Expected wallet address: ${expectedAddress}`);
+      
+      if (generatedAddress !== expectedAddress) {
+        this.logger.error(`[DEBUG] ADDRESS MISMATCH! Generated address does not match expected address!`);
+        this.logger.error(`[DEBUG] This indicates wrong wallet type or configuration`);
+        throw new Error(`Address mismatch: generated ${generatedAddress} != expected ${expectedAddress}`);
+      } else {
+        this.logger.log(`[DEBUG] ✅ Address verification successful - addresses match!`);
+      }
       
       const walletContract = this.client.open(this.relayerWallet);
       const balance = await walletContract.getBalance();
@@ -651,6 +665,7 @@ export class TonService {
             seqno: seqno,
             secretKey: this.keyPair.secretKey,
             messages: [internalMessage],
+            sendMode: 1, // V5R1 requires sendMode
           });
           this.logger.debug(`[DEBUG] Transaction sent successfully on attempt ${retryCount + 1}`);
           break;

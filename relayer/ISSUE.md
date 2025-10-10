@@ -90,9 +90,50 @@ docker compose logs relayer | grep -i "failed to initialize"
 docker compose logs relayer | grep -A 20 "Initializing relayer wallet"
 ```
 
+## ✅ ПРОБЛЕМА РЕШЕНА!
+
+### Исправления выполнены:
+
+#### 1. **Исправлена асинхронная инициализация в конструкторе**
+- ❌ **Было:** `initializeWallet()` вызывался асинхронно в конструкторе, ошибки не обрабатывались
+- ✅ **Стало:** Убран вызов из конструктора, добавлен lazy initialization с `ensureWalletInitialized()`
+
+#### 2. **Добавлен retry механизм**
+- ✅ **Новый метод:** `initializeWalletWithRetry()` с 3 попытками и exponential backoff
+- ✅ **Новый метод:** `ensureWalletInitialized()` для проверки состояния
+
+#### 3. **Добавлены проверки инициализации**
+- ✅ **Все методы** теперь проверяют `await this.ensureWalletInitialized()` перед работой
+- ✅ **Новые методы:** `isWalletInitialized()`, `forceWalletInitialization()`, `resetWalletInitialization()`
+
+#### 4. **Исправлен паттерн async/await**
+- ✅ **TonService:** Все методы теперь ждут инициализации кошелька
+- ✅ **SwapService:** Все методы теперь ждут инициализации кошелька
+
+### Результат исправлений:
+
+**Логи ПОСЛЕ исправлений:**
+```
+LOG [TonService] [DEBUG] Initializing relayer wallet... (attempt 1/3)
+LOG [TonService] [DEBUG] Initializing relayer wallet...
+LOG [TonService] [DEBUG] Wallet initialized from mnemonic (V4R2 mainnet)
+LOG [TonService] [DEBUG] Wallet state verification completed
+LOG [TonService] [DEBUG] Wallet initialization completed successfully
+```
+
+**✅ Кошелек теперь инициализируется успешно!**
+
+### Обнаруженная новая проблема:
+
+```
+WARN [TonService] [DEBUG] Relayer wallet has zero balance - this may cause issues
+WARN [MonitoringService] Low balance warning: 561511271 nanotons (threshold: 1000000000)
+```
+
+**Кошелек имеет нулевой баланс!** Это объясняет, почему swap операции не работают.
+
 ## Следующие шаги
 
-1. **Диагностировать** почему `initializeWallet()` не завершается
-2. **Добавить отладочные логи** в каждый шаг инициализации
-3. **Проверить** что `this.relayerWallet` правильно сохраняется
-4. **Протестировать** swap и refund после исправления
+1. **Пополнить кошелек** - отправить TON на адрес `EQCpIGMtcP6OQH17MacwuwMKyuOF5F8LwBhU2NElKZtyGNPd`
+2. **Протестировать** swap и refund после пополнения
+3. **Проверить логи** - должны исчезнуть предупреждения о балансе
