@@ -283,23 +283,19 @@ export class SwapService {
       this.logger.debug(`[DEBUG] Jetton address for rate: ${jettonAddress.toString()}`);
       this.logger.debug(`[DEBUG] Address array for rate: [${ptonAddress.toString()}, ${jettonAddress.toString()}]`);
       
-      // Get pool address using router's getPoolAddress method
-      const poolAddress = await this.router.getPoolAddress({
-        token0: ptonAddress.toString(),
-        token1: jettonAddress.toString(),
-      });
+      // Use router.getPool() to get the correct pool instance (handles V1/V2 automatically)
+      this.logger.debug(`[DEBUG] Using router.getPool() to get pool instance for rate`);
+      const pool = await this.router.getPool([ptonAddress, jettonAddress]);
       
-      this.logger.debug(`[DEBUG] Pool address from router for rate: ${poolAddress}`);
-      this.logger.debug(`[DEBUG] Pool address type for rate: ${typeof poolAddress}`);
-      this.logger.debug(`[DEBUG] Pool address constructor for rate: ${poolAddress?.constructor?.name || 'null'}`);
+      this.logger.debug(`[DEBUG] Pool from router for rate: ${pool ? 'found' : 'not found'}`);
+      this.logger.debug(`[DEBUG] Pool type for rate: ${typeof pool}`);
+      this.logger.debug(`[DEBUG] Pool constructor for rate: ${pool?.constructor?.name || 'null'}`);
       
       // Compare with known working pool address
       const knownWorkingPool = "EQCJKn-99vd6GEUKTkVEyFwmha33lxtb2oo-eMsU0tFGIZbf";
       this.logger.debug(`[DEBUG] Known working pool address for rate: ${knownWorkingPool}`);
-      this.logger.debug(`[DEBUG] Addresses match for rate: ${poolAddress?.toString() === knownWorkingPool}`);
-      
-      // Create pool instance - ensure poolAddress is string before parsing
-      const pool = poolAddress ? this.client.open(DEX.v1.Pool.create(Address.parse(poolAddress.toString()))) : null;
+      this.logger.debug(`[DEBUG] Pool address for rate: ${pool?.address?.toString() || 'N/A'}`);
+      this.logger.debug(`[DEBUG] Addresses match for rate: ${pool?.address?.toString() === knownWorkingPool}`);
 
       // Add detailed logging for pool object (avoid JSON.stringify with BigInt)
       this.logger.debug(`[DEBUG] Pool object exists for rate: ${pool ? 'yes' : 'no'}`);
@@ -437,23 +433,19 @@ export class SwapService {
         this.logger.debug(`[DEBUG] Jetton address: ${jettonAddress.toString()}`);
         this.logger.debug(`[DEBUG] Address array: [${ptonAddress.toString()}, ${jettonAddress.toString()}]`);
         
-        // Get pool address using router's getPoolAddress method
-        const poolAddress = await this.router.getPoolAddress({
-          token0: ptonAddress.toString(),
-          token1: jettonAddress.toString(),
-        });
+        // Use router.getPool() to get the correct pool instance (handles V1/V2 automatically)
+        this.logger.debug(`[DEBUG] Using router.getPool() to get pool instance`);
+        const pool = await this.router.getPool([ptonAddress, jettonAddress]);
         
-        this.logger.debug(`[DEBUG] Pool address from router: ${poolAddress}`);
-        this.logger.debug(`[DEBUG] Pool address type: ${typeof poolAddress}`);
-        this.logger.debug(`[DEBUG] Pool address constructor: ${poolAddress?.constructor?.name || 'null'}`);
+        this.logger.debug(`[DEBUG] Pool from router: ${pool ? 'found' : 'not found'}`);
+        this.logger.debug(`[DEBUG] Pool type: ${typeof pool}`);
+        this.logger.debug(`[DEBUG] Pool constructor: ${pool?.constructor?.name || 'null'}`);
         
         // Compare with known working pool address
         const knownWorkingPool = "EQCJKn-99vd6GEUKTkVEyFwmha33lxtb2oo-eMsU0tFGIZbf";
         this.logger.debug(`[DEBUG] Known working pool address: ${knownWorkingPool}`);
-        this.logger.debug(`[DEBUG] Addresses match: ${poolAddress?.toString() === knownWorkingPool}`);
-        
-        // Create pool instance - ensure poolAddress is string before parsing
-        const pool = poolAddress ? this.client.open(DEX.v1.Pool.create(Address.parse(poolAddress.toString()))) : null;
+        this.logger.debug(`[DEBUG] Pool address: ${pool?.address?.toString() || 'N/A'}`);
+        this.logger.debug(`[DEBUG] Addresses match: ${pool?.address?.toString() === knownWorkingPool}`);
 
         // Add detailed logging for pool object (avoid JSON.stringify with BigInt)
         this.logger.debug(`[DEBUG] Pool object exists: ${pool ? 'yes' : 'no'}`);
