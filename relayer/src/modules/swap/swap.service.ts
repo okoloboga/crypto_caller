@@ -147,7 +147,7 @@ export class SwapService {
       
       this.logger.log(`[DEBUG] ✅ Swap transaction parameters built successfully:`);
       this.logger.log(`[DEBUG]   - Destination: ${swapTxParams.to.toString()}`);
-      this.logger.log(`[DEBUG]   - Gas amount: ${swapTxParams.gasAmount}`);
+      this.logger.log(`[DEBUG]   - Value (gas): ${swapTxParams.value || swapTxParams.gasAmount || 'undefined'}`);
       this.logger.log(`[DEBUG]   - Payload size: ${swapTxParams.payload ? swapTxParams.payload.bits.length : 0} bits`);
       this.logger.log(`[DEBUG]   - Swap from: ${this.config.relayerWalletAddress} (relayer)`);
       this.logger.log(`[DEBUG]   - Asking for: ${jettonMasterAddress} (jetton master)`);
@@ -156,13 +156,13 @@ export class SwapService {
       this.logger.log(`[DEBUG]   - Expected out: ${expectedJettonAmount} jettons`);
 
       this.logger.log(
-        `[DEBUG] Swap transaction built: to=${swapTxParams.to}, amount=${swapTxParams.gasAmount}`,
+        `[DEBUG] Swap transaction built: to=${swapTxParams.to}, amount=${swapTxParams.value || swapTxParams.gasAmount}`,
       );
 
       // Send transaction using TonService
       const txHash = await this.tonService.sendInternalMessage(
         swapTxParams.to.toString(),
-        BigInt(swapTxParams.gasAmount),
+        BigInt(swapTxParams.value || swapTxParams.gasAmount),
         swapTxParams.payload,
       );
 
