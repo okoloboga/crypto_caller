@@ -65,7 +65,15 @@ export class SwapService {
 
       // Get current swap rate
       const rate = await this.getSwapRate();
+      this.logger.log(`[DEBUG] Got swap rate: ${rate} nano-jettons per nano-TON`);
+      
       const expectedJettonAmount = (amountNanotons * rate) / 1_000_000_000n;
+      this.logger.log(`[DEBUG] Calculated expected jetton amount: ${expectedJettonAmount} (from ${amountNanotons} nanotons * ${rate} / 10^9)`);
+
+      // Validate expected amount
+      if (expectedJettonAmount === 0n) {
+        throw new Error(`Invalid swap calculation: expectedJettonAmount is 0 (rate: ${rate}, amount: ${amountNanotons})`);
+      }
 
       // Build and execute real STON.fi swap transaction
       const result = await this.executeRealSwap(
@@ -135,14 +143,15 @@ export class SwapService {
         },
       });
       
-      this.logger.debug(`[DEBUG] Swap transaction parameters:`, {
-        to: swapTxParams.to.toString(),
-        gasAmount: swapTxParams.gasAmount,
-        payloadSize: swapTxParams.payload ? swapTxParams.payload.bits.length : 0,
-        userWallet: this.config.relayerWalletAddress,
-        askJetton: jettonMasterAddress,
-        receiverAddress: userJettonWalletAddress
-      });
+      this.logger.log(`[DEBUG] ✅ Swap transaction parameters built successfully:`);
+      this.logger.log(`[DEBUG]   - Destination: ${swapTxParams.to.toString()}`);
+      this.logger.log(`[DEBUG]   - Gas amount: ${swapTxParams.gasAmount}`);
+      this.logger.log(`[DEBUG]   - Payload size: ${swapTxParams.payload ? swapTxParams.payload.bits.length : 0} bits`);
+      this.logger.log(`[DEBUG]   - Swap from: ${this.config.relayerWalletAddress} (relayer)`);
+      this.logger.log(`[DEBUG]   - Asking for: ${jettonMasterAddress} (jetton master)`);
+      this.logger.log(`[DEBUG]   - Deliver to: ${userJettonWalletAddress} (user jetton wallet)`);
+      this.logger.log(`[DEBUG]   - Amount in: ${amountNanotons} nanotons`);
+      this.logger.log(`[DEBUG]   - Expected out: ${expectedJettonAmount} jettons`);
 
       this.logger.log(
         `[DEBUG] Swap transaction built: to=${swapTxParams.to}, amount=${swapTxParams.gasAmount}`,
@@ -343,19 +352,51 @@ export class SwapService {
       const poolData = await pool.getPoolData();
       this.logger.debug(`[DEBUG] Pool reserves: reserve0=${poolData.reserve0.toString()}, reserve1=${poolData.reserve1.toString()}`);
 
-      // Calculate rate: jetton_reserve / ton_reserve
-      const tonReserve = poolData.reserve0;
-      const jettonReserve = poolData.reserve1;
+      // Determine token order - which reserve is TON and which is Jetton
+      let tonReserve: bigint;
+      let jettonReserve: bigint;
+      
+      // Check by reserve size (TON reserve is usually larger in TON/Jetton pools)
+      // This is a heuristic - in production you might want to check token addresses
+      if (poolData.reserve0 > poolData.reserve1) {
+        // reserve0 = TON (larger reserve)
+        tonReserve = poolData.reserve0;
+        jettonReserve = poolData.reserve1;
+        this.logger.debug(`[DEBUG] Detected: reserve0=TON (${tonReserve}), reserve1=Jetton (${jettonReserve})`);
+      } else {
+        // reserve1 = TON
+        tonReserve = poolData.reserve1;
+        jettonReserve = poolData.reserve0;
+        this.logger.debug(`[DEBUG] Detected: reserve0=Jetton (${jettonReserve}), reserve1=TON (${tonReserve})`);
+      }
 
       if (tonReserve === 0n || jettonReserve === 0n) {
         this.logger.warn("[DEBUG] Pool reserves are zero, using fallback rate");
         return 10000n;
       }
 
-      // Calculate rate with some slippage protection
-      const rate = (jettonReserve * 95n) / (tonReserve * 100n); // 5% slippage protection
+      // CORRECTED FORMULA: How many nano-jettons per nano-TON
+      // Formula: (jettonReserve * 10^9 * 95) / (tonReserve * 100)
+      // The 10^9 multiplier ensures we get the rate in proper scale
+      // 95/100 = 5% slippage protection
+      const rate = (jettonReserve * 10n ** 9n * 95n) / (tonReserve * 100n);
 
-      this.logger.log(`[DEBUG] Current swap rate: 1 TON = ${rate.toString()} jettons`);
+      this.logger.log(`[DEBUG] Corrected swap rate: 1 TON = ${rate.toString()} nano-jettons (per nano-TON unit)`);
+      
+      // Validate result
+      if (rate === 0n) {
+        this.logger.error(`[DEBUG] Invalid rate: rate is 0 after calculation`);
+        this.logger.error(`[DEBUG] tonReserve=${tonReserve}, jettonReserve=${jettonReserve}`);
+        this.logger.warn(`[DEBUG] Using fallback rate due to invalid calculation`);
+        return 10000n; // Fallback
+      }
+      
+      // Sanity check - rate shouldn't be unreasonably high (> 1M jettons per TON)
+      if (rate > 1000000000000n) {
+        this.logger.warn(`[DEBUG] Suspicious rate: ${rate}, might indicate wrong reserve order`);
+        this.logger.warn(`[DEBUG] Double-check: tonReserve=${tonReserve}, jettonReserve=${jettonReserve}`);
+      }
+      
       return rate;
     } catch (error) {
       this.logger.error(`[DEBUG] Failed to get swap rate: ${error.message}`);
@@ -452,7 +493,7 @@ export class SwapService {
         this.logger.debug(`[DEBUG] Pool constructor: ${pool?.constructor?.name || 'unknown'}`);
         this.logger.debug(`[DEBUG] Pool toString: ${pool?.toString?.() || 'no toString method'}`);
         
-        // Try to get pool data for debugging
+        // Try to get pool data for debugging and liquidity check
         if (pool) {
           try {
             this.logger.debug(`[DEBUG] Attempting to get pool data...`);
@@ -461,8 +502,39 @@ export class SwapService {
             this.logger.debug(`[DEBUG] Pool reserve0: ${poolData.reserve0.toString()}`);
             this.logger.debug(`[DEBUG] Pool reserve1: ${poolData.reserve1.toString()}`);
             this.logger.debug(`[DEBUG] Pool protocol fee: ${poolData.protocolFee.toString()}`);
+            
+            // Determine token order - same logic as getSwapRate()
+            let tonReserve: bigint;
+            let jettonReserve: bigint;
+            
+            if (poolData.reserve0 > poolData.reserve1) {
+              tonReserve = poolData.reserve0;
+              jettonReserve = poolData.reserve1;
+              this.logger.debug(`[DEBUG] Detected in canSwap: reserve0=TON (${tonReserve}), reserve1=Jetton (${jettonReserve})`);
+            } else {
+              tonReserve = poolData.reserve1;
+              jettonReserve = poolData.reserve0;
+              this.logger.debug(`[DEBUG] Detected in canSwap: reserve0=Jetton (${jettonReserve}), reserve1=TON (${tonReserve})`);
+            }
+            
+            // Check if there's enough liquidity for the swap
+            if (tonReserve === 0n || jettonReserve === 0n) {
+              this.logger.warn(`[DEBUG] Pool has zero reserves - cannot swap`);
+              return false;
+            }
+            
+            // Check if swap amount is reasonable compared to pool size
+            // Don't allow swaps that would consume more than 10% of pool liquidity
+            const maxSwapAmount = (tonReserve * 10n) / 100n; // 10% of pool
+            if (amountNanotons > maxSwapAmount) {
+              this.logger.warn(`[DEBUG] Swap amount ${amountNanotons} exceeds 10% of pool liquidity (max: ${maxSwapAmount})`);
+              return false;
+            }
+            
+            this.logger.debug(`[DEBUG] Liquidity check passed: pool can handle ${amountNanotons} nanotons swap`);
           } catch (poolDataError) {
             this.logger.error(`[DEBUG] Failed to get pool data: ${poolDataError.message}`);
+            return false;
           }
         }
 
