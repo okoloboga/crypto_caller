@@ -134,21 +134,24 @@ export class SwapService {
         referralAddress: undefined,
       });
       
-      // Debug: Log full swapTxParams object to diagnose gasAmount issue
+      // Debug: Log full swapTxParams object to diagnose issues
+      const actualBody = swapTxParams.body || swapTxParams.payload;
       this.logger.debug(`[DEBUG] swapTxParams full object:`, {
         to: swapTxParams.to?.toString(),
+        value: swapTxParams.value,
         gasAmount: swapTxParams.gasAmount,
-        payload: swapTxParams.payload ? `Cell(${swapTxParams.payload.bits.length} bits)` : 'null',
+        hasBody: 'body' in swapTxParams,
+        hasPayload: 'payload' in swapTxParams,
+        bodySize: swapTxParams.body ? swapTxParams.body.bits.length : 0,
+        payloadSize: swapTxParams.payload ? swapTxParams.payload.bits.length : 0,
+        actualBodySize: actualBody ? actualBody.bits.length : 0,
         allKeys: Object.keys(swapTxParams),
-        hasAmount: 'amount' in swapTxParams,
-        hasTonAmount: 'tonAmount' in swapTxParams,
-        hasValue: 'value' in swapTxParams
       });
       
       this.logger.log(`[DEBUG] ✅ Swap transaction parameters built successfully:`);
       this.logger.log(`[DEBUG]   - Destination: ${swapTxParams.to.toString()}`);
       this.logger.log(`[DEBUG]   - Value (gas): ${swapTxParams.value || swapTxParams.gasAmount || 'undefined'}`);
-      this.logger.log(`[DEBUG]   - Payload size: ${swapTxParams.payload ? swapTxParams.payload.bits.length : 0} bits`);
+      this.logger.log(`[DEBUG]   - Body size: ${actualBody ? actualBody.bits.length : 0} bits`);
       this.logger.log(`[DEBUG]   - Swap from: ${this.config.relayerWalletAddress} (relayer)`);
       this.logger.log(`[DEBUG]   - Asking for: ${jettonMasterAddress} (jetton master)`);
       this.logger.log(`[DEBUG]   - Jettons will be delivered to: ${this.config.relayerWalletAddress} (relayer wallet)`);
@@ -160,10 +163,27 @@ export class SwapService {
       );
 
       // Send transaction using TonService
+      // Router v2.2 returns 'body' instead of 'payload'
+      const messageBody = swapTxParams.body || swapTxParams.payload;
+      
+      if (!messageBody) {
+        throw new Error('No message body in swapTxParams - cannot send swap transaction');
+      }
+      
+      // Get jetton balance BEFORE swap
+      const balanceBefore = await this.getActualJettonAmount(
+        this.config.relayerWalletAddress,
+        txId,
+        0n,
+      );
+      this.logger.debug(`[DEBUG] Jetton balance BEFORE swap: ${balanceBefore}`);
+      
+      this.logger.debug(`[DEBUG] Sending swap with body size: ${messageBody.bits.length} bits`);
+      
       const txHash = await this.tonService.sendInternalMessage(
         swapTxParams.to.toString(),
         BigInt(swapTxParams.value || swapTxParams.gasAmount),
-        swapTxParams.payload,
+        messageBody,
       );
 
       this.logger.log(`[DEBUG] Swap transaction sent: ${txHash}`);
@@ -183,14 +203,18 @@ export class SwapService {
         };
       }
 
-      // Get actual jetton amount received
-      const actualJettonAmount = await this.getActualJettonAmount(
+      // Get jetton balance AFTER swap
+      const balanceAfter = await this.getActualJettonAmount(
         this.config.relayerWalletAddress, // Check relayer's jetton balance
         txId,
-        expectedJettonAmount,
+        0n,
       );
+      this.logger.debug(`[DEBUG] Jetton balance AFTER swap: ${balanceAfter}`);
+      
+      // Calculate actual jetton amount received from this swap
+      const actualJettonAmount = balanceAfter - balanceBefore;
 
-      this.logger.log(`[DEBUG] Swap completed: received ${actualJettonAmount} jettons`);
+      this.logger.log(`[DEBUG] Swap completed: received ${actualJettonAmount} jettons (balance: ${balanceBefore} -> ${balanceAfter})`);
 
       return {
         jettonAmount: actualJettonAmount,
@@ -304,18 +328,22 @@ export class SwapService {
       let tonReserve: bigint;
       let jettonReserve: bigint;
       
-      // Check by reserve size (TON reserve is usually larger in TON/Jetton pools)
-      // This is a heuristic - in production you might want to check token addresses
+      // For RUBLE/TON pool on STON.fi:
+      // reserve0 = RUBLE (larger number, but smaller value - ~22M RUBLE)
+      // reserve1 = TON (smaller number, but larger value - ~213 TON)
+      // This is because RUBLE price is very low (~$0.000026), TON is high (~$2.69)
       if (poolData.reserve0 > poolData.reserve1) {
-        // reserve0 = TON (larger reserve)
-        tonReserve = poolData.reserve0;
-        jettonReserve = poolData.reserve1;
-        this.logger.debug(`[DEBUG] Detected: reserve0=TON (${tonReserve}), reserve1=Jetton (${jettonReserve})`);
-      } else {
-        // reserve1 = TON
+        // reserve0 = Jetton (RUBLE - larger number)
+        // reserve1 = TON (smaller number but higher value)
         tonReserve = poolData.reserve1;
         jettonReserve = poolData.reserve0;
-        this.logger.debug(`[DEBUG] Detected: reserve0=Jetton (${jettonReserve}), reserve1=TON (${tonReserve})`);
+        this.logger.debug(`[DEBUG] Detected: reserve0=Jetton/RUBLE (${jettonReserve}), reserve1=TON (${tonReserve})`);
+      } else {
+        // reserve1 = Jetton (larger number)
+        // reserve0 = TON (smaller number but higher value)
+        tonReserve = poolData.reserve0;
+        jettonReserve = poolData.reserve1;
+        this.logger.debug(`[DEBUG] Detected: reserve0=TON (${tonReserve}), reserve1=Jetton/RUBLE (${jettonReserve})`);
       }
 
       if (tonReserve === 0n || jettonReserve === 0n) {
@@ -401,15 +429,16 @@ export class SwapService {
             const poolData = await pool.getPoolData();
             
             // Determine token order - same logic as getSwapRate()
+            // For RUBLE/TON pool: larger number = RUBLE, smaller number = TON
             let tonReserve: bigint;
             let jettonReserve: bigint;
             
             if (poolData.reserve0 > poolData.reserve1) {
-              tonReserve = poolData.reserve0;
-              jettonReserve = poolData.reserve1;
-            } else {
               tonReserve = poolData.reserve1;
               jettonReserve = poolData.reserve0;
+            } else {
+              tonReserve = poolData.reserve0;
+              jettonReserve = poolData.reserve1;
             }
             
             // Check if there's enough liquidity for the swap
