@@ -329,21 +329,21 @@ export class SwapService {
       let jettonReserve: bigint;
       
       // For RUBLE/TON pool on STON.fi:
-      // reserve0 = RUBLE (larger number, but smaller value - ~22M RUBLE)
-      // reserve1 = TON (smaller number, but larger value - ~213 TON)
+      // reserve0 = TON (smaller number, but higher value - ~227 TON)
+      // reserve1 = RUBLE (larger number, but smaller value - ~21B RUBLE)
       // This is because RUBLE price is very low (~$0.000026), TON is high (~$2.69)
-      if (poolData.reserve0 > poolData.reserve1) {
-        // reserve0 = Jetton (RUBLE - larger number)
-        // reserve1 = TON (smaller number but higher value)
-        tonReserve = poolData.reserve1;
-        jettonReserve = poolData.reserve0;
-        this.logger.debug(`[DEBUG] Detected: reserve0=Jetton/RUBLE (${jettonReserve}), reserve1=TON (${tonReserve})`);
-      } else {
-        // reserve1 = Jetton (larger number)
+      if (poolData.reserve0 < poolData.reserve1) {
         // reserve0 = TON (smaller number but higher value)
+        // reserve1 = Jetton/RUBLE (larger number but lower value)
         tonReserve = poolData.reserve0;
         jettonReserve = poolData.reserve1;
         this.logger.debug(`[DEBUG] Detected: reserve0=TON (${tonReserve}), reserve1=Jetton/RUBLE (${jettonReserve})`);
+      } else {
+        // reserve1 = TON (smaller number but higher value)
+        // reserve0 = Jetton/RUBLE (larger number but lower value)
+        tonReserve = poolData.reserve1;
+        jettonReserve = poolData.reserve0;
+        this.logger.debug(`[DEBUG] Detected: reserve0=Jetton/RUBLE (${jettonReserve}), reserve1=TON (${tonReserve})`);
       }
 
       if (tonReserve === 0n || jettonReserve === 0n) {
@@ -371,6 +371,13 @@ export class SwapService {
       if (rate > 1000000000000n) {
         this.logger.warn(`[DEBUG] Suspicious rate: ${rate}, might indicate wrong reserve order`);
         this.logger.warn(`[DEBUG] Double-check: tonReserve=${tonReserve}, jettonReserve=${jettonReserve}`);
+        // Try swapping reserves if rate is too high
+        this.logger.warn(`[DEBUG] Rate too high, trying swapped reserves...`);
+        const swappedRate = (tonReserve * 10n ** 9n * 95n) / (jettonReserve * 100n);
+        if (swappedRate >= 10000n && swappedRate <= 1000000000000n) {
+          this.logger.log(`[DEBUG] Swapped rate looks better: ${swappedRate}`);
+          return swappedRate;
+        }
       }
       
       return rate;
@@ -394,7 +401,7 @@ export class SwapService {
       await this.tonService.forceWalletInitialization();
 
       // Basic amount constraints
-      const minSwapAmount = 1000000n; // 0.001 TON minimum
+      const minSwapAmount = 200000000n; // 0.2 TON minimum (increased for STON.fi)
       const maxSwapAmount = 1000000000000n; // 1000 TON maximum
 
       if (amountNanotons < minSwapAmount || amountNanotons > maxSwapAmount) {
@@ -425,16 +432,16 @@ export class SwapService {
             const poolData = await pool.getPoolData();
             
             // Determine token order - same logic as getSwapRate()
-            // For RUBLE/TON pool: larger number = RUBLE, smaller number = TON
+            // For RUBLE/TON pool: smaller number = TON, larger number = RUBLE
             let tonReserve: bigint;
             let jettonReserve: bigint;
             
-            if (poolData.reserve0 > poolData.reserve1) {
-              tonReserve = poolData.reserve1;
-              jettonReserve = poolData.reserve0;
-            } else {
+            if (poolData.reserve0 < poolData.reserve1) {
               tonReserve = poolData.reserve0;
               jettonReserve = poolData.reserve1;
+            } else {
+              tonReserve = poolData.reserve1;
+              jettonReserve = poolData.reserve0;
             }
             
             // Check if there's enough liquidity for the swap
