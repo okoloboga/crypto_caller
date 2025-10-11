@@ -32,12 +32,12 @@ export class SwapService {
       apiKey: process.env.TON_API_KEY,
     });
 
-    // Initialize Router v1 for STON.fi (compatible with existing V1 pool)
-    const routerAddress = Address.parse("EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt");
-    const routerContract = DEX.v1.Router.create(routerAddress);
+    // Initialize Router v2.2 for STON.fi (official mainnet)
+    const routerAddress = Address.parse("EQCxpzqU_oAPZ9nJrY6-BFkn2y-DUisqVmKxNXIfYt2JAK2Z");
+    const routerContract = DEX.v2_2.Router.create(routerAddress);
     this.router = this.client.open(routerContract);
 
-    this.logger.log("STON.fi Router v1 initialized successfully");
+    this.logger.log("STON.fi Router v2.2 initialized successfully");
   }
 
   /**
@@ -117,21 +117,22 @@ export class SwapService {
       // Build swap transaction using STON.fi SDK with correct parameters
       this.logger.debug(`[DEBUG] Building swap transaction: ${amountNanotons} nanotons -> jettons`);
       
-      // Create pTON v1 instance for swap
-      const proxyTon = pTON.v1.create(
-        "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v1.0 MAINNET address
+      // Create pTON v2 instance for swap
+      const proxyTon = pTON.v2_1.create(
+        "EQC-oEBQjIY6xi0dBtkKpT3pwJWW5x1fE7x09nF1bWJSfHhR" // pTON v2 MAINNET address
       );
 
       // IMPORTANT: Relayer performs swap from its own wallet, not user's wallet
-      // Router v1 automatically sends jettons to the wallet that performs the swap (relayer)
+      // Router v2.2 automatically sends jettons to the wallet that performs the swap (relayer)
       const swapTxParams = await this.router.getSwapTonToJettonTxParams({
         userWalletAddress: Address.parse(this.config.relayerWalletAddress), // Relayer address, not user address
         proxyTon: proxyTon,
         offerAmount: amountNanotons,
         askJettonAddress: Address.parse(jettonMasterAddress), // Jetton master address
-        minAskAmount: expectedJettonAmount, // Router v1 expects BigInt
+        minAskAmount: expectedJettonAmount, // Router v2.2 expects BigInt
         queryId: BigInt(Date.now()),
         referralAddress: undefined,
+        gasAmount: 300_000_000n, // 0.3 TON на газ для Router v2.2
       });
       
       // Debug: Log full swapTxParams object to diagnose issues
@@ -181,8 +182,8 @@ export class SwapService {
       this.logger.debug(`[DEBUG] Sending swap with body size: ${messageBody.bits.length} bits`);
       
       // IMPORTANT: Send to Router, not to pool directly!
-      // Router V1 returns pool address in swapTxParams.to, but we must send to Router
-      const routerAddress = "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt";
+      // Router V2.2 returns pool address in swapTxParams.to, but we must send to Router
+      const routerAddress = "EQCxpzqU_oAPZ9nJrY6-BFkn2y-DUisqVmKxNXIfYt2JAK2Z";
       
       this.logger.debug(`[DEBUG] Sending to Router (not pool): ${routerAddress}`);
       this.logger.debug(`[DEBUG] Pool address (from SDK): ${swapTxParams.to.toString()}`);
@@ -309,7 +310,7 @@ export class SwapService {
       const jettonMasterAddress = this.config.jettonMasterAddress;
 
       // Create pTON v2.1 instance for pool lookup
-      const proxyTon = pTON.v1.create(
+      const proxyTon = pTON.v2_1.create(
         "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v1.0 MAINNET address
       );
 
@@ -424,7 +425,7 @@ export class SwapService {
       const jettonMasterAddress = this.config.jettonMasterAddress;
 
       // Create pTON v2.1 instance for pool lookup
-      const proxyTon = pTON.v1.create(
+      const proxyTon = pTON.v2_1.create(
         "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v1.0 MAINNET address
       );
 
