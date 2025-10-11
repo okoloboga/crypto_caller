@@ -33,7 +33,7 @@ export class SwapService {
     });
 
     // Initialize Router v2.2 for STON.fi (official mainnet)
-    const routerAddress = Address.parse("EQCxpzqU_oAPZ9nJrY6-BFkn2y-DUisqVmKxNXIfYt2JAK2Z");
+    const routerAddress = Address.parse("EQCS4UEa5UaJLzOyyKieqQOQ2P9M-7kXpkO5HnP3Bv250cN3");
     const routerContract = DEX.v2_2.Router.create(routerAddress);
     this.router = this.client.open(routerContract);
 
@@ -173,6 +173,8 @@ export class SwapService {
       
       // Get jetton balance BEFORE swap
       const balanceBefore = await this.getActualJettonAmount(
+
+        
         this.config.relayerWalletAddress,
         txId,
         0n,
@@ -183,7 +185,7 @@ export class SwapService {
       
       // IMPORTANT: Send to Router, not to pool directly!
       // Router V2.2 returns pool address in swapTxParams.to, but we must send to Router
-      const routerAddress = "EQCxpzqU_oAPZ9nJrY6-BFkn2y-DUisqVmKxNXIfYt2JAK2Z";
+      const routerAddress = "EQCS4UEa5UaJLzOyyKieqQOQ2P9M-7kXpkO5HnP3Bv250cN3";
       
       this.logger.debug(`[DEBUG] Sending to Router (not pool): ${routerAddress}`);
       this.logger.debug(`[DEBUG] Pool address (from SDK): ${swapTxParams.to.toString()}`);
