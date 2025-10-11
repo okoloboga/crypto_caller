@@ -402,13 +402,9 @@ export class SwapService {
         return false;
       }
 
-      // Check relayer balance first
-      const relayerBalance = await this.tonService.getWalletBalance();
-      
-      if (relayerBalance < amountNanotons + BigInt(this.config.gasForCallback)) {
-        this.logger.warn(`Insufficient relayer balance: ${relayerBalance} < ${amountNanotons + BigInt(this.config.gasForCallback)}`);
-        return false;
-      }
+      // Note: No need to check relayer balance since gas is already deducted from transaction amount
+      // The gas amount (0.35 TON) is reserved from the incoming transaction
+      this.logger.debug(`[DEBUG] Gas already deducted from transaction amount, checking pool liquidity only`);
 
       // Get jetton master address (not wallet address)
       const jettonMasterAddress = this.config.jettonMasterAddress;

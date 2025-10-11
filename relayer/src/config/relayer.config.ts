@@ -9,6 +9,8 @@ export interface RelayerConfig {
   pollIntervalMs: number;
   maxRetries: number;
   gasForCallback: string; // in nanotons
+  minTransactionAmount: string; // in nanotons (0.5 TON)
+  gasAmount: string; // in nanotons (0.35 TON)
 
   // Database
   processDbPath?: string; // For fallback file storage
@@ -47,6 +49,8 @@ export const getRelayerConfigData = (): RelayerConfig => {
     pollIntervalMs: Number(process.env.POLL_INTERVAL_MS || 5000),
     maxRetries: Number(process.env.MAX_RETRIES || 3),
     gasForCallback: process.env.GAS_FOR_CALLBACK || "10000000", // 0.01 TON
+    minTransactionAmount: process.env.MIN_TRANSACTION_AMOUNT || "500000000", // 0.5 TON
+    gasAmount: process.env.GAS_AMOUNT || "350000000", // 0.35 TON
 
     processDbPath: process.env.PROCESS_DB || "./relayer_state.json",
 

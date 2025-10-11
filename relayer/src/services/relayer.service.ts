@@ -91,6 +91,25 @@ export class RelayerService implements OnModuleInit {
     this.logger.log(`[DEBUG] Processing transaction ${tx.lt} for user ${tx.userAddress}, amount: ${tx.valueNanotons} nanotons`);
 
     try {
+      // Check minimum transaction amount
+      const minAmount = BigInt(this.config.minTransactionAmount);
+      if (tx.valueNanotons < minAmount) {
+        this.logger.warn(`[DEBUG] Transaction ${tx.lt} too small: ${tx.valueNanotons} < ${minAmount} (minimum required)`);
+        // Create transaction record for refund
+        const transaction = this.transactionRepository.create({
+          lt: tx.lt,
+          hash: tx.hash,
+          userAddress: tx.userAddress,
+          fromAddress: tx.fromAddress,
+          toAddress: tx.toAddress,
+          amountNanotons: tx.valueNanotons.toString(),
+          status: TransactionStatus.FAILED,
+          errorMessage: `Transaction amount too small: ${tx.valueNanotons} < ${minAmount}`,
+        });
+        await this.transactionRepository.save(transaction);
+        return;
+      }
+
       // Check if transaction already processed
       const existingTx = await this.transactionRepository.findOne({
         where: { lt: tx.lt },
@@ -100,6 +119,12 @@ export class RelayerService implements OnModuleInit {
         this.logger.debug(`[DEBUG] Transaction ${tx.lt} already processed, skipping`);
         return;
       }
+
+      // Calculate gas and swap amounts
+      const gasAmount = BigInt(this.config.gasAmount);
+      const swapAmount = tx.valueNanotons - gasAmount;
+      
+      this.logger.log(`[DEBUG] Transaction breakdown: total=${tx.valueNanotons}, gas=${gasAmount}, swap=${swapAmount}`);
 
       // Create transaction record
       const transaction = this.transactionRepository.create({
@@ -121,10 +146,10 @@ export class RelayerService implements OnModuleInit {
         tx.valueNanotons,
       );
 
-      // Perform swap
-      this.logger.log(`[DEBUG] Starting swap for transaction ${tx.lt}`);
+      // Perform swap with reduced amount (after gas deduction)
+      this.logger.log(`[DEBUG] Starting swap for transaction ${tx.lt} with amount ${swapAmount} (after gas deduction)`);
       const swapResult = await this.swapService.performSwap(
-        tx.valueNanotons,
+        swapAmount, // Use reduced amount instead of full amount
         tx.userAddress,
         tx.lt,
       );
