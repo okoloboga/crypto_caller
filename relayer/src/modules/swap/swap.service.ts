@@ -180,8 +180,15 @@ export class SwapService {
       
       this.logger.debug(`[DEBUG] Sending swap with body size: ${messageBody.bits.length} bits`);
       
+      // IMPORTANT: Send to Router, not to pool directly!
+      // Router V1 returns pool address in swapTxParams.to, but we must send to Router
+      const routerAddress = "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt";
+      
+      this.logger.debug(`[DEBUG] Sending to Router (not pool): ${routerAddress}`);
+      this.logger.debug(`[DEBUG] Pool address (from SDK): ${swapTxParams.to.toString()}`);
+      
       const txHash = await this.tonService.sendInternalMessage(
-        swapTxParams.to.toString(),
+        routerAddress, // Router address, not pool!
         BigInt(swapTxParams.value || swapTxParams.gasAmount),
         messageBody,
       );
