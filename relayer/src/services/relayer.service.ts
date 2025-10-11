@@ -91,6 +91,16 @@ export class RelayerService implements OnModuleInit {
     this.logger.log(`[DEBUG] Processing transaction ${tx.lt} for user ${tx.userAddress}, amount: ${tx.valueNanotons} nanotons`);
 
     try {
+      // Check if transaction already processed FIRST
+      const existingTx = await this.transactionRepository.findOne({
+        where: { lt: tx.lt },
+      });
+
+      if (existingTx) {
+        this.logger.debug(`[DEBUG] Transaction ${tx.lt} already processed, skipping`);
+        return;
+      }
+
       // Check minimum transaction amount
       const minAmount = BigInt(this.config.minTransactionAmount);
       if (tx.valueNanotons < minAmount) {
@@ -107,16 +117,6 @@ export class RelayerService implements OnModuleInit {
           errorMessage: `Transaction amount too small: ${tx.valueNanotons} < ${minAmount}`,
         });
         await this.transactionRepository.save(transaction);
-        return;
-      }
-
-      // Check if transaction already processed
-      const existingTx = await this.transactionRepository.findOne({
-        where: { lt: tx.lt },
-      });
-
-      if (existingTx) {
-        this.logger.debug(`[DEBUG] Transaction ${tx.lt} already processed, skipping`);
         return;
       }
 
