@@ -101,10 +101,15 @@ export class RelayerService implements OnModuleInit {
         return;
       }
 
-      // Check minimum transaction amount
-      const minAmount = BigInt(this.config.minTransactionAmount);
-      if (tx.valueNanotons < minAmount) {
-        this.logger.warn(`[DEBUG] Transaction ${tx.lt} too small: ${tx.valueNanotons} < ${minAmount} (minimum required)`);
+      // No minimum transaction amount check - process any amount
+
+      // Calculate gas and swap amounts
+      const gasAmount = BigInt(this.config.gasAmount);
+      const swapAmount = tx.valueNanotons - gasAmount;
+      
+      // Check if there's enough for gas
+      if (swapAmount <= 0n) {
+        this.logger.warn(`[DEBUG] Transaction ${tx.lt} insufficient for gas: ${tx.valueNanotons} < ${gasAmount}`);
         // Create transaction record for refund
         const transaction = this.transactionRepository.create({
           lt: tx.lt,
@@ -114,15 +119,11 @@ export class RelayerService implements OnModuleInit {
           toAddress: tx.toAddress,
           amountNanotons: tx.valueNanotons.toString(),
           status: TransactionStatus.FAILED,
-          errorMessage: `Transaction amount too small: ${tx.valueNanotons} < ${minAmount}`,
+          errorMessage: `Insufficient amount for gas: ${tx.valueNanotons} < ${gasAmount}`,
         });
         await this.transactionRepository.save(transaction);
         return;
       }
-
-      // Calculate gas and swap amounts
-      const gasAmount = BigInt(this.config.gasAmount);
-      const swapAmount = tx.valueNanotons - gasAmount;
       
       this.logger.log(`[DEBUG] Transaction breakdown: total=${tx.valueNanotons}, gas=${gasAmount}, swap=${swapAmount}`);
 
