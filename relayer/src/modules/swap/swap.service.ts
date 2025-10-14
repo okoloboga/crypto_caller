@@ -120,8 +120,8 @@ export class SwapService {
       const routerContract = this.contracts.Router.create(Address.parse(this.routerInfo.address));
       this.logger.debug(`[DEBUG] Router contract address: ${routerContract.address?.toString()}`);
       
-      this.router = this.client.open(routerContract);
-      
+    this.router = this.client.open(routerContract);
+
       this.logger.log("STON.fi Router v2.2 initialized successfully with dexFactory");
     } catch (error) {
       this.logger.error(`Failed to initialize Router: ${error.message}`);
@@ -233,65 +233,63 @@ export class SwapService {
       this.logger.debug(`[DEBUG] Expected jettons: ${expectedJettonAmount}`);
       this.logger.debug(`[DEBUG] Min ask amount (with 5% slippage): ${minAskAmount}`);
 
-      // ⚠️ ДИАГНОСТИКА: Логируем параметры перед вызовом SDK
-      this.logger.debug(`[DEBUG] Calling getSwapTonToJettonTxParams with:`, {
+      // ⚠️ НОВЫЙ ПОДХОД: Прямой вызов Router без pTON
+      this.logger.log(`[DEBUG] Using direct Router approach (bypassing pTON)`);
+      
+      // Получаем jetton wallet address для Router
+      const askJettonWalletAddress = await this.tonService.getJettonWalletAddress();
+      this.logger.debug(`[DEBUG] Router jetton wallet address: ${askJettonWalletAddress.toString()}`);
+      
+      // Создаем правильный swap body с DEX_OP_CODES.SWAP
+      const swapBody = await this.router.createSwapBody({
         userWalletAddress: this.config.relayerWalletAddress,
-        proxyTonAddress: proxyTon.address?.toString(),
-        offerAmount: amountNanotons.toString(),
-        askJettonAddress: jettonMasterAddress,
-        minAskAmount: minAskAmount.toString(),
-        gasAmount: "300000000",
-        forwardGasAmount: "50000000",
-      });
-
-      const swapTxParams = await this.router.getSwapTonToJettonTxParams({
-        userWalletAddress: Address.parse(this.config.relayerWalletAddress),
-        proxyTon: proxyTon,
-        offerAmount: amountNanotons,
-        askJettonAddress: Address.parse(jettonMasterAddress),
         minAskAmount: minAskAmount,
-        queryId: BigInt(Date.now()),
-        referralAddress: undefined,
-        gasAmount: 300_000_000n, // 0.3 TON
-        forwardGasAmount: 50_000_000n, // 0.05 TON
+        askJettonWalletAddress: askJettonWalletAddress.toString(),
+        referralAddress: undefined
       });
       
-      const actualBody = swapTxParams.body || swapTxParams.payload;
+      this.logger.debug(`[DEBUG] Created swap body with DEX_OP_CODES.SWAP`);
+      this.logger.debug(`[DEBUG] Swap body size: ${swapBody.bits.length} bits`);
+      
+      // Создаем параметры транзакции напрямую
+      const gasAmount = 300_000_000n; // 0.3 TON
+      const totalValue = amountNanotons + gasAmount;
+      
+      const swapTxParams = {
+        to: this.routerInfo.address, // Прямо на Router!
+        value: totalValue,
+        body: swapBody
+      };
+      
+      this.logger.debug(`[DEBUG] Direct Router transaction params:`, {
+        to: swapTxParams.to,
+        value: swapTxParams.value.toString(),
+        bodySize: swapTxParams.body.bits.length,
+        amountNanotons: amountNanotons.toString(),
+        gasAmount: gasAmount.toString(),
+        totalValue: totalValue.toString()
+      });
+      
+      const actualBody = swapTxParams.body;
       
       if (!actualBody) {
         throw new Error('No message body in swapTxParams - cannot send swap transaction');
       }
       
-      // ⚠️ КРИТИЧЕСКАЯ ПРОВЕРКА: SDK вернул правильный адрес?
-      const sdkDestination = swapTxParams.to.toString();
+      // ⚠️ ПРОВЕРКА: Прямой Router подход
+      const finalDestination = swapTxParams.to;
       const expectedRouterAddress = this.routerInfo.address;
       
-      this.logger.log(`[DEBUG] SDK returned destination: ${sdkDestination}`);
+      this.logger.log(`[DEBUG] Direct Router destination: ${finalDestination}`);
       this.logger.log(`[DEBUG] Expected router address: ${expectedRouterAddress}`);
       
-      // Проверяем, совпадает ли destination с router address
-      let finalDestination = sdkDestination;
-      
-      if (sdkDestination !== expectedRouterAddress) {
-        this.logger.error(`[DEBUG] ❌ SDK BUG DETECTED: Wrong destination address!`);
-        this.logger.error(`[DEBUG]   SDK returned: ${sdkDestination}`);
+      if (finalDestination !== expectedRouterAddress) {
+        this.logger.error(`[DEBUG] ❌ ROUTER MISMATCH: Wrong destination address!`);
+        this.logger.error(`[DEBUG]   Direct destination: ${finalDestination}`);
         this.logger.error(`[DEBUG]   Expected router: ${expectedRouterAddress}`);
-        
-        // Проверяем, не вернул ли SDK адрес pTON Vault
-        if (this.routerInfo.ptonVaultAddress && sdkDestination === this.routerInfo.ptonVaultAddress) {
-          this.logger.error(`[DEBUG]   SDK returned pTON Vault address instead of Router!`);
-        }
-        
-        // Проверяем, не вернул ли SDK адрес pTON Master
-        if (sdkDestination === this.routerInfo.ptonMasterAddress) {
-          this.logger.error(`[DEBUG]   SDK returned pTON Master address instead of Router!`);
-        }
-        
-        // ⚠️ АВТОМАТИЧЕСКАЯ КОРРЕКЦИЯ: Используем правильный адрес роутера
-        this.logger.warn(`[DEBUG] ⚠️ AUTO-CORRECTING: Using correct router address from routerInfo`);
-        finalDestination = expectedRouterAddress;
+        throw new Error(`Router address mismatch: ${finalDestination} != ${expectedRouterAddress}`);
       } else {
-        this.logger.log(`[DEBUG] ✅ SDK returned correct router address`);
+        this.logger.log(`[DEBUG] ✅ Direct Router address is correct`);
       }
       
       this.logger.log(`[DEBUG] ✅ Swap transaction parameters built successfully:`);
@@ -310,13 +308,17 @@ export class SwapService {
       );
       this.logger.debug(`[DEBUG] Jetton balance BEFORE swap: ${balanceBefore}`);
       
-      // Send transaction to CORRECT address
-      const value = BigInt(swapTxParams.value ?? swapTxParams.gasAmount);
+      // Send transaction directly to Router
+      const value = BigInt(swapTxParams.value);
       
-      this.logger.log(`[DEBUG] Sending swap transaction to: ${finalDestination}`);
+      this.logger.log(`[DEBUG] Sending direct Router transaction:`);
+      this.logger.log(`[DEBUG]   - Destination: ${finalDestination}`);
+      this.logger.log(`[DEBUG]   - Value: ${value} nano-TON`);
+      this.logger.log(`[DEBUG]   - Body size: ${actualBody.bits.length} bits`);
+      this.logger.log(`[DEBUG]   - Method: DEX_OP_CODES.SWAP (direct Router call)`);
       
       const txHash = await this.tonService.sendInternalMessage(
-        finalDestination, // ⚠️ Используем скорректированный адрес
+        finalDestination,
         value,
         actualBody,
       );
@@ -380,9 +382,13 @@ export class SwapService {
         this.logger.error(`[DEBUG] Diagnostic info:`);
         this.logger.error(`[DEBUG]   - Sent to: ${finalDestination}`);
         this.logger.error(`[DEBUG]   - Router address: ${this.routerInfo.address}`);
-        this.logger.error(`[DEBUG]   - pTON Master: ${this.routerInfo.ptonMasterAddress}`);
-        this.logger.error(`[DEBUG]   - pTON Vault: ${this.routerInfo.ptonVaultAddress || 'N/A'}`);
-        this.logger.error(`[DEBUG]   - SDK destination: ${sdkDestination}`);
+        this.logger.error(`[DEBUG]   - Method used: DEX_OP_CODES.SWAP (direct Router call)`);
+        this.logger.error(`[DEBUG]   - Amount sent: ${amountNanotons} nano-TON`);
+        this.logger.error(`[DEBUG]   - Gas amount: ${gasAmount} nano-TON`);
+        this.logger.error(`[DEBUG]   - Total value: ${value} nano-TON`);
+        this.logger.error(`[DEBUG]   - Body size: ${actualBody.bits.length} bits`);
+        this.logger.error(`[DEBUG]   - Min ask amount: ${minAskAmount} nano-jettons`);
+        this.logger.error(`[DEBUG]   - Expected jettons: ${expectedJettonAmount} nano-jettons`);
         
         return {
           jettonAmount: 0n,
@@ -436,7 +442,7 @@ export class SwapService {
         if (tx) {
           if (tx.success === true) {
             this.logger.log(`[DEBUG] ✅ Transaction confirmed successfully after ${attempts} attempts`);
-            return true;
+          return true;
           } else if (tx.success === false) {
             this.logger.error(`[DEBUG] ❌ Transaction failed in blockchain:`, tx);
             return false;
@@ -575,7 +581,7 @@ export class SwapService {
           throw new Error("Router initialization failed");
         }
       }
-      
+
       // Ensure wallet is initialized before proceeding
       await this.tonService.forceWalletInitialization();
 
