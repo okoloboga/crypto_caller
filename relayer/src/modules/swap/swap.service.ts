@@ -416,34 +416,32 @@ export class SwapService {
       const poolData = await pool.getPoolData();
       // Pool reserves retrieved
 
-      // Smart reserve detection with anomaly checking
-      // Start with assumption: reserve0 = jetton, reserve1 = TON
-      let tonReserve = poolData.reserve1;
-      let jettonReserve = poolData.reserve0;
+      // Smart reserve detection by size heuristic
+      // TON reserves are usually < 10^15, jetton reserves are usually >> 10^15
+      let tonReserve: bigint;
+      let jettonReserve: bigint;
       
-      // Initial assumption: reserve0=Jetton, reserve1=TON
+      if (poolData.reserve0 < 10n ** 15n && poolData.reserve1 > 10n ** 15n) {
+        // reserve0 = TON (small), reserve1 = jetton (large)
+        tonReserve = poolData.reserve0;
+        jettonReserve = poolData.reserve1;
+      } else if (poolData.reserve1 < 10n ** 15n && poolData.reserve0 > 10n ** 15n) {
+        // reserve1 = TON (small), reserve0 = jetton (large)
+        tonReserve = poolData.reserve1;
+        jettonReserve = poolData.reserve0;
+      } else {
+        // Fallback: assume reserve0 = jetton, reserve1 = TON
+        tonReserve = poolData.reserve1;
+        jettonReserve = poolData.reserve0;
+      }
 
       if (tonReserve === 0n || jettonReserve === 0n) {
-        this.logger.warn("[DEBUG] Pool reserves are zero, using fallback rate");
+        this.logger.warn("Pool reserves are zero, using fallback rate");
         return 10000n;
       }
 
-      // Calculate preliminary rate
-      let rate = (jettonReserve * 95n) / (tonReserve * 100n);
-      // Preliminary rate calculated
-
-      // Check for anomalous rate (too high or too low)
-      // Reasonable range: 1,000 to 1,000,000,000 nano-jettons per nano-TON
-      if (rate > 1000000000000n || rate < 1000n) {
-        this.logger.warn(`Suspicious rate: ${rate}, swapping reserves...`);
-        
-        // Swap reserves and recalculate
-        [tonReserve, jettonReserve] = [jettonReserve, tonReserve];
-        rate = (jettonReserve * 95n) / (tonReserve * 100n);
-        
-        this.logger.log(`Swapped reserves: reserve0=TON (${tonReserve}), reserve1=Jetton (${jettonReserve})`);
-        this.logger.log(`Swapped rate: 1 TON = ${rate.toString()} nano-jettons`);
-      }
+      // Calculate rate with correct reserve order
+      const rate = (jettonReserve * 95n) / (tonReserve * 100n);
 
       // Final validation
       if (rate === 0n) {
@@ -506,16 +504,19 @@ export class SwapService {
           try {
             const poolData = await pool.getPoolData();
             
-            // Smart reserve detection - same logic as getSwapRate()
-            // Start with assumption: reserve0 = jetton, reserve1 = TON
-            let tonReserve = poolData.reserve1;
-            let jettonReserve = poolData.reserve0;
+            // Smart reserve detection by size heuristic - same logic as getSwapRate()
+            let tonReserve: bigint;
+            let jettonReserve: bigint;
             
-            // Check for anomalous rate to determine correct order
-            const preliminaryRate = (jettonReserve * 95n) / (tonReserve * 100n);
-            if (preliminaryRate > 1000000000000n || preliminaryRate < 1000n) {
-              // Swap reserves if rate looks suspicious
-              [tonReserve, jettonReserve] = [jettonReserve, tonReserve];
+            if (poolData.reserve0 < 10n ** 15n && poolData.reserve1 > 10n ** 15n) {
+              tonReserve = poolData.reserve0;
+              jettonReserve = poolData.reserve1;
+            } else if (poolData.reserve1 < 10n ** 15n && poolData.reserve0 > 10n ** 15n) {
+              tonReserve = poolData.reserve1;
+              jettonReserve = poolData.reserve0;
+            } else {
+              tonReserve = poolData.reserve1;
+              jettonReserve = poolData.reserve0;
             }
             
             // Check if there's enough liquidity for the swap
