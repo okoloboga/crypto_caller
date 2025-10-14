@@ -545,8 +545,8 @@ export class TonService {
         messages: [
           internal({
             to: destination,
-            value: value,
-            body: body,
+        value: value,
+        body: body,
           }),
         ],
         sendMode: 1, // V5R1 requires sendMode
