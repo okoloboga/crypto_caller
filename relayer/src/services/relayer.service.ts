@@ -88,7 +88,7 @@ export class RelayerService implements OnModuleInit {
    */
   private async processTransaction(tx: ParsedTransaction): Promise<void> {
     const startTime = Date.now();
-    this.logger.log(`[DEBUG] Processing transaction ${tx.lt} for user ${tx.userAddress}, amount: ${tx.valueNanotons} nanotons`);
+    // Process transaction silently unless there's an issue
 
     try {
       // Check if transaction already processed FIRST
@@ -97,7 +97,6 @@ export class RelayerService implements OnModuleInit {
       });
 
       if (existingTx) {
-        this.logger.debug(`[DEBUG] Transaction ${tx.lt} already processed, skipping`);
         return;
       }
 
@@ -109,7 +108,7 @@ export class RelayerService implements OnModuleInit {
       
       // Check if there's enough for gas
       if (swapAmount <= 0n) {
-        this.logger.warn(`[DEBUG] Transaction ${tx.lt} insufficient for gas: ${tx.valueNanotons} < ${gasAmount}`);
+        this.logger.warn(`Transaction ${tx.lt} insufficient for gas: ${tx.valueNanotons} < ${gasAmount}`);
         // Create transaction record for refund
         const transaction = this.transactionRepository.create({
           lt: tx.lt,
@@ -125,7 +124,7 @@ export class RelayerService implements OnModuleInit {
         return;
       }
       
-      this.logger.log(`[DEBUG] Transaction breakdown: total=${tx.valueNanotons}, gas=${gasAmount}, swap=${swapAmount}`);
+      // Transaction breakdown calculated
 
       // Create transaction record
       const transaction = this.transactionRepository.create({
@@ -139,7 +138,7 @@ export class RelayerService implements OnModuleInit {
       });
 
       await this.transactionRepository.save(transaction);
-      this.logger.log(`[DEBUG] Created transaction record for ${tx.lt}`);
+      // Transaction record created
 
       this.monitoringService.logTransactionStart(
         tx.lt,

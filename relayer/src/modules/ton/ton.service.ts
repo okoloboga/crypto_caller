@@ -324,7 +324,6 @@ export class TonService {
 
       // Skip transactions without valid source address or zero value
       if (!tx.in_msg.source || !tx.in_msg.value || BigInt(tx.in_msg.value) === 0n) {
-        this.logger.debug(`Skipping transaction ${tx.transaction_id.lt}: invalid source or zero value`);
         return null;
       }
 
