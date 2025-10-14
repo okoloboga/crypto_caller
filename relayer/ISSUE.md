@@ -1,55 +1,78 @@
-# Проблема с STON.fi Swap: Неправильный destination адрес
+# Проблема с STON.fi Swap: Неправильное использование SDK
 
 ## Суть проблемы
 
-Мы отправляем TON **напрямую на Router STON.fi**, но Router не понимает прямой вызов и возвращает ошибку **exit code 65535** ("Unknown method").
+Мы пытались **обойти SDK** и создать payload вручную, но SDK знает правильную структуру для Router.
 
-## Анализ неуспешной транзакции
+## Анализ проблемы
 
-**Наша транзакция (неуспешная):**
-```
-Destination: EQBQ_UBQvR9ryUjKDwijtoiyyga2Wl-yJm6Y8gl0k-HDh_5x (Router)
-Method: DEX_OP_CODES.SWAP (0x6664de2a)
-Result: Exit code 65535 - "Unknown method"
-```
+### **Неправильный подход (наш):**
+```typescript
+// ❌ Мы создавали payload вручную
+const forwardPayload = this.buildSwapForwardPayload(
+  askJettonWalletAddress,
+  minAskAmount,
+  Address.parse(this.config.relayerWalletAddress),
+);
 
-**Логи показывают:**
-```
-[DEBUG] Direct Router destination: EQBQ_UBQvR9ryUjKDwijtoiyyga2Wl-yJm6Y8gl0k-HDh_5x
-[DEBUG] Method: DEX_OP_CODES.SWAP (direct Router call)
-[DEBUG] ✅ Transaction confirmed successfully
-[DEBUG] ⚠️ No jettons received!
-```
-
-## Правильный flow (из успешных транзакций)
-
-**Успешная транзакция:**
-```
-1. User → pTON Wallet (Pton Ton Transfer)
-2. pTON → Router (Jetton Notify) 
-3. Router → User (Jetton Transfer)
+const ptonTransferBody = this.buildPtonTonTransferBody(
+  amountNanotons,
+  Address.parse(routerAddress),
+  forwardPayload,
+);
 ```
 
-**Ключевое отличие:** В успешных транзакциях **destination = pTON Wallet**, а не Router!
+### **Правильный подход (из примеров):**
+```typescript
+// ✅ Используем SDK для создания правильного payload
+const swapParams = await router.getSwapTonToJettonTxParams({
+  userWalletAddress: userAddress,
+  proxyTon: dexContracts.pTON.create(routerMetadata.ptonMasterAddress),
+  askJettonAddress: simulationResult.askAddress,
+  offerAmount: simulationResult.offerUnits,
+  minAskAmount: simulationResult.minAskUnits,
+});
+```
 
 ## Корень проблемы
 
-**Неправильная архитектура:**
-```
-❌ User → Router (прямо) → Exit code 65535
-```
+**Мы пытались обойти SDK, но SDK знает правильную структуру payload!**
 
-**Правильная архитектура:**
-```
-✅ User → pTON Wallet → Router (через Jetton Notify)
-```
+### **Почему Router возвращал TON:**
+- **Неправильная структура** forward payload
+- **Неправильный opcode** для Router
+- **Неправильные параметры** в payload
+
+### **Почему SDK решает проблему:**
+- **SDK знает правильную структуру** для Router v2
+- **SDK создает правильный payload** с корректными параметрами
+- **SDK использует правильные opcodes** и адреса
 
 ## Решение
 
-Нужно **вернуться к использованию pTON** как посредника:
+**Вернуться к использованию SDK с правильными параметрами:**
 
-1. **Отправляем TON на pTON Wallet** (не Router)
-2. **pTON делает Jetton Notify** на Router
-3. **Router обрабатывает** уведомление от pTON
+```typescript
+// ✅ ПРАВИЛЬНО: Используем SDK
+const swapParams = await this.router.getSwapTonToJettonTxParams({
+  userWalletAddress: this.config.relayerWalletAddress,
+  proxyTon: this.contracts.pTON.create(this.routerInfo.ptonMasterAddress),
+  offerAmount: amountNanotons,
+  askJettonAddress: jettonMasterAddress,
+  minAskAmount: minAskAmount,
+});
 
-**Проблема:** Мы пытались обойти pTON, но pTON - это **обязательный посредник** для STON.fi Router!
+// ✅ ПРАВИЛЬНО: Отправляем на правильный destination
+await this.tonService.sendInternalMessage(
+  swapParams.to.toString(), // ← SDK знает правильный destination!
+  swapParams.value,
+  swapParams.body,
+);
+```
+
+## Вывод
+
+**Проблема была в попытке обойти SDK!**
+
+**SDK существует для того, чтобы создавать правильные payload для Router.**
+**Не нужно изобретать велосипед - используем SDK!** 🚀
