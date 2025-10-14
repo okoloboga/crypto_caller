@@ -51,31 +51,40 @@ export class SwapService {
       
       let routers;
       try {
-        // Get all available routers
         routers = await stonApi.getRouters();
       } catch (apiError) {
         this.logger.warn(`[DEBUG] Failed to get routers from API: ${apiError.message}`);
         this.logger.warn(`[DEBUG] Using fallback router address`);
         
-        // Fallback to known working router address
         const fallbackRouterAddress = "EQCS4UEa5UaJLzOyyKieqQOQ2P9M-7kXpkO5HnP3Bv250cN3";
         this.routerInfo = await stonApi.getRouter(fallbackRouterAddress);
+        
+        // ⚠️ ДИАГНОСТИКА: Логируем полную информацию о роутере
+        this.logger.debug(`[DEBUG] Fallback router info:`, {
+          address: this.routerInfo.address,
+          majorVersion: this.routerInfo.majorVersion,
+          minorVersion: this.routerInfo.minorVersion,
+          routerType: this.routerInfo.routerType,
+          ptonMasterAddress: this.routerInfo.ptonMasterAddress,
+          ptonVaultAddress: this.routerInfo.ptonVaultAddress,
+          allKeys: Object.keys(this.routerInfo),
+        });
+        
         this.contracts = dexFactory(this.routerInfo);
         this.router = this.client.open(this.contracts.Router.create(Address.parse(this.routerInfo.address)));
         this.logger.log("STON.fi Router v2.2 initialized successfully with fallback address");
         return;
       }
+      
       this.logger.debug(`[DEBUG] Found ${routers.length} routers`);
       
-      // Log all available routers for debugging
       routers.forEach((r, index) => {
         this.logger.debug(`[DEBUG] Router ${index}: ${r.address} (v${r.majorVersion}.${r.minorVersion}, ${r.routerType}, ${r.network})`);
       });
       
-      // Find latest Router v2.2 ConstantProduct (mainnet is default)
       const targetRouter = routers
         .filter(r => r.majorVersion === 2 && r.minorVersion === 2 && r.routerType === "ConstantProduct")
-        .at(-1); // Get the last (most recent) router
+        .at(-1);
       
       if (!targetRouter) {
         this.logger.error(`[DEBUG] No Router v2.2 ConstantProduct found. Available routers:`);
@@ -88,26 +97,35 @@ export class SwapService {
       const routerAddress = targetRouter.address;
       this.logger.log(`[DEBUG] Selected router: ${routerAddress} (v${targetRouter.majorVersion}.${targetRouter.minorVersion})`);
       
-      // Get router metadata
       this.routerInfo = await stonApi.getRouter(routerAddress);
-      this.logger.debug(`[DEBUG] Router info:`, {
+      
+      // ⚠️ ДИАГНОСТИКА: Логируем ВСЮ информацию о роутере
+      this.logger.debug(`[DEBUG] Complete router info:`, {
         address: this.routerInfo.address,
         majorVersion: this.routerInfo.majorVersion,
         minorVersion: this.routerInfo.minorVersion,
         routerType: this.routerInfo.routerType,
         ptonMasterAddress: this.routerInfo.ptonMasterAddress,
+        ptonVaultAddress: this.routerInfo.ptonVaultAddress,
+        ptonWalletAddress: this.routerInfo.ptonWalletAddress,
+        poolAddress: this.routerInfo.poolAddress,
+        allKeys: Object.keys(this.routerInfo),
+        fullObject: JSON.stringify(this.routerInfo, null, 2),
       });
       
-      // Get contracts from dexFactory
       this.contracts = dexFactory(this.routerInfo);
-      this.logger.debug(`[DEBUG] Contracts:`, Object.keys(this.contracts));
+      this.logger.debug(`[DEBUG] Contracts created:`, Object.keys(this.contracts));
       
-      // Create router instance
-      this.router = this.client.open(this.contracts.Router.create(Address.parse(this.routerInfo.address)));
+      // ⚠️ ДИАГНОСТИКА: Проверяем, что Router контракт создан правильно
+      const routerContract = this.contracts.Router.create(Address.parse(this.routerInfo.address));
+      this.logger.debug(`[DEBUG] Router contract address: ${routerContract.address?.toString()}`);
+      
+      this.router = this.client.open(routerContract);
       
       this.logger.log("STON.fi Router v2.2 initialized successfully with dexFactory");
     } catch (error) {
       this.logger.error(`Failed to initialize Router: ${error.message}`);
+      this.logger.error(`Error stack:`, error.stack);
       throw error;
     }
   }
@@ -191,8 +209,23 @@ export class SwapService {
       const jettonMasterAddress = this.config.jettonMasterAddress;
       this.logger.debug(`[DEBUG] Using jetton master address: ${jettonMasterAddress}`);
 
+      // ⚠️ ДИАГНОСТИКА: Логируем всю информацию о роутере
+      this.logger.debug(`[DEBUG] Router info before swap:`, {
+        routerAddress: this.routerInfo.address,
+        ptonMasterAddress: this.routerInfo.ptonMasterAddress,
+        ptonVaultAddress: this.routerInfo.ptonVaultAddress,
+        majorVersion: this.routerInfo.majorVersion,
+        minorVersion: this.routerInfo.minorVersion,
+        routerType: this.routerInfo.routerType,
+      });
+
       // Create pTON using dexFactory
       const proxyTon = this.contracts.pTON.create(this.routerInfo.ptonMasterAddress);
+      
+      this.logger.debug(`[DEBUG] Created pTON contract:`, {
+        ptonAddress: proxyTon.address?.toString(),
+        ptonMasterFromInfo: this.routerInfo.ptonMasterAddress,
+      });
 
       // Calculate minAskAmount with 5% slippage tolerance
       const minAskAmount = (expectedJettonAmount * 95n) / 100n;
@@ -200,12 +233,23 @@ export class SwapService {
       this.logger.debug(`[DEBUG] Expected jettons: ${expectedJettonAmount}`);
       this.logger.debug(`[DEBUG] Min ask amount (with 5% slippage): ${minAskAmount}`);
 
+      // ⚠️ ДИАГНОСТИКА: Логируем параметры перед вызовом SDK
+      this.logger.debug(`[DEBUG] Calling getSwapTonToJettonTxParams with:`, {
+        userWalletAddress: this.config.relayerWalletAddress,
+        proxyTonAddress: proxyTon.address?.toString(),
+        offerAmount: amountNanotons.toString(),
+        askJettonAddress: jettonMasterAddress,
+        minAskAmount: minAskAmount.toString(),
+        gasAmount: "300000000",
+        forwardGasAmount: "50000000",
+      });
+
       const swapTxParams = await this.router.getSwapTonToJettonTxParams({
         userWalletAddress: Address.parse(this.config.relayerWalletAddress),
         proxyTon: proxyTon,
         offerAmount: amountNanotons,
         askJettonAddress: Address.parse(jettonMasterAddress),
-        minAskAmount: minAskAmount, // ⚠️ Use minAskAmount with slippage
+        minAskAmount: minAskAmount,
         queryId: BigInt(Date.now()),
         referralAddress: undefined,
         gasAmount: 300_000_000n, // 0.3 TON
@@ -218,8 +262,40 @@ export class SwapService {
         throw new Error('No message body in swapTxParams - cannot send swap transaction');
       }
       
+      // ⚠️ КРИТИЧЕСКАЯ ПРОВЕРКА: SDK вернул правильный адрес?
+      const sdkDestination = swapTxParams.to.toString();
+      const expectedRouterAddress = this.routerInfo.address;
+      
+      this.logger.log(`[DEBUG] SDK returned destination: ${sdkDestination}`);
+      this.logger.log(`[DEBUG] Expected router address: ${expectedRouterAddress}`);
+      
+      // Проверяем, совпадает ли destination с router address
+      let finalDestination = sdkDestination;
+      
+      if (sdkDestination !== expectedRouterAddress) {
+        this.logger.error(`[DEBUG] ❌ SDK BUG DETECTED: Wrong destination address!`);
+        this.logger.error(`[DEBUG]   SDK returned: ${sdkDestination}`);
+        this.logger.error(`[DEBUG]   Expected router: ${expectedRouterAddress}`);
+        
+        // Проверяем, не вернул ли SDK адрес pTON Vault
+        if (this.routerInfo.ptonVaultAddress && sdkDestination === this.routerInfo.ptonVaultAddress) {
+          this.logger.error(`[DEBUG]   SDK returned pTON Vault address instead of Router!`);
+        }
+        
+        // Проверяем, не вернул ли SDK адрес pTON Master
+        if (sdkDestination === this.routerInfo.ptonMasterAddress) {
+          this.logger.error(`[DEBUG]   SDK returned pTON Master address instead of Router!`);
+        }
+        
+        // ⚠️ АВТОМАТИЧЕСКАЯ КОРРЕКЦИЯ: Используем правильный адрес роутера
+        this.logger.warn(`[DEBUG] ⚠️ AUTO-CORRECTING: Using correct router address from routerInfo`);
+        finalDestination = expectedRouterAddress;
+      } else {
+        this.logger.log(`[DEBUG] ✅ SDK returned correct router address`);
+      }
+      
       this.logger.log(`[DEBUG] ✅ Swap transaction parameters built successfully:`);
-      this.logger.log(`[DEBUG]   - Destination: ${swapTxParams.to.toString()}`);
+      this.logger.log(`[DEBUG]   - Final destination: ${finalDestination}`);
       this.logger.log(`[DEBUG]   - Value (gas): ${swapTxParams.value}`);
       this.logger.log(`[DEBUG]   - Body size: ${actualBody.bits.length} bits`);
       this.logger.log(`[DEBUG]   - Amount in: ${amountNanotons} nanotons`);
@@ -234,30 +310,30 @@ export class SwapService {
       );
       this.logger.debug(`[DEBUG] Jetton balance BEFORE swap: ${balanceBefore}`);
       
-      // Send transaction
-      const destination = swapTxParams.to.toString();
+      // Send transaction to CORRECT address
       const value = BigInt(swapTxParams.value ?? swapTxParams.gasAmount);
       
+      this.logger.log(`[DEBUG] Sending swap transaction to: ${finalDestination}`);
+      
       const txHash = await this.tonService.sendInternalMessage(
-        destination,
+        finalDestination, // ⚠️ Используем скорректированный адрес
         value,
         actualBody,
       );
 
       this.logger.log(`[DEBUG] Swap transaction sent: ${txHash}`);
 
-      // ⚠️ ВАЖНО: Ждем подтверждения транзакции перед проверкой баланса
+      // Wait for confirmation
       this.logger.log(`[DEBUG] Waiting for transaction confirmation...`);
       const confirmed = await this.waitForTransactionConfirmation(
         txHash,
-        60000, // 60 seconds timeout (увеличено с 30)
+        60000,
       );
 
       if (!confirmed) {
         this.logger.error(`[DEBUG] Transaction confirmation timeout for ${txHash}`);
         
-        // Дополнительная проверка: возможно транзакция все же прошла
-        await new Promise((resolve) => setTimeout(resolve, 10000)); // Ждем еще 10 секунд
+        await new Promise((resolve) => setTimeout(resolve, 10000));
         
         const balanceAfterTimeout = await this.getActualJettonAmount(
           this.config.relayerWalletAddress,
@@ -281,8 +357,8 @@ export class SwapService {
         };
       }
 
-      // Ждем еще немного для обновления баланса
-      await new Promise((resolve) => setTimeout(resolve, 5000)); // 5 секунд
+      // Wait for balance update
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // Get jetton balance AFTER swap
       const balanceAfter = await this.getActualJettonAmount(
@@ -297,9 +373,16 @@ export class SwapService {
       if (actualJettonAmount === 0n) {
         this.logger.error(`[DEBUG] ⚠️ No jettons received! Checking transaction details...`);
         
-        // Проверяем транзакцию в блокчейне
         const tx = await this.tonService.getTransaction(txHash);
         this.logger.error(`[DEBUG] Transaction details:`, JSON.stringify(tx, null, 2));
+        
+        // Дополнительная диагностика: проверяем, куда ушли деньги
+        this.logger.error(`[DEBUG] Diagnostic info:`);
+        this.logger.error(`[DEBUG]   - Sent to: ${finalDestination}`);
+        this.logger.error(`[DEBUG]   - Router address: ${this.routerInfo.address}`);
+        this.logger.error(`[DEBUG]   - pTON Master: ${this.routerInfo.ptonMasterAddress}`);
+        this.logger.error(`[DEBUG]   - pTON Vault: ${this.routerInfo.ptonVaultAddress || 'N/A'}`);
+        this.logger.error(`[DEBUG]   - SDK destination: ${sdkDestination}`);
         
         return {
           jettonAmount: 0n,
