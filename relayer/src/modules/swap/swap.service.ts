@@ -4,6 +4,8 @@ import { RelayerConfig } from "../../config/relayer.config";
 import { DEX, pTON } from "@ston-fi/sdk";
 import { TonClient, Address } from "@ton/ton";
 import { TonService } from "../ton/ton.service";
+import { StonApiClient } from "@ston-fi/api";
+import { dexFactory } from "@ston-fi/sdk";
 
 export interface SwapResult {
   jettonAmount: bigint;
@@ -15,8 +17,10 @@ export interface SwapResult {
 export class SwapService {
   private readonly logger = new Logger(SwapService.name);
   private readonly config: RelayerConfig;
-  private readonly router: any;
+  private router: any;
   private readonly client: TonClient;
+  private contracts: any;
+  private routerInfo: any;
 
   constructor(
     private configService: ConfigService,
@@ -32,12 +36,42 @@ export class SwapService {
       apiKey: process.env.TON_API_KEY,
     });
 
-    // Initialize Router v2.2 for STON.fi (official mainnet)
-    const routerAddress = Address.parse("EQCS4UEa5UaJLzOyyKieqQOQ2P9M-7kXpkO5HnP3Bv250cN3");
-    const routerContract = DEX.v2_2.Router.create(routerAddress);
-    this.router = this.client.open(routerContract);
+    // Initialize router asynchronously
+    this.initRouter();
+  }
 
-    this.logger.log("STON.fi Router v2.2 initialized successfully");
+  /**
+   * Initialize Router using dexFactory approach
+   */
+  private async initRouter(): Promise<void> {
+    try {
+      this.logger.log("Initializing Router with dexFactory approach...");
+      
+      const stonApi = new StonApiClient();
+      const routerAddress = "EQCS4UEa5UaJLzOyyKieqQOQ2P9M-7kXpkO5HnP3Bv250cN3";
+      
+      // Get router metadata
+      this.routerInfo = await stonApi.getRouter(routerAddress);
+      this.logger.debug(`[DEBUG] Router info:`, {
+        address: this.routerInfo.address,
+        majorVersion: this.routerInfo.majorVersion,
+        minorVersion: this.routerInfo.minorVersion,
+        routerType: this.routerInfo.routerType,
+        ptonMasterAddress: this.routerInfo.ptonMasterAddress,
+      });
+      
+      // Get contracts from dexFactory
+      this.contracts = dexFactory(this.routerInfo);
+      this.logger.debug(`[DEBUG] Contracts:`, Object.keys(this.contracts));
+      
+      // Create router instance
+      this.router = this.client.open(this.contracts.Router.create(Address.parse(this.routerInfo.address)));
+      
+      this.logger.log("STON.fi Router v2.2 initialized successfully with dexFactory");
+    } catch (error) {
+      this.logger.error(`Failed to initialize Router: ${error.message}`);
+      throw error;
+    }
   }
 
   /**
@@ -53,6 +87,15 @@ export class SwapService {
     );
 
     try {
+      // Ensure router is initialized
+      if (!this.router || !this.contracts || !this.routerInfo) {
+        this.logger.warn("Router not initialized yet, waiting...");
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (!this.router || !this.contracts || !this.routerInfo) {
+          throw new Error("Router initialization failed");
+        }
+      }
+      
       // Ensure wallet is initialized before proceeding
       await this.tonService.forceWalletInitialization();
       
@@ -117,10 +160,8 @@ export class SwapService {
       // Build swap transaction using STON.fi SDK with correct parameters
       this.logger.debug(`[DEBUG] Building swap transaction: ${amountNanotons} nanotons -> jettons`);
       
-      // Create pTON v2 instance for swap
-      const proxyTon = pTON.v2_1.create(
-        "EQC-oEBQjIY6xi0dBtkKpT3pwJWW5x1fE7x09nF1bWJSfHhR" // pTON v2 MAINNET address
-      );
+      // Create pTON using dexFactory (correct approach)
+      const proxyTon = this.contracts.pTON.create(this.routerInfo.ptonMasterAddress);
 
       // IMPORTANT: Relayer performs swap from its own wallet, not user's wallet
       // Router v2.2 automatically sends jettons to the wallet that performs the swap (relayer)
@@ -133,6 +174,7 @@ export class SwapService {
         queryId: BigInt(Date.now()),
         referralAddress: undefined,
         gasAmount: 300_000_000n, // 0.3 TON на газ для Router v2.2
+        forwardGasAmount: 50_000_000n, // 0.05 TON forward gas
       });
       
       // Debug: Log full swapTxParams object to diagnose issues
@@ -183,16 +225,16 @@ export class SwapService {
       
       this.logger.debug(`[DEBUG] Sending swap with body size: ${messageBody.bits.length} bits`);
       
-      // IMPORTANT: Send to Router, not to pool directly!
-      // Router V2.2 returns pool address in swapTxParams.to, but we must send to Router
-      const routerAddress = "EQCS4UEa5UaJLzOyyKieqQOQ2P9M-7kXpkO5HnP3Bv250cN3";
+      // Use address from SDK (correct approach)
+      const destination = swapTxParams.to.toString();
+      const value = BigInt(swapTxParams.value ?? swapTxParams.gasAmount);
       
-      this.logger.debug(`[DEBUG] Sending to Router (not pool): ${routerAddress}`);
-      this.logger.debug(`[DEBUG] Pool address (from SDK): ${swapTxParams.to.toString()}`);
+      this.logger.debug(`[DEBUG] Sending to address from SDK: ${destination}`);
+      this.logger.debug(`[DEBUG] Value: ${value}`);
       
       const txHash = await this.tonService.sendInternalMessage(
-        routerAddress, // Router address, not pool!
-        BigInt(swapTxParams.value || swapTxParams.gasAmount),
+        destination, // Address from SDK
+        value,
         messageBody,
       );
 
@@ -305,20 +347,24 @@ export class SwapService {
    */
   async getSwapRate(): Promise<bigint> {
     try {
+      // Ensure router is initialized
+      if (!this.router || !this.contracts || !this.routerInfo) {
+        this.logger.warn("Router not initialized yet, waiting...");
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (!this.router || !this.contracts || !this.routerInfo) {
+          throw new Error("Router initialization failed");
+        }
+      }
+      
       // Ensure wallet is initialized before proceeding
       await this.tonService.forceWalletInitialization();
 
       // Use jetton master address (not wallet address)
       const jettonMasterAddress = this.config.jettonMasterAddress;
 
-      // Create pTON v2.1 instance for pool lookup
-      const proxyTon = pTON.v2_1.create(
-        "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v1.0 MAINNET address
-      );
-
-      // Use hardcoded working pool address with DEX.v2_1.Pool (V2.1 SDK for V2 contract)
-      const workingPoolAddress = "EQCJKn-99vd6GEUKTkVEyFwmha33lxtb2oo-eMsU0tFGIZbf";
-      const pool = this.client.open(DEX.v2_1.Pool.create(Address.parse(workingPoolAddress)));
+      // Use contracts from dexFactory (correct approach)
+      const poolAddress = this.routerInfo.poolAddress || "EQCJKn-99vd6GEUKTkVEyFwmha33lxtb2oo-eMsU0tFGIZbf";
+      const pool = this.client.open(this.contracts.Pool.create(Address.parse(poolAddress)));
 
       if (!pool) {
         this.logger.warn("Pool not found, using fallback rate");
@@ -407,6 +453,15 @@ export class SwapService {
    */
   async canSwap(amountNanotons: bigint): Promise<boolean> {
     try {
+      // Ensure router is initialized
+      if (!this.router || !this.contracts || !this.routerInfo) {
+        this.logger.warn("Router not initialized yet, waiting...");
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (!this.router || !this.contracts || !this.routerInfo) {
+          throw new Error("Router initialization failed");
+        }
+      }
+      
       // Ensure wallet is initialized before proceeding
       await this.tonService.forceWalletInitialization();
 
@@ -426,15 +481,10 @@ export class SwapService {
       // Get jetton master address (not wallet address)
       const jettonMasterAddress = this.config.jettonMasterAddress;
 
-      // Create pTON v2.1 instance for pool lookup
-      const proxyTon = pTON.v2_1.create(
-        "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez" // pTON v1.0 MAINNET address
-      );
-
       try {
-        // Use hardcoded working pool address with DEX.v2_1.Pool (V2.1 SDK for V2 contract)
-        const workingPoolAddress = "EQCJKn-99vd6GEUKTkVEyFwmha33lxtb2oo-eMsU0tFGIZbf";
-        const pool = this.client.open(DEX.v2_1.Pool.create(Address.parse(workingPoolAddress)));
+        // Use contracts from dexFactory (correct approach)
+        const poolAddress = this.routerInfo.poolAddress || "EQCJKn-99vd6GEUKTkVEyFwmha33lxtb2oo-eMsU0tFGIZbf";
+        const pool = this.client.open(this.contracts.Pool.create(Address.parse(poolAddress)));
         
         // Try to get pool data for liquidity check
         if (pool) {
