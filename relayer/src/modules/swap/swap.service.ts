@@ -238,8 +238,28 @@ export class SwapService {
       
       // Получаем jetton wallet address для Router
       const askJettonWalletAddress = await this.tonService.getJettonWalletAddress();
-      this.logger.debug(`[DEBUG] Router jetton wallet address: ${askJettonWalletAddress.toString()}`);
+      this.logger.debug(`[DEBUG] Router jetton wallet address: ${askJettonWalletAddress?.toString()}`);
       
+      // Проверяем все параметры перед вызовом createSwapBody
+      if (!this.config.relayerWalletAddress) {
+        throw new Error('relayerWalletAddress is undefined in config');
+      }
+
+      if (!minAskAmount) {
+        throw new Error('minAskAmount is undefined');
+      }
+
+      if (!askJettonWalletAddress) {
+        throw new Error('askJettonWalletAddress is undefined');
+      }
+
+      this.logger.debug(`[DEBUG] createSwapBody parameters:`, {
+        userWalletAddress: this.config.relayerWalletAddress,
+        minAskAmount: minAskAmount.toString(),
+        askJettonWalletAddress: askJettonWalletAddress.toString(),
+        referralAddress: undefined
+      });
+
       // Создаем правильный swap body с DEX_OP_CODES.SWAP
       const swapBody = await this.router.createSwapBody({
         userWalletAddress: this.config.relayerWalletAddress,
