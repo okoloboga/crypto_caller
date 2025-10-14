@@ -72,19 +72,17 @@ export class SwapService {
         this.logger.debug(`[DEBUG] Router ${index}: ${r.address} (v${r.majorVersion}.${r.minorVersion}, ${r.routerType}, ${r.network})`);
       });
       
-      // Find Router v2 for mainnet
-      const targetRouter = routers.find(r => 
-        r.majorVersion === 2 && 
-        r.network === "mainnet" &&
-        r.routerType === "ConstantProduct"
-      );
+      // Find latest Router v2.2 ConstantProduct (mainnet is default)
+      const targetRouter = routers
+        .filter(r => r.majorVersion === 2 && r.minorVersion === 2 && r.routerType === "ConstantProduct")
+        .at(-1); // Get the last (most recent) router
       
       if (!targetRouter) {
-        this.logger.error(`[DEBUG] No mainnet router v2 found. Available routers:`);
+        this.logger.error(`[DEBUG] No Router v2.2 ConstantProduct found. Available routers:`);
         routers.forEach(r => {
           this.logger.error(`[DEBUG] - ${r.address} (v${r.majorVersion}.${r.minorVersion}, ${r.routerType}, ${r.network})`);
         });
-        throw new Error("No mainnet router v2 found");
+        throw new Error("No Router v2.2 ConstantProduct found");
       }
       
       const routerAddress = targetRouter.address;
