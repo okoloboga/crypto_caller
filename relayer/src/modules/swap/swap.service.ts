@@ -48,7 +48,47 @@ export class SwapService {
       this.logger.log("Initializing Router with dexFactory approach...");
       
       const stonApi = new StonApiClient();
-      const routerAddress = "EQCS4UEa5UaJLzOyyKieqQOQ2P9M-7kXpkO5HnP3Bv250cN3";
+      
+      let routers;
+      try {
+        // Get all available routers
+        routers = await stonApi.getRouters();
+      } catch (apiError) {
+        this.logger.warn(`[DEBUG] Failed to get routers from API: ${apiError.message}`);
+        this.logger.warn(`[DEBUG] Using fallback router address`);
+        
+        // Fallback to known working router address
+        const fallbackRouterAddress = "EQCS4UEa5UaJLzOyyKieqQOQ2P9M-7kXpkO5HnP3Bv250cN3";
+        this.routerInfo = await stonApi.getRouter(fallbackRouterAddress);
+        this.contracts = dexFactory(this.routerInfo);
+        this.router = this.client.open(this.contracts.Router.create(Address.parse(this.routerInfo.address)));
+        this.logger.log("STON.fi Router v2.2 initialized successfully with fallback address");
+        return;
+      }
+      this.logger.debug(`[DEBUG] Found ${routers.length} routers`);
+      
+      // Log all available routers for debugging
+      routers.forEach((r, index) => {
+        this.logger.debug(`[DEBUG] Router ${index}: ${r.address} (v${r.majorVersion}.${r.minorVersion}, ${r.routerType}, ${r.network})`);
+      });
+      
+      // Find Router v2 for mainnet
+      const targetRouter = routers.find(r => 
+        r.majorVersion === 2 && 
+        r.network === "mainnet" &&
+        r.routerType === "ConstantProduct"
+      );
+      
+      if (!targetRouter) {
+        this.logger.error(`[DEBUG] No mainnet router v2 found. Available routers:`);
+        routers.forEach(r => {
+          this.logger.error(`[DEBUG] - ${r.address} (v${r.majorVersion}.${r.minorVersion}, ${r.routerType}, ${r.network})`);
+        });
+        throw new Error("No mainnet router v2 found");
+      }
+      
+      const routerAddress = targetRouter.address;
+      this.logger.log(`[DEBUG] Selected router: ${routerAddress} (v${targetRouter.majorVersion}.${targetRouter.minorVersion})`);
       
       // Get router metadata
       this.routerInfo = await stonApi.getRouter(routerAddress);
