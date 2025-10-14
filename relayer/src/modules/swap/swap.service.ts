@@ -225,13 +225,13 @@ export class SwapService {
       this.logger.debug(`[DEBUG] Expected jettons: ${expectedJettonAmount}`);
       this.logger.debug(`[DEBUG] Min ask amount (with 5% slippage): ${minAskAmount}`);
 
-      // ⚠️ КРИТИЧНО: Получаем адрес pTON Wallet для RELAYER'а
-      const relayerPtonWalletAddress = await this.getJettonWalletAddressForOwner(
+      // ⚠️ КРИТИЧНО: Получаем адрес pTON Wallet для ROUTER'а
+      const routerPtonWalletAddress = await this.getJettonWalletAddressForOwner(
         ptonMasterAddress,
-        this.config.relayerWalletAddress,
+        routerAddress,
       );
       
-      this.logger.log(`[DEBUG] Relayer's pTON Wallet: ${relayerPtonWalletAddress.toString()}`);
+      this.logger.log(`[DEBUG] Router's pTON Wallet: ${routerPtonWalletAddress.toString()}`);
 
       // ⚠️ КРИТИЧНО: Получаем адрес ask jetton wallet для РОУТЕРА
       const askJettonWalletAddress = await this.getJettonWalletAddressForOwner(
@@ -258,7 +258,7 @@ export class SwapService {
       );
       
       this.logger.log(`[DEBUG] ✅ Pton Ton Transfer body built`);
-      this.logger.log(`[DEBUG]   - Destination: ${relayerPtonWalletAddress.toString()} (pTON Wallet, NOT Router!)`);
+      this.logger.log(`[DEBUG]   - Destination: ${routerPtonWalletAddress.toString()} (Router's pTON Wallet)`);
       this.logger.log(`[DEBUG]   - Value: ${amountNanotons + 300_000_000n} (amount + gas)`);
       this.logger.log(`[DEBUG]   - Body size: ${ptonTransferBody.bits.length} bits`);
       this.logger.log(`[DEBUG]   - Amount in: ${amountNanotons} nanotons`);
@@ -276,10 +276,10 @@ export class SwapService {
       // ⚠️ КРИТИЧНО: Отправляем на pTON Wallet, НЕ на Router!
       const totalValue = amountNanotons + 300_000_000n; // amount + 0.3 TON gas
       
-      this.logger.log(`[DEBUG] Sending Pton Ton Transfer to pTON Wallet: ${relayerPtonWalletAddress.toString()}`);
+      this.logger.log(`[DEBUG] Sending Pton Ton Transfer to Router's pTON Wallet: ${routerPtonWalletAddress.toString()}`);
       
       const txHash = await this.tonService.sendInternalMessage(
-        relayerPtonWalletAddress.toString(), // ⚠️ pTON Wallet, NOT Router!
+        routerPtonWalletAddress.toString(), // ⚠️ Router's pTON Wallet!
         totalValue,
         ptonTransferBody,
       );
