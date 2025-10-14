@@ -253,18 +253,20 @@ export class SwapService {
         throw new Error('askJettonWalletAddress is undefined');
       }
 
-      this.logger.debug(`[DEBUG] createSwapBody parameters:`, {
-        userWalletAddress: this.config.relayerWalletAddress,
-        minAskAmount: minAskAmount.toString(),
+      this.logger.debug(`[DEBUG] createSwapBody parameters (RouterV2):`, {
         askJettonWalletAddress: askJettonWalletAddress.toString(),
+        receiverAddress: this.config.relayerWalletAddress,
+        minAskAmount: minAskAmount.toString(),
+        refundAddress: this.config.relayerWalletAddress,
         referralAddress: undefined
       });
 
-      // Создаем правильный swap body с DEX_OP_CODES.SWAP
+      // Создаем правильный swap body с DEX_OP_CODES.SWAP (RouterV2)
       const swapBody = await this.router.createSwapBody({
-        userWalletAddress: this.config.relayerWalletAddress,
-        minAskAmount: minAskAmount,
         askJettonWalletAddress: askJettonWalletAddress.toString(),
+        receiverAddress: this.config.relayerWalletAddress,
+        minAskAmount: minAskAmount,
+        refundAddress: this.config.relayerWalletAddress,
         referralAddress: undefined
       });
       
