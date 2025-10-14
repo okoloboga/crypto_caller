@@ -442,7 +442,7 @@ export class TonService {
 
       // Send internal message
       await this.sendInternalMessage(
-        subscriptionContract,
+        subscriptionContract.toString(),
         BigInt(this.config.gasForCallback),
         messageBody,
       );
@@ -475,7 +475,7 @@ export class TonService {
 
       // Send internal message with full refund amount + gas
       await this.sendInternalMessage(
-        subscriptionContract,
+        subscriptionContract.toString(),
         amount + BigInt(this.config.gasForCallback),
         messageBody,
       );
