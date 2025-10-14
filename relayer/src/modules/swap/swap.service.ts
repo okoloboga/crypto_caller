@@ -226,6 +226,7 @@ export class SwapService {
         bodySize: swapTxParams.body ? swapTxParams.body.bits.length : 0,
         payloadSize: swapTxParams.payload ? swapTxParams.payload.bits.length : 0,
         actualBodySize: actualBody ? actualBody.bits.length : 0,
+        bodyHex: actualBody ? actualBody.toBoc().toString('hex') : 'none',
         allKeys: Object.keys(swapTxParams),
       });
       
@@ -418,61 +419,45 @@ export class SwapService {
       const poolData = await pool.getPoolData();
       this.logger.debug(`[DEBUG] Pool reserves: reserve0=${poolData.reserve0.toString()}, reserve1=${poolData.reserve1.toString()}`);
 
-      // Determine token order - which reserve is TON and which is Jetton
-      let tonReserve: bigint;
-      let jettonReserve: bigint;
+      // Smart reserve detection with anomaly checking
+      // Start with assumption: reserve0 = jetton, reserve1 = TON
+      let tonReserve = poolData.reserve1;
+      let jettonReserve = poolData.reserve0;
       
-      // For RUBLE/TON pool on STON.fi:
-      // reserve0 = TON (smaller number, but higher value - ~227 TON)
-      // reserve1 = RUBLE (larger number, but smaller value - ~21B RUBLE)
-      // This is because RUBLE price is very low (~$0.000026), TON is high (~$2.69)
-      if (poolData.reserve0 < poolData.reserve1) {
-        // reserve0 = TON (smaller number but higher value)
-        // reserve1 = Jetton/RUBLE (larger number but lower value)
-        tonReserve = poolData.reserve0;
-        jettonReserve = poolData.reserve1;
-        this.logger.debug(`[DEBUG] Detected: reserve0=TON (${tonReserve}), reserve1=Jetton/RUBLE (${jettonReserve})`);
-      } else {
-        // reserve1 = TON (smaller number but higher value)
-        // reserve0 = Jetton/RUBLE (larger number but lower value)
-        tonReserve = poolData.reserve1;
-        jettonReserve = poolData.reserve0;
-        this.logger.debug(`[DEBUG] Detected: reserve0=Jetton/RUBLE (${jettonReserve}), reserve1=TON (${tonReserve})`);
-      }
+      this.logger.debug(`[DEBUG] Initial assumption: reserve0=Jetton (${jettonReserve}), reserve1=TON (${tonReserve})`);
 
       if (tonReserve === 0n || jettonReserve === 0n) {
         this.logger.warn("[DEBUG] Pool reserves are zero, using fallback rate");
         return 10000n;
       }
 
-      // CORRECTED FORMULA: How many nano-jettons per nano-TON
-      // Formula: (jettonReserve * 10^9 * 95) / (tonReserve * 100)
-      // The 10^9 multiplier ensures we get the rate in proper scale
-      // 95/100 = 5% slippage protection
-      const rate = (jettonReserve * 10n ** 9n * 95n) / (tonReserve * 100n);
+      // Calculate preliminary rate
+      let rate = (jettonReserve * 95n) / (tonReserve * 100n);
+      this.logger.debug(`[DEBUG] Preliminary rate: 1 TON = ${rate.toString()} nano-jettons`);
 
-      this.logger.log(`[DEBUG] Corrected swap rate: 1 TON = ${rate.toString()} nano-jettons (per nano-TON unit)`);
-      
-      // Validate result
+      // Check for anomalous rate (too high or too low)
+      // Reasonable range: 1,000 to 1,000,000,000 nano-jettons per nano-TON
+      if (rate > 1000000000000n || rate < 1000n) {
+        this.logger.warn(`[DEBUG] Suspicious rate: ${rate}, swapping reserves...`);
+        this.logger.warn(`[DEBUG] Double-check: tonReserve=${tonReserve}, jettonReserve=${jettonReserve}`);
+        
+        // Swap reserves and recalculate
+        [tonReserve, jettonReserve] = [jettonReserve, tonReserve];
+        rate = (jettonReserve * 95n) / (tonReserve * 100n);
+        
+        this.logger.log(`[DEBUG] Swapped reserves: reserve0=TON (${tonReserve}), reserve1=Jetton (${jettonReserve})`);
+        this.logger.log(`[DEBUG] Swapped rate: 1 TON = ${rate.toString()} nano-jettons`);
+      }
+
+      // Final validation
       if (rate === 0n) {
         this.logger.error(`[DEBUG] Invalid rate: rate is 0 after calculation`);
         this.logger.error(`[DEBUG] tonReserve=${tonReserve}, jettonReserve=${jettonReserve}`);
         this.logger.warn(`[DEBUG] Using fallback rate due to invalid calculation`);
         return 10000n; // Fallback
       }
-      
-      // Sanity check - rate shouldn't be unreasonably high (> 1M jettons per TON)
-      if (rate > 1000000000000n) {
-        this.logger.warn(`[DEBUG] Suspicious rate: ${rate}, might indicate wrong reserve order`);
-        this.logger.warn(`[DEBUG] Double-check: tonReserve=${tonReserve}, jettonReserve=${jettonReserve}`);
-        // Try swapping reserves if rate is too high
-        this.logger.warn(`[DEBUG] Rate too high, trying swapped reserves...`);
-        const swappedRate = (tonReserve * 10n ** 9n * 95n) / (jettonReserve * 100n);
-        if (swappedRate >= 10000n && swappedRate <= 1000000000000n) {
-          this.logger.log(`[DEBUG] Swapped rate looks better: ${swappedRate}`);
-          return swappedRate;
-        }
-      }
+
+      this.logger.log(`[DEBUG] Final swap rate: 1 TON = ${rate.toString()} nano-jettons (per nano-TON unit)`);
       
       return rate;
     } catch (error) {
@@ -529,17 +514,16 @@ export class SwapService {
           try {
             const poolData = await pool.getPoolData();
             
-            // Determine token order - same logic as getSwapRate()
-            // For RUBLE/TON pool: smaller number = TON, larger number = RUBLE
-            let tonReserve: bigint;
-            let jettonReserve: bigint;
+            // Smart reserve detection - same logic as getSwapRate()
+            // Start with assumption: reserve0 = jetton, reserve1 = TON
+            let tonReserve = poolData.reserve1;
+            let jettonReserve = poolData.reserve0;
             
-            if (poolData.reserve0 < poolData.reserve1) {
-              tonReserve = poolData.reserve0;
-              jettonReserve = poolData.reserve1;
-            } else {
-              tonReserve = poolData.reserve1;
-              jettonReserve = poolData.reserve0;
+            // Check for anomalous rate to determine correct order
+            const preliminaryRate = (jettonReserve * 95n) / (tonReserve * 100n);
+            if (preliminaryRate > 1000000000000n || preliminaryRate < 1000n) {
+              // Swap reserves if rate looks suspicious
+              [tonReserve, jettonReserve] = [jettonReserve, tonReserve];
             }
             
             // Check if there's enough liquidity for the swap
