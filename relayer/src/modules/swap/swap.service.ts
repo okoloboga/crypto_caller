@@ -204,130 +204,209 @@ export class SwapService {
   ): Promise<SwapResult> {
     try {
       this.logger.log(
-        `[DEBUG] Building STON.fi swap through pTON Wallet: ${amountNanotons} nanotons -> jettons`,
+        `[DEBUG] 🚀 Starting TWO-STAGE swap: TON->USDT->RUBLE (${amountNanotons} nanotons)`,
       );
 
-      const jettonMasterAddress = this.config.jettonMasterAddress;
-      const routerAddress = this.routerInfo.address;
-      const ptonMasterAddress = this.routerInfo.ptonMasterAddress;
+      const usdtJettonMaster = "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs";
+      const rubleJettonMaster = this.config.jettonMasterAddress;
+      const relayerAddress = this.config.relayerWalletAddress;
       
-      this.logger.debug(`[DEBUG] Swap parameters:`, {
-        jettonMaster: jettonMasterAddress,
-        routerAddress: routerAddress,
-        ptonMasterAddress: ptonMasterAddress,
-        relayerAddress: this.config.relayerWalletAddress,
+      // ⚠️ КРИТИЧНО: Проверяем jetton_master адреса
+      if (!rubleJettonMaster || rubleJettonMaster === 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c') {
+        throw new Error("Invalid RUBLE jetton master address in config");
+      }
+
+      this.logger.debug(`[DEBUG] Two-stage swap parameters:`, {
+        usdtJettonMaster: usdtJettonMaster,
+        rubleJettonMaster: rubleJettonMaster,
+        relayerAddress: relayerAddress,
         amountNanotons: amountNanotons.toString(),
+        expectedRubleAmount: expectedJettonAmount.toString(),
       });
 
-      // Calculate minAskAmount with 5% slippage tolerance
-      const minAskAmount = (expectedJettonAmount * 95n) / 100n;
+      // ========================================
+      // ЭТАП 1: TON -> USDT (TonToJetton)
+      // ========================================
       
-      this.logger.debug(`[DEBUG] Expected jettons: ${expectedJettonAmount}`);
-      this.logger.debug(`[DEBUG] Min ask amount (with 5% slippage): ${minAskAmount}`);
-
-      // ⚠️ ПРАВИЛЬНО: Используем SDK для создания правильного payload
-      this.logger.log(`[DEBUG] Using SDK to create proper swap payload`);
+      this.logger.log(`[DEBUG] 📍 STAGE 1: TON -> USDT swap`);
       
-      // Create pTON using dexFactory
-      const proxyTon = this.contracts.pTON.create(this.routerInfo.ptonMasterAddress);
+      // Рассчитываем ожидаемое количество USDT (примерно 1:1 для тестирования)
+      const expectedUsdtAmount = amountNanotons; // Упрощенный расчет
+      const minUsdtAmount = (expectedUsdtAmount * 95n) / 100n; // 5% slippage
       
-      this.logger.debug(`[DEBUG] Created pTON contract:`, {
-        ptonAddress: proxyTon.address?.toString(),
-        ptonMasterFromInfo: this.routerInfo.ptonMasterAddress,
+      this.logger.debug(`[DEBUG] Stage 1 parameters:`, {
+        expectedUsdtAmount: expectedUsdtAmount.toString(),
+        minUsdtAmount: minUsdtAmount.toString(),
       });
 
-      // ⚠️ ДИАГНОСТИКА: Логируем параметры перед вызовом SDK
-      this.logger.debug(`[DEBUG] Calling SDK with parameters:`, {
-        userWalletAddress: this.config.relayerWalletAddress,
+      // Получаем pTON контракт
+      const proxyTon = this.contracts.pTON.create(Address.parse(this.routerInfo.ptonMasterAddress));
+      
+      this.logger.debug(`[DEBUG] Stage 1 - Calling SDK for TON->USDT:`, {
+        userWalletAddress: relayerAddress,
         offerAmount: amountNanotons.toString(),
-        askJettonAddress: jettonMasterAddress,
-        minAskAmount: minAskAmount.toString(),
-        proxyTonAddress: proxyTon.address?.toString(),
+        askJettonAddress: usdtJettonMaster,
+        minAskAmount: minUsdtAmount.toString(),
       });
 
-      // ⚠️ КРИТИЧНО: Используем SDK для получения правильных параметров
-      const swapParams = await this.router.getSwapTonToJettonTxParams({
-        userWalletAddress: this.config.relayerWalletAddress,
+      const stage1Params = await this.router.getSwapTonToJettonTxParams({
+        userWalletAddress: relayerAddress,
         proxyTon: proxyTon,
         offerAmount: amountNanotons,
-        askJettonAddress: jettonMasterAddress,
-        minAskAmount: minAskAmount,
+        askJettonAddress: usdtJettonMaster,
+        minAskAmount: minUsdtAmount,
       });
-      
-      // ⚠️ КРИТИЧНО: Проверяем что SDK вернул корректные параметры
-      if (!swapParams || !swapParams.to) {
-        this.logger.error(`[DEBUG] SDK failed to generate swap parameters:`, {
-          swapParams: swapParams,
-          hasTo: !!swapParams?.to,
-          hasValue: !!swapParams?.value,
-          hasBody: !!swapParams?.body,
-        });
-        throw new Error("SDK failed to generate swap parameters");
+
+      if (!stage1Params || !stage1Params.to) {
+        throw new Error("SDK failed to generate Stage 1 (TON->USDT) parameters");
       }
+
+      this.logger.log(`[DEBUG] ✅ Stage 1 parameters generated:`);
+      this.logger.log(`[DEBUG]   - Destination: ${stage1Params.to.toString()}`);
+      this.logger.log(`[DEBUG]   - Value: ${stage1Params.value.toString()}`);
+      this.logger.log(`[DEBUG]   - Body size: ${stage1Params.body.bits.length} bits`);
+
+      // Отправляем Stage 1 транзакцию
+      this.logger.log(`[DEBUG] 📤 Sending Stage 1 transaction: TON->USDT`);
+      const stage1TxHash = await this.tonService.sendInternalMessage(
+        stage1Params.to.toString(),
+        stage1Params.value,
+        stage1Params.body,
+      );
+
+      this.logger.log(`[DEBUG] Stage 1 transaction sent: ${stage1TxHash}`);
+
+      // Ждем подтверждения Stage 1
+      this.logger.log(`[DEBUG] ⏳ Waiting for Stage 1 confirmation...`);
+      const stage1Confirmed = await this.waitForTransactionConfirmation(stage1TxHash, 60000);
       
-      this.logger.log(`[DEBUG] ✅ SDK generated swap parameters:`);
-      this.logger.log(`[DEBUG]   - Destination: ${swapParams.to.toString()}`);
-      this.logger.log(`[DEBUG]   - Value: ${swapParams.value.toString()}`);
-      this.logger.log(`[DEBUG]   - Body size: ${swapParams.body.bits.length} bits`);
-      this.logger.log(`[DEBUG]   - Amount in: ${amountNanotons} nanotons`);
-      this.logger.log(`[DEBUG]   - Expected out: ${expectedJettonAmount} nano-jettons`);
-      this.logger.log(`[DEBUG]   - Min ask amount: ${minAskAmount} nano-jettons`);
+      if (!stage1Confirmed) {
+        throw new Error("Stage 1 (TON->USDT) transaction confirmation timeout");
+      }
 
-      // ⚠️ ДИАГНОСТИКА: Полный вывод swapParams
-      this.logger.debug(`[DEBUG] Full swapParams object:`, {
-        to: swapParams.to?.toString(),
-        value: swapParams.value?.toString(),
-        body: swapParams.body ? {
-          bits: swapParams.body.bits.length,
-          refs: swapParams.body.refs.length,
-          hex: swapParams.body.toBoc().toString('hex').substring(0, 100) + '...'
-        } : null,
-        allKeys: Object.keys(swapParams),
-        fullObject: JSON.stringify(swapParams, null, 2)
-      });
+      this.logger.log(`[DEBUG] ✅ Stage 1 confirmed! Waiting for USDT balance update...`);
+      
+      // Ждем обновления баланса USDT
+      await new Promise((resolve) => setTimeout(resolve, 15000));
 
-      // Get jetton balance BEFORE swap
-      const balanceBefore = await this.getActualJettonAmount(
-        this.config.relayerWalletAddress,
+      // Получаем баланс USDT после Stage 1
+      const usdtBalanceAfterStage1 = await this.getActualJettonAmount(
+        relayerAddress,
         txId,
         0n,
+        usdtJettonMaster,
       );
-      this.logger.debug(`[DEBUG] Jetton balance BEFORE swap: ${balanceBefore}`);
+
+      this.logger.log(`[DEBUG] USDT balance after Stage 1: ${usdtBalanceAfterStage1}`);
+
+      if (usdtBalanceAfterStage1 === 0n) {
+        throw new Error("No USDT received in Stage 1");
+      }
+
+      // ========================================
+      // ЭТАП 2: USDT -> RUBLE (JettonToJetton)
+      // ========================================
       
-      // ⚠️ КРИТИЧНО: Отправляем на правильный destination от SDK
-      this.logger.log(`[DEBUG] Sending swap transaction to: ${swapParams.to.toString()}`);
+      this.logger.log(`[DEBUG] 📍 STAGE 2: USDT -> RUBLE swap`);
       
-      const txHash = await this.tonService.sendInternalMessage(
-        swapParams.to.toString(), // ⚠️ SDK знает правильный destination!
-        swapParams.value,
-        swapParams.body,
+      // Рассчитываем параметры для Stage 2
+      const minRubleAmount = (expectedJettonAmount * 95n) / 100n; // 5% slippage
+      
+      this.logger.debug(`[DEBUG] Stage 2 parameters:`, {
+        usdtAmount: usdtBalanceAfterStage1.toString(),
+        expectedRubleAmount: expectedJettonAmount.toString(),
+        minRubleAmount: minRubleAmount.toString(),
+      });
+
+      this.logger.debug(`[DEBUG] Stage 2 - Calling SDK for USDT->RUBLE:`, {
+        userWalletAddress: relayerAddress,
+        offerJettonAddress: usdtJettonMaster,
+        askJettonAddress: rubleJettonMaster,
+        offerAmount: usdtBalanceAfterStage1.toString(),
+        minAskAmount: minRubleAmount.toString(),
+      });
+
+      const stage2Params = await this.router.getSwapJettonToJettonTxParams({
+        userWalletAddress: relayerAddress,
+        offerJettonAddress: usdtJettonMaster,
+        askJettonAddress: rubleJettonMaster,
+        offerAmount: usdtBalanceAfterStage1,
+        minAskAmount: minRubleAmount,
+      });
+
+      if (!stage2Params || !stage2Params.to) {
+        throw new Error("SDK failed to generate Stage 2 (USDT->RUBLE) parameters");
+      }
+
+      this.logger.log(`[DEBUG] ✅ Stage 2 parameters generated:`);
+      this.logger.log(`[DEBUG]   - Destination: ${stage2Params.to.toString()}`);
+      this.logger.log(`[DEBUG]   - Value: ${stage2Params.value.toString()}`);
+      this.logger.log(`[DEBUG]   - Body size: ${stage2Params.body.bits.length} bits`);
+
+      // Получаем баланс RUBLE до Stage 2
+      const rubleBalanceBeforeStage2 = await this.getActualJettonAmount(
+        relayerAddress,
+        txId,
+        0n,
+        rubleJettonMaster,
       );
 
-      this.logger.log(`[DEBUG] Swap transaction sent: ${txHash}`);
+      this.logger.debug(`[DEBUG] RUBLE balance BEFORE Stage 2: ${rubleBalanceBeforeStage2}`);
 
-      // Wait for confirmation
-      this.logger.log(`[DEBUG] Waiting for transaction confirmation...`);
-      const confirmed = await this.waitForTransactionConfirmation(
-        txHash,
-        60000,
+      // Отправляем Stage 2 транзакцию
+      this.logger.log(`[DEBUG] 📤 Sending Stage 2 transaction: USDT->RUBLE`);
+      const stage2TxHash = await this.tonService.sendInternalMessage(
+        stage2Params.to.toString(),
+        stage2Params.value,
+        stage2Params.body,
       );
 
-      if (!confirmed) {
-        this.logger.error(`[DEBUG] Transaction confirmation timeout for ${txHash}`);
+      this.logger.log(`[DEBUG] Stage 2 transaction sent: ${stage2TxHash}`);
+
+      // Ждем подтверждения Stage 2
+      this.logger.log(`[DEBUG] ⏳ Waiting for Stage 2 confirmation...`);
+      const stage2Confirmed = await this.waitForTransactionConfirmation(stage2TxHash, 60000);
+      
+      if (!stage2Confirmed) {
+        throw new Error("Stage 2 (USDT->RUBLE) transaction confirmation timeout");
+      }
+
+      this.logger.log(`[DEBUG] ✅ Stage 2 confirmed! Waiting for RUBLE balance update...`);
+      
+      // Ждем обновления баланса RUBLE
+      await new Promise((resolve) => setTimeout(resolve, 15000));
+
+      // Получаем финальный баланс RUBLE
+      const rubleBalanceAfterStage2 = await this.getActualJettonAmount(
+        relayerAddress,
+        txId,
+        0n,
+        rubleJettonMaster,
+      );
+
+      this.logger.debug(`[DEBUG] RUBLE balance AFTER Stage 2: ${rubleBalanceAfterStage2}`);
+      
+      const actualRubleAmount = rubleBalanceAfterStage2 - rubleBalanceBeforeStage2;
+
+      if (actualRubleAmount === 0n) {
+        this.logger.error(`[DEBUG] ⚠️ No RUBLE received in Stage 2!`);
         
-        await new Promise((resolve) => setTimeout(resolve, 10000));
+        // Дополнительная проверка через 30 секунд
+        this.logger.log(`[DEBUG] Waiting additional 30 seconds for delayed Stage 2 completion...`);
+        await new Promise((resolve) => setTimeout(resolve, 30000));
         
-        const balanceAfterTimeout = await this.getActualJettonAmount(
-          this.config.relayerWalletAddress,
+        const finalRubleBalance = await this.getActualJettonAmount(
+          relayerAddress,
           txId,
           0n,
+          rubleJettonMaster,
         );
         
-        if (balanceAfterTimeout > balanceBefore) {
-          const actualJettonAmount = balanceAfterTimeout - balanceBefore;
-          this.logger.warn(`[DEBUG] Transaction confirmed after timeout! Received ${actualJettonAmount} jettons`);
+        const delayedRubleAmount = finalRubleBalance - rubleBalanceBeforeStage2;
+        if (delayedRubleAmount > 0n) {
+          this.logger.log(`[DEBUG] ✅ Delayed Stage 2 completed: received ${delayedRubleAmount} RUBLE`);
           return {
-            jettonAmount: actualJettonAmount,
+            jettonAmount: delayedRubleAmount,
             success: true,
           };
         }
@@ -335,44 +414,22 @@ export class SwapService {
         return {
           jettonAmount: 0n,
           success: false,
-          error: "Transaction confirmation timeout",
+          error: "No RUBLE received from Stage 2",
         };
       }
 
-      // Wait for balance update (может потребоваться больше времени для chain of transactions)
-      await new Promise((resolve) => setTimeout(resolve, 10000)); // 10 секунд
-
-      // Get jetton balance AFTER swap
-      const balanceAfter = await this.getActualJettonAmount(
-        this.config.relayerWalletAddress,
-        txId,
-        0n,
-      );
-      this.logger.debug(`[DEBUG] Jetton balance AFTER swap: ${balanceAfter}`);
-      
-      const actualJettonAmount = balanceAfter - balanceBefore;
-
-      if (actualJettonAmount === 0n) {
-        this.logger.error(`[DEBUG] ⚠️ No jettons received! Checking transaction details...`);
-        
-        const tx = await this.tonService.getTransaction(txHash);
-        this.logger.error(`[DEBUG] Transaction details:`, JSON.stringify(tx, null, 2));
-        
-        return {
-          jettonAmount: 0n,
-          success: false,
-          error: "No jettons received from swap",
-        };
-      }
-
-      this.logger.log(`[DEBUG] ✅ Swap completed: received ${actualJettonAmount} nano-jettons (balance: ${balanceBefore} -> ${balanceAfter})`);
+      this.logger.log(`[DEBUG] 🎉 TWO-STAGE SWAP COMPLETED!`);
+      this.logger.log(`[DEBUG]   - Stage 1: TON->USDT ✅`);
+      this.logger.log(`[DEBUG]   - Stage 2: USDT->RUBLE ✅`);
+      this.logger.log(`[DEBUG]   - Received: ${actualRubleAmount} RUBLE`);
+      this.logger.log(`[DEBUG]   - Balance: ${rubleBalanceBeforeStage2} -> ${rubleBalanceAfterStage2}`);
 
       return {
-        jettonAmount: actualJettonAmount,
+        jettonAmount: actualRubleAmount,
         success: true,
       };
     } catch (error) {
-      this.logger.error(`[DEBUG] STON.fi swap failed: ${error.message}`);
+      this.logger.error(`[DEBUG] Two-stage swap failed: ${error.message}`);
       this.logger.error(`[DEBUG] Error stack:`, error.stack);
       return {
         jettonAmount: 0n,
@@ -436,19 +493,21 @@ export class SwapService {
     relayerAddress: string,
     txId: string,
     fallbackAmount: bigint,
+    jettonMasterAddress?: string,
   ): Promise<bigint> {
     try {
-      this.logger.debug(`[DEBUG] Getting actual jetton amount for relayer: ${relayerAddress}`);
+      const targetJettonMaster = jettonMasterAddress || this.config.jettonMasterAddress;
+      this.logger.debug(`[DEBUG] Getting actual jetton amount for relayer: ${relayerAddress}, jetton: ${targetJettonMaster}`);
       
       // Ensure wallet is initialized before proceeding
       await this.tonService.forceWalletInitialization();
       
-      // Get relayer's jetton wallet address
-      const jettonWalletAddress = await this.tonService.getJettonWalletAddress();
-      this.logger.debug(`[DEBUG] Relayer jetton wallet: ${jettonWalletAddress.toString()}`);
+      // Get relayer's jetton wallet address for specific jetton
+      const jettonWalletAddress = await this.getTargetJettonWalletAddress(targetJettonMaster, relayerAddress);
+      this.logger.debug(`[DEBUG] Relayer jetton wallet: ${jettonWalletAddress}`);
 
-      // Get jetton wallet data
-      const jettonWallet = await this.tonService.getJettonWalletContract();
+      // Get jetton wallet data using direct RPC call
+      const jettonWallet = this.client.open(this.contracts.JettonWallet.create(Address.parse(jettonWalletAddress)));
       const walletData = await jettonWallet.getData();
 
       this.logger.debug(`[DEBUG] Jetton wallet balance: ${walletData.balance.toString()}`);
@@ -458,6 +517,28 @@ export class SwapService {
       this.logger.error(`[DEBUG] Error details:`, error);
       // Return expected amount as fallback
       return fallbackAmount;
+    }
+  }
+
+  /**
+   * Get target jetton wallet address for specific jetton master
+   */
+  private async getTargetJettonWalletAddress(jettonMasterAddress: string, ownerAddress: string): Promise<string> {
+    try {
+      this.logger.debug(`[DEBUG] Getting target jetton wallet for owner: ${ownerAddress}, master: ${jettonMasterAddress}`);
+      
+      // Используем прямой вызов RPC метода
+      const result = await this.client.runMethod(Address.parse(jettonMasterAddress), 'get_wallet_address', [
+        { type: 'slice', cell: beginCell().storeAddress(Address.parse(ownerAddress)).endCell() }
+      ]);
+      
+      const walletAddress = result.stack.readAddress();
+      
+      this.logger.debug(`[DEBUG] Target jetton wallet address: ${walletAddress.toString()}`);
+      return walletAddress.toString();
+    } catch (error) {
+      this.logger.error(`[DEBUG] Failed to get target jetton wallet: ${error.message}`);
+      throw error;
     }
   }
 
