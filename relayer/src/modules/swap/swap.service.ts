@@ -100,28 +100,29 @@ export class SwapService {
       
       this.routerInfo = await stonApi.getRouter(routerAddress);
       
-      // ⚠️ ДИАГНОСТИКА: Логируем ВСЮ информацию о роутере
-      this.logger.debug(`[DEBUG] Complete router info:`, {
+      // ⚠️ ДИАГНОСТИКА: Проверяем все необходимые поля
+      this.logger.debug(`[DEBUG] Router info validation:`, {
         address: this.routerInfo.address,
-        majorVersion: this.routerInfo.majorVersion,
-        minorVersion: this.routerInfo.minorVersion,
-        routerType: this.routerInfo.routerType,
         ptonMasterAddress: this.routerInfo.ptonMasterAddress,
-        ptonVaultAddress: this.routerInfo.ptonVaultAddress,
-        ptonWalletAddress: this.routerInfo.ptonWalletAddress,
-        poolAddress: this.routerInfo.poolAddress,
+        hasPoolAddress: !!this.routerInfo.poolAddress,
         allKeys: Object.keys(this.routerInfo),
-        fullObject: JSON.stringify(this.routerInfo, null, 2),
       });
+      
+      // ⚠️ КРИТИЧНО: Проверяем, что у нас есть все необходимые адреса
+      if (!this.routerInfo.ptonMasterAddress) {
+        throw new Error("Router info missing ptonMasterAddress");
+      }
       
       this.contracts = dexFactory(this.routerInfo);
       this.logger.debug(`[DEBUG] Contracts created:`, Object.keys(this.contracts));
       
-      // ⚠️ ДИАГНОСТИКА: Проверяем, что Router контракт создан правильно
-      const routerContract = this.contracts.Router.create(Address.parse(this.routerInfo.address));
-      this.logger.debug(`[DEBUG] Router contract address: ${routerContract.address?.toString()}`);
+      // ⚠️ ПРОВЕРКА: Убеждаемся что контракты созданы правильно
+      if (!this.contracts.Router || !this.contracts.pTON) {
+        throw new Error("Failed to create Router or pTON contracts");
+      }
       
-    this.router = this.client.open(routerContract);
+      const routerContract = this.contracts.Router.create(Address.parse(this.routerInfo.address));
+      this.router = this.client.open(routerContract);
 
       this.logger.log("STON.fi Router v2.2 initialized successfully with dexFactory");
     } catch (error) {
@@ -207,6 +208,11 @@ export class SwapService {
         `[DEBUG] Building STON.fi swap through pTON Wallet: ${amountNanotons} nanotons -> jettons`,
       );
 
+      // ⚠️ ВАЛИДАЦИЯ: Проверяем jetton_master адрес
+      if (!this.config.jettonMasterAddress || this.config.jettonMasterAddress === 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c') {
+        throw new Error("Invalid jetton master address in config");
+      }
+
       const jettonMasterAddress = this.config.jettonMasterAddress;
       const routerAddress = this.routerInfo.address;
       const ptonMasterAddress = this.routerInfo.ptonMasterAddress;
@@ -238,11 +244,13 @@ export class SwapService {
 
       // ⚠️ КРИТИЧНО: Используем SDK для получения правильных параметров
       const swapParams = await this.router.getSwapTonToJettonTxParams({
-        userWalletAddress: this.config.relayerWalletAddress,
+        userWalletAddress: Address.parse(this.config.relayerWalletAddress),
         proxyTon: proxyTon,
         offerAmount: amountNanotons,
-        askJettonAddress: jettonMasterAddress,
+        askJettonAddress: Address.parse(jettonMasterAddress), // ⚠️ ВАЖНО: передаем Address объект
         minAskAmount: minAskAmount,
+        queryId: BigInt(Date.now()), // ⚠️ Добавляем уникальный queryId
+        gasAmount: 960000000n, // ⚠️ Явно указываем газ
       });
       
       this.logger.log(`[DEBUG] ✅ SDK generated swap parameters:`);
@@ -252,6 +260,9 @@ export class SwapService {
       this.logger.log(`[DEBUG]   - Amount in: ${amountNanotons} nanotons`);
       this.logger.log(`[DEBUG]   - Expected out: ${expectedJettonAmount} nano-jettons`);
       this.logger.log(`[DEBUG]   - Min ask amount: ${minAskAmount} nano-jettons`);
+
+      // ⚠️ ДИАГНОСТИКА: Логируем содержимое body для проверки
+      this.logger.debug(`[DEBUG] Body hex: ${swapParams.body.toBoc().toString('hex')}`);
 
       // Get jetton balance BEFORE swap
       const balanceBefore = await this.getActualJettonAmount(
@@ -306,8 +317,8 @@ export class SwapService {
         };
       }
 
-      // Wait for balance update (может потребоваться больше времени для chain of transactions)
-      await new Promise((resolve) => setTimeout(resolve, 10000)); // 10 секунд
+      // ⚠️ ИСПРАВЛЕНИЕ: Увеличиваем время ожидания для chain of transactions
+      await new Promise((resolve) => setTimeout(resolve, 15000)); // 15 секунд
 
       // Get jetton balance AFTER swap
       const balanceAfter = await this.getActualJettonAmount(
@@ -322,8 +333,28 @@ export class SwapService {
       if (actualJettonAmount === 0n) {
         this.logger.error(`[DEBUG] ⚠️ No jettons received! Checking transaction details...`);
         
+        // ⚠️ ДИАГНОСТИКА: Проверяем все связанные транзакции
         const tx = await this.tonService.getTransaction(txHash);
         this.logger.error(`[DEBUG] Transaction details:`, JSON.stringify(tx, null, 2));
+        
+        // Дополнительная проверка через 30 секунд
+        this.logger.log(`[DEBUG] Waiting additional 30 seconds for delayed swap completion...`);
+        await new Promise((resolve) => setTimeout(resolve, 30000));
+        
+        const finalBalance = await this.getActualJettonAmount(
+          this.config.relayerWalletAddress,
+          txId,
+          0n,
+        );
+        
+        const delayedAmount = finalBalance - balanceBefore;
+        if (delayedAmount > 0n) {
+          this.logger.log(`[DEBUG] ✅ Delayed swap completed: received ${delayedAmount} nano-jettons`);
+          return {
+            jettonAmount: delayedAmount,
+            success: true,
+          };
+        }
         
         return {
           jettonAmount: 0n,
