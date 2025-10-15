@@ -236,6 +236,15 @@ export class SwapService {
         ptonMasterFromInfo: this.routerInfo.ptonMasterAddress,
       });
 
+      // ⚠️ ДИАГНОСТИКА: Логируем параметры перед вызовом SDK
+      this.logger.debug(`[DEBUG] Calling SDK with parameters:`, {
+        userWalletAddress: this.config.relayerWalletAddress,
+        offerAmount: amountNanotons.toString(),
+        askJettonAddress: jettonMasterAddress,
+        minAskAmount: minAskAmount.toString(),
+        proxyTonAddress: proxyTon.address?.toString(),
+      });
+
       // ⚠️ КРИТИЧНО: Используем SDK для получения правильных параметров
       const swapParams = await this.router.getSwapTonToJettonTxParams({
         userWalletAddress: this.config.relayerWalletAddress,
@@ -245,11 +254,21 @@ export class SwapService {
         minAskAmount: minAskAmount,
       });
       
+      // ⚠️ КРИТИЧНО: Проверяем что SDK вернул корректные параметры
+      if (!swapParams || !swapParams.to) {
+        this.logger.error(`[DEBUG] SDK failed to generate swap parameters:`, {
+          swapParams: swapParams,
+          hasTo: !!swapParams?.to,
+          hasValue: !!swapParams?.value,
+          hasBody: !!swapParams?.body,
+        });
+        throw new Error("SDK failed to generate swap parameters");
+      }
+      
       this.logger.log(`[DEBUG] ✅ SDK generated swap parameters:`);
       this.logger.log(`[DEBUG]   - Destination: ${swapParams.to.toString()}`);
       this.logger.log(`[DEBUG]   - Value: ${swapParams.value.toString()}`);
       this.logger.log(`[DEBUG]   - Body size: ${swapParams.body.bits.length} bits`);
-      this.logger.log(`[DEBUG]   - askJettonAddress: ${swapParams.askJettonAddress.toString()}`);
       this.logger.log(`[DEBUG]   - Amount in: ${amountNanotons} nanotons`);
       this.logger.log(`[DEBUG]   - Expected out: ${expectedJettonAmount} nano-jettons`);
       this.logger.log(`[DEBUG]   - Min ask amount: ${minAskAmount} nano-jettons`);
