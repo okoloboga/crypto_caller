@@ -250,7 +250,7 @@ export class SwapService {
         userWalletAddress: this.config.relayerWalletAddress,
         proxyTon: proxyTon,
         offerAmount: amountNanotons,
-        askJettonAddress: Address.parse(jettonMasterAddress),
+        askJettonAddress: jettonMasterAddress,
         minAskAmount: minAskAmount,
       });
       
@@ -272,6 +272,19 @@ export class SwapService {
       this.logger.log(`[DEBUG]   - Amount in: ${amountNanotons} nanotons`);
       this.logger.log(`[DEBUG]   - Expected out: ${expectedJettonAmount} nano-jettons`);
       this.logger.log(`[DEBUG]   - Min ask amount: ${minAskAmount} nano-jettons`);
+
+      // ⚠️ ДИАГНОСТИКА: Полный вывод swapParams
+      this.logger.debug(`[DEBUG] Full swapParams object:`, {
+        to: swapParams.to?.toString(),
+        value: swapParams.value?.toString(),
+        body: swapParams.body ? {
+          bits: swapParams.body.bits.length,
+          refs: swapParams.body.refs.length,
+          hex: swapParams.body.toBoc().toString('hex').substring(0, 100) + '...'
+        } : null,
+        allKeys: Object.keys(swapParams),
+        fullObject: JSON.stringify(swapParams, null, 2)
+      });
 
       // Get jetton balance BEFORE swap
       const balanceBefore = await this.getActualJettonAmount(
