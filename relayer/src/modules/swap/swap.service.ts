@@ -195,7 +195,7 @@ export class SwapService {
   }
 
   /**
-   * Execute STON.fi swap through pTON Wallet (correct flow)
+   * Execute STON.fi swap through pTON Vault (correct flow based on successful transaction)
    */
   private async executeRealSwap(
     amountNanotons: bigint,
@@ -205,23 +205,22 @@ export class SwapService {
   ): Promise<SwapResult> {
     try {
       this.logger.log(
-        `[DEBUG] Building STON.fi swap through pTON Wallet: ${amountNanotons} nanotons -> jettons`,
+        `[DEBUG] Building STON.fi swap through pTON Vault: ${amountNanotons} nanotons -> jettons`,
       );
 
-      // ⚠️ ВАЛИДАЦИЯ: Проверяем jetton_master адрес
-      if (!this.config.jettonMasterAddress || this.config.jettonMasterAddress === 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c') {
+      const jettonMasterAddress = this.config.jettonMasterAddress;
+      const relayerAddress = this.config.relayerWalletAddress;
+      
+      // ⚠️ КРИТИЧНО: Проверяем jetton_master адрес
+      if (!jettonMasterAddress || jettonMasterAddress === 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c') {
         throw new Error("Invalid jetton master address in config");
       }
 
-      const jettonMasterAddress = this.config.jettonMasterAddress;
-      const routerAddress = this.routerInfo.address;
-      const ptonMasterAddress = this.routerInfo.ptonMasterAddress;
-      
       this.logger.debug(`[DEBUG] Swap parameters:`, {
         jettonMaster: jettonMasterAddress,
-        routerAddress: routerAddress,
-        ptonMasterAddress: ptonMasterAddress,
-        relayerAddress: this.config.relayerWalletAddress,
+        ptonMasterAddress: this.routerInfo.ptonMasterAddress,
+        ptonVaultAddress: this.routerInfo.ptonVaultAddress,
+        relayerAddress: relayerAddress,
         amountNanotons: amountNanotons.toString(),
       });
 
@@ -231,54 +230,95 @@ export class SwapService {
       this.logger.debug(`[DEBUG] Expected jettons: ${expectedJettonAmount}`);
       this.logger.debug(`[DEBUG] Min ask amount (with 5% slippage): ${minAskAmount}`);
 
-      // ⚠️ ПРАВИЛЬНО: Используем SDK для создания правильного payload
-      this.logger.log(`[DEBUG] Using SDK to create proper swap payload`);
+      // ⚠️ ПРАВИЛЬНО: Строим транзакцию как в успешном примере
+      // Сначала получаем jetton wallet для нашего релейера от target jetton
+      const targetJettonWallet = await this.getTargetJettonWalletAddress(jettonMasterAddress, relayerAddress);
       
-      // Create pTON using dexFactory
-      const proxyTon = this.contracts.pTON.create(this.routerInfo.ptonMasterAddress);
-      
-      this.logger.debug(`[DEBUG] Created pTON contract:`, {
-        ptonAddress: proxyTon.address?.toString(),
-        ptonMasterFromInfo: this.routerInfo.ptonMasterAddress,
-      });
+      this.logger.debug(`[DEBUG] Target jetton wallet for relayer: ${targetJettonWallet}`);
 
-      // ⚠️ КРИТИЧНО: Используем SDK для получения правильных параметров
-      const swapParams = await this.router.getSwapTonToJettonTxParams({
-        userWalletAddress: Address.parse(this.config.relayerWalletAddress),
-        proxyTon: proxyTon,
-        offerAmount: amountNanotons,
-        askJettonAddress: Address.parse(jettonMasterAddress), // ⚠️ ВАЖНО: передаем Address объект
-        minAskAmount: minAskAmount,
-        queryId: BigInt(Date.now()), // ⚠️ Добавляем уникальный queryId
-        gasAmount: 960000000n, // ⚠️ Явно указываем газ
-      });
+      // Генерируем уникальный query_id
+      const queryId = BigInt(Date.now() * 1000 + Math.floor(Math.random() * 1000));
+
+      // ⚠️ СТРОИМ ПРАВИЛЬНЫЙ PAYLOAD как в успешной транзакции
       
-      this.logger.log(`[DEBUG] ✅ SDK generated swap parameters:`);
-      this.logger.log(`[DEBUG]   - Destination: ${swapParams.to.toString()}`);
-      this.logger.log(`[DEBUG]   - Value: ${swapParams.value.toString()}`);
-      this.logger.log(`[DEBUG]   - Body size: ${swapParams.body.bits.length} bits`);
-      this.logger.log(`[DEBUG]   - Amount in: ${amountNanotons} nanotons`);
-      this.logger.log(`[DEBUG]   - Expected out: ${expectedJettonAmount} nano-jettons`);
+      // 1. Строим cross_swap_body (внутренний payload)
+      const crossSwapBody = beginCell()
+        .storeUint(minAskAmount, 64) // min_out
+        .storeAddress(Address.parse(relayerAddress)) // receiver
+        .storeCoins(0) // fwd_gas
+        .storeMaybeRef(null) // custom_payload
+        .storeCoins(0) // refund_fwd_gas  
+        .storeMaybeRef(null) // refund_payload
+        .storeUint(10, 8) // ref_fee
+        .storeAddress(null) // ref_address (empty)
+        .endCell();
+
+      // 2. Строим основной swap payload
+      const swapPayload = beginCell()
+        .storeUint(0x6664de2a, 32) // Stonfi Swap V2 opcode
+        .storeUint(0, 64) // query_id
+        .storeAddress(Address.parse(targetJettonWallet)) // token_wallet1
+        .storeAddress(Address.parse(relayerAddress)) // refund_address
+        .storeAddress(Address.parse(relayerAddress)) // excesses_address
+        .storeUint(Math.floor(Date.now() / 1000) + 3600, 32) // tx_deadline (1 hour)
+        .storeRef(crossSwapBody) // cross_swap_body
+        .endCell();
+
+      // 3. Строим jetton notify payload
+      const jettonNotifyPayload = beginCell()
+        .storeUint(0x7362d09c, 32) // Jetton Notify opcode
+        .storeUint(queryId, 64) // query_id
+        .storeCoins(amountNanotons) // amount
+        .storeAddress(Address.parse(relayerAddress)) // sender
+        .storeRef(swapPayload) // forward_payload
+        .endCell();
+
+      // 4. Строим финальный pTON transfer payload
+      const ptonTransferPayload = beginCell()
+        .storeUint(0x01f3835d, 32) // Pton Ton Transfer opcode
+        .storeUint(queryId, 64) // query_id
+        .storeCoins(amountNanotons) // ton_amount
+        .storeAddress(Address.parse(relayerAddress)) // destination (refund_address)
+        .storeAddress(Address.parse(relayerAddress)) // response_destination
+        .storeMaybeRef(null) // custom_payload
+        .storeCoins(0) // forward_ton_amount
+        .storeRef(jettonNotifyPayload) // forward_payload
+        .endCell();
+
+      // ⚠️ КРИТИЧНО: Отправляем на pTON Vault (как в успешной транзакции)
+      const ptonVaultAddress = this.routerInfo.ptonVaultAddress;
+      if (!ptonVaultAddress) {
+        throw new Error("pTON Vault address not found in router info");
+      }
+
+      this.logger.log(`[DEBUG] ✅ Manual payload constructed:`);
+      this.logger.log(`[DEBUG]   - Destination: ${ptonVaultAddress} (pTON Vault)`);
+      this.logger.log(`[DEBUG]   - Value: ${(amountNanotons + 300000000n).toString()} (amount + gas)`);
+      this.logger.log(`[DEBUG]   - Query ID: ${queryId.toString()}`);
+      this.logger.log(`[DEBUG]   - Target jetton wallet: ${targetJettonWallet}`);
       this.logger.log(`[DEBUG]   - Min ask amount: ${minAskAmount} nano-jettons`);
 
-      // ⚠️ ДИАГНОСТИКА: Логируем содержимое body для проверки
-      this.logger.debug(`[DEBUG] Body hex: ${swapParams.body.toBoc().toString('hex')}`);
+      // ⚠️ ДИАГНОСТИКА: Логируем hex payload
+      this.logger.debug(`[DEBUG] Payload hex: ${ptonTransferPayload.toBoc().toString('hex')}`);
 
       // Get jetton balance BEFORE swap
       const balanceBefore = await this.getActualJettonAmount(
-        this.config.relayerWalletAddress,
+        relayerAddress,
         txId,
         0n,
       );
       this.logger.debug(`[DEBUG] Jetton balance BEFORE swap: ${balanceBefore}`);
       
-      // ⚠️ КРИТИЧНО: Отправляем на правильный destination от SDK
-      this.logger.log(`[DEBUG] Sending swap transaction to: ${swapParams.to.toString()}`);
+      // ⚠️ КРИТИЧНО: Отправляем на pTON Vault с достаточным газом
+      const gasAmount = 300000000n; // 0.3 TON для gas
+      const totalAmount = amountNanotons + gasAmount;
+      
+      this.logger.log(`[DEBUG] Sending swap transaction to pTON Vault: ${ptonVaultAddress}`);
       
       const txHash = await this.tonService.sendInternalMessage(
-        swapParams.to.toString(), // ⚠️ SDK знает правильный destination!
-        swapParams.value,
-        swapParams.body,
+        ptonVaultAddress,
+        totalAmount,
+        ptonTransferPayload,
       );
 
       this.logger.log(`[DEBUG] Swap transaction sent: ${txHash}`);
@@ -293,10 +333,10 @@ export class SwapService {
       if (!confirmed) {
         this.logger.error(`[DEBUG] Transaction confirmation timeout for ${txHash}`);
         
-        await new Promise((resolve) => setTimeout(resolve, 10000));
+        await new Promise((resolve) => setTimeout(resolve, 15000));
         
         const balanceAfterTimeout = await this.getActualJettonAmount(
-          this.config.relayerWalletAddress,
+          relayerAddress,
           txId,
           0n,
         );
@@ -317,12 +357,12 @@ export class SwapService {
         };
       }
 
-      // ⚠️ ИСПРАВЛЕНИЕ: Увеличиваем время ожидания для chain of transactions
-      await new Promise((resolve) => setTimeout(resolve, 15000)); // 15 секунд
+      // Wait for swap completion (chain of transactions takes time)
+      await new Promise((resolve) => setTimeout(resolve, 20000)); // 20 секунд
 
       // Get jetton balance AFTER swap
       const balanceAfter = await this.getActualJettonAmount(
-        this.config.relayerWalletAddress,
+        relayerAddress,
         txId,
         0n,
       );
@@ -333,7 +373,6 @@ export class SwapService {
       if (actualJettonAmount === 0n) {
         this.logger.error(`[DEBUG] ⚠️ No jettons received! Checking transaction details...`);
         
-        // ⚠️ ДИАГНОСТИКА: Проверяем все связанные транзакции
         const tx = await this.tonService.getTransaction(txHash);
         this.logger.error(`[DEBUG] Transaction details:`, JSON.stringify(tx, null, 2));
         
@@ -342,7 +381,7 @@ export class SwapService {
         await new Promise((resolve) => setTimeout(resolve, 30000));
         
         const finalBalance = await this.getActualJettonAmount(
-          this.config.relayerWalletAddress,
+          relayerAddress,
           txId,
           0n,
         );
@@ -377,6 +416,34 @@ export class SwapService {
         success: false,
         error: error.message,
       };
+    }
+  }
+
+  /**
+   * Get target jetton wallet address for relayer
+   */
+  private async getTargetJettonWalletAddress(jettonMasterAddress: string, ownerAddress: string): Promise<string> {
+    try {
+      this.logger.debug(`[DEBUG] Getting target jetton wallet for owner: ${ownerAddress}, master: ${jettonMasterAddress}`);
+      
+      // Создаем jetton master контракт
+      const jettonMaster = this.client.open({
+        address: Address.parse(jettonMasterAddress),
+        async getWalletAddress(owner: Address) {
+          const result = await this.client.runMethod(this.address, 'get_wallet_address', [
+            { type: 'slice', cell: beginCell().storeAddress(owner).endCell() }
+          ]);
+          return result.stack.readAddress();
+        }
+      } as any);
+      
+      const walletAddress = await jettonMaster.getWalletAddress(Address.parse(ownerAddress));
+      
+      this.logger.debug(`[DEBUG] Target jetton wallet address: ${walletAddress.toString()}`);
+      return walletAddress.toString();
+    } catch (error) {
+      this.logger.error(`[DEBUG] Failed to get target jetton wallet: ${error.message}`);
+      throw error;
     }
   }
 
