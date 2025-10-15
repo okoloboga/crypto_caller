@@ -426,18 +426,12 @@ export class SwapService {
     try {
       this.logger.debug(`[DEBUG] Getting target jetton wallet for owner: ${ownerAddress}, master: ${jettonMasterAddress}`);
       
-      // Создаем jetton master контракт
-      const jettonMaster = this.client.open({
-        address: Address.parse(jettonMasterAddress),
-        async getWalletAddress(owner: Address) {
-          const result = await this.client.runMethod(this.address, 'get_wallet_address', [
-            { type: 'slice', cell: beginCell().storeAddress(owner).endCell() }
-          ]);
-          return result.stack.readAddress();
-        }
-      } as any);
+      // Используем прямой вызов RPC метода
+      const result = await this.client.runMethod(Address.parse(jettonMasterAddress), 'get_wallet_address', [
+        { type: 'slice', cell: beginCell().storeAddress(Address.parse(ownerAddress)).endCell() }
+      ]);
       
-      const walletAddress = await jettonMaster.getWalletAddress(Address.parse(ownerAddress));
+      const walletAddress = result.stack.readAddress();
       
       this.logger.debug(`[DEBUG] Target jetton wallet address: ${walletAddress.toString()}`);
       return walletAddress.toString();
