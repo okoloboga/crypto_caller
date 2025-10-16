@@ -427,12 +427,19 @@ export class TonService {
     success: boolean,
   ): Promise<void> {
     try {
+      this.logger.log(`[DEBUG] SENDING OnSwapCallback:`);
+      this.logger.log(`[DEBUG]   - User: ${userAddress}`);
+      this.logger.log(`[DEBUG]   - Jetton amount: ${jettonAmount}`);
+      this.logger.log(`[DEBUG]   - Success: ${success}`);
+      
       // Ensure wallet is initialized before proceeding
       await this.ensureWalletInitialized();
       
       const subscriptionContract = Address.parse(
         this.config.subscriptionContractAddress,
       );
+      
+      this.logger.log(`[DEBUG]   - Subscription contract: ${subscriptionContract.toString()}`);
 
       const messageBody = this.buildOnSwapCallbackBody(
         Address.parse(userAddress),
@@ -440,18 +447,21 @@ export class TonService {
         success,
       );
 
+      this.logger.log(`[DEBUG]   - Message body created, sending to contract...`);
+
       // Send internal message
-      await this.sendInternalMessage(
+      const txHash = await this.sendInternalMessage(
         subscriptionContract.toString(),
         BigInt(this.config.gasForCallback),
         messageBody,
       );
 
-      this.logger.log(
-        `Sent OnSwapCallback: user=${userAddress}, jettonAmount=${jettonAmount}, success=${success}`,
-      );
+      this.logger.log(`[DEBUG] ✅ OnSwapCallback sent successfully!`);
+      this.logger.log(`[DEBUG]   - Transaction hash: ${txHash}`);
+      this.logger.log(`[DEBUG]   - User: ${userAddress}, JettonAmount: ${jettonAmount}, Success: ${success}`);
     } catch (error) {
-      this.logger.error(`Failed to send OnSwapCallback: ${error.message}`);
+      this.logger.error(`[DEBUG] ❌ Failed to send OnSwapCallback: ${error.message}`);
+      this.logger.error(`[DEBUG] Error details:`, error);
       throw error;
     }
   }

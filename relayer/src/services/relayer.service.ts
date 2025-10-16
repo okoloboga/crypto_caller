@@ -259,6 +259,9 @@ export class RelayerService implements OnModuleInit {
 
       // Send success callback
       this.logger.log(`[DEBUG] Sending success callback for transaction ${tx.lt}`);
+      this.logger.log(`[DEBUG] User address for callback: ${tx.userAddress}`);
+      this.logger.log(`[DEBUG] Jetton amount for callback: ${swapResult.jettonAmount}`);
+      
       await this.tonService.sendOnSwapCallback(
         tx.userAddress,
         swapResult.jettonAmount,
