@@ -538,11 +538,17 @@ export class TonService {
       const currentBalance = await this.getWalletBalance();
       const requiredAmount = value + BigInt(this.config.gasForCallback); // value + gas
       
-      this.logger.debug(`[DEBUG] Balance check: current=${currentBalance}, required=${requiredAmount}`);
+      this.logger.log(`[DEBUG] SENDING MESSAGE:`);
+      this.logger.log(`[DEBUG]   - Destination: ${destination}`);
+      this.logger.log(`[DEBUG]   - Value: ${value} nanotons (${value / 1_000_000_000n} TON)`);
+      this.logger.log(`[DEBUG]   - Gas: ${this.config.gasForCallback} nanotons (${BigInt(this.config.gasForCallback) / 1_000_000_000n} TON)`);
+      this.logger.log(`[DEBUG]   - Current balance: ${currentBalance} nanotons (${currentBalance / 1_000_000_000n} TON)`);
+      this.logger.log(`[DEBUG]   - Required: ${requiredAmount} nanotons (${requiredAmount / 1_000_000_000n} TON)`);
       
       if (currentBalance < requiredAmount) {
         const error = `Insufficient balance: ${currentBalance} < ${requiredAmount} (value: ${value} + gas: ${this.config.gasForCallback})`;
         this.logger.error(`[DEBUG] ${error}`);
+        this.logger.error(`[DEBUG] Shortage: ${requiredAmount - currentBalance} nanotons (${(requiredAmount - currentBalance) / 1_000_000_000n} TON)`);
         throw new Error(error);
       }
       

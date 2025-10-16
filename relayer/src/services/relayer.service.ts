@@ -88,7 +88,12 @@ export class RelayerService implements OnModuleInit {
    */
   private async processTransaction(tx: ParsedTransaction): Promise<void> {
     const startTime = Date.now();
-    // Process transaction silently unless there's an issue
+    
+    this.logger.log(`[DEBUG] Processing transaction ${tx.lt}:`);
+    this.logger.log(`[DEBUG]   - User: ${tx.userAddress}`);
+    this.logger.log(`[DEBUG]   - Amount: ${tx.valueNanotons} nanotons (${tx.valueNanotons / 1_000_000_000n} TON)`);
+    this.logger.log(`[DEBUG]   - From: ${tx.fromAddress}`);
+    this.logger.log(`[DEBUG]   - To: ${tx.toAddress}`);
 
     try {
       // Check if transaction already processed FIRST
@@ -133,6 +138,40 @@ export class RelayerService implements OnModuleInit {
           errorMessage: `Insufficient amount for gas: ${tx.valueNanotons} < ${gasAmount}`,
         });
         await this.transactionRepository.save(transaction);
+        return;
+      }
+
+      // ⚠️ КРИТИЧНО: Проверяем баланс relayer'а ПЕРЕД началом обработки
+      const relayerBalance = await this.tonService.getWalletBalance();
+      const requiredForSwap = swapAmount + BigInt(this.config.gasForCallback); // swap amount + gas
+      const requiredForBurn = BigInt("100000000"); // 0.1 TON для burn
+      const totalRequired = requiredForSwap + requiredForBurn;
+      
+      this.logger.log(`[DEBUG] BALANCE CHECK for transaction ${tx.lt}:`);
+      this.logger.log(`[DEBUG]   - Relayer balance: ${relayerBalance} nanotons (${relayerBalance / 1_000_000_000n} TON)`);
+      this.logger.log(`[DEBUG]   - Swap amount: ${swapAmount} nanotons (${swapAmount / 1_000_000_000n} TON)`);
+      this.logger.log(`[DEBUG]   - Required for swap: ${requiredForSwap} nanotons (${requiredForSwap / 1_000_000_000n} TON)`);
+      this.logger.log(`[DEBUG]   - Required for burn: ${requiredForBurn} nanotons (${requiredForBurn / 1_000_000_000n} TON)`);
+      this.logger.log(`[DEBUG]   - Total required: ${totalRequired} nanotons (${totalRequired / 1_000_000_000n} TON)`);
+      
+      if (relayerBalance < totalRequired) {
+        this.logger.error(`[DEBUG] CRITICAL: Insufficient relayer balance for transaction ${tx.lt}!`);
+        this.logger.error(`[DEBUG] Balance: ${relayerBalance} < Required: ${totalRequired}`);
+        this.logger.error(`[DEBUG] Shortage: ${totalRequired - relayerBalance} nanotons (${(totalRequired - relayerBalance) / 1_000_000_000n} TON)`);
+        
+        // Создаем транзакцию с FAILED статусом - больше НЕ ОБРАБАТЫВАЕМ
+        const transaction = this.transactionRepository.create({
+          lt: tx.lt,
+          hash: tx.hash,
+          userAddress: tx.userAddress,
+          fromAddress: tx.fromAddress,
+          toAddress: tx.toAddress,
+          amountNanotons: tx.valueNanotons.toString(),
+          status: TransactionStatus.FAILED,
+          errorMessage: `Insufficient relayer balance: ${relayerBalance} < ${totalRequired} (shortage: ${totalRequired - relayerBalance})`,
+        });
+        await this.transactionRepository.save(transaction);
+        this.logger.error(`[DEBUG] Transaction ${tx.lt} marked as FAILED and will NEVER be processed again`);
         return;
       }
       
