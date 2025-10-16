@@ -8,6 +8,7 @@ import TaskForm from '../components/TaskForm';
 import Footer from '../components/Footer';
 import PointsWidget from '../components/PointsWidget';
 import SubscriptionForm from '../components/SubscriptionForm';
+import SubscriptionPending from '../components/SubscriptionPending';
 import { getUserTasks, deleteTask, checkSubscription, getUserByWalletAddress } from '../services/apiService';
 import { Box, Snackbar, Alert } from '@mui/material';
 const Dashboard = () => {
@@ -29,6 +30,9 @@ const Dashboard = () => {
 
   // State to toggle the subscription form visibility
   const [onSubscription, setOnSubscription] = useState(false);
+  
+  // State to show pending subscription process
+  const [isPendingSubscription, setIsPendingSubscription] = useState(false);
 
   // State to store the current task being edited or created
   const [currentTask, setCurrentTask] = useState(null);
@@ -56,6 +60,7 @@ const Dashboard = () => {
     if (status === true) {
       showNotification(t('checkingSubscriptionStatus')); // Inform user
       setIsPolling(true);
+      setIsPendingSubscription(true); // Show pending state
     }
   };
 
@@ -216,6 +221,7 @@ const Dashboard = () => {
         }
         setIsSubscribed(true);
         setIsPolling(false); // Stop polling on success
+        setIsPendingSubscription(false); // Hide pending state
       } else {
         setIsSubscribed(false);
       }
@@ -224,6 +230,7 @@ const Dashboard = () => {
       setIsSubscribed(false);
       if (isPolling) {
         setIsPolling(false); // Stop polling on error
+        setIsPendingSubscription(false); // Hide pending state on error
       }
     }
   };
@@ -355,6 +362,9 @@ const Dashboard = () => {
           <>
           </>
         )}
+
+        {/* Pending subscription process (shown when transaction is processing) */}
+        {isPendingSubscription && <SubscriptionPending />}
 
         {/* Task form or task list (shown based on currentTask state) */}
         {currentTask ? (
