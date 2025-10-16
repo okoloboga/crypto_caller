@@ -11,18 +11,53 @@ const App = () => {
   
   if (!connectionRestored) {
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          backgroundColor: '#1a1a1a',
-          color: '#fff',
-        }}
-      >
-        <div>Loading...</div>
-      </Box>
+      <>
+        <CssBaseline />
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100vh',
+            width: '100vw',
+            backgroundColor: '#000000',
+            margin: 0,
+            padding: 0,
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            zIndex: 9999,
+            '@keyframes pulse': {
+              '0%': {
+                opacity: 0.6,
+                transform: 'scale(1)',
+              },
+              '50%': {
+                opacity: 1,
+                transform: 'scale(1.05)',
+              },
+              '100%': {
+                opacity: 0.6,
+                transform: 'scale(1)',
+              },
+            },
+            '& img': {
+              animation: 'pulse 2s ease-in-out infinite',
+              maxWidth: '120px',
+              maxHeight: '120px',
+            },
+          }}
+        >
+          <img 
+            src="/icon.png" 
+            alt="Loading" 
+            style={{
+              width: '120px',
+              height: '120px',
+            }}
+          />
+        </Box>
+      </>
     );
   }
 
