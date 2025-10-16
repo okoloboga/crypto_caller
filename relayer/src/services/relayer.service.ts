@@ -97,7 +97,19 @@ export class RelayerService implements OnModuleInit {
       });
 
       if (existingTx) {
-        return;
+        // ⚠️ КРИТИЧНО: Не обрабатываем транзакции с финальными статусами
+        if (existingTx.status === TransactionStatus.FAILED || 
+            existingTx.status === TransactionStatus.COMPLETED || 
+            existingTx.status === TransactionStatus.REFUNDED) {
+          this.logger.debug(`[DEBUG] Transaction ${tx.lt} already processed with status: ${existingTx.status}`);
+          return;
+        }
+        
+        // Если транзакция в процессе - тоже не трогаем
+        if (existingTx.status === TransactionStatus.PROCESSING) {
+          this.logger.debug(`[DEBUG] Transaction ${tx.lt} is already being processed`);
+          return;
+        }
       }
 
       // No minimum transaction amount check - process any amount
@@ -156,6 +168,17 @@ export class RelayerService implements OnModuleInit {
 
       if (!swapResult.success) {
         this.logger.error(`[DEBUG] Swap failed for transaction ${tx.lt}: ${swapResult.error}`);
+        
+        // ⚠️ КРИТИЧНО: Проверяем, не связана ли ошибка с недостаточным балансом
+        if (swapResult.error && swapResult.error.includes('Insufficient balance')) {
+          this.logger.error(`[DEBUG] CRITICAL: Insufficient relayer balance for swap! Transaction ${tx.lt} marked as FAILED`);
+          transaction.status = TransactionStatus.FAILED;
+          transaction.errorMessage = `Insufficient relayer balance: ${swapResult.error}`;
+          transaction.processedAt = new Date();
+          await this.transactionRepository.save(transaction);
+          return;
+        }
+        
         // Swap failed - send refund
         await this.handleSwapFailure(transaction, swapResult.error);
         return;
@@ -173,6 +196,17 @@ export class RelayerService implements OnModuleInit {
 
       if (!burnResult.success) {
         this.logger.error(`[DEBUG] Burn failed for transaction ${tx.lt}: ${burnResult.error}`);
+        
+        // ⚠️ КРИТИЧНО: Проверяем, не связана ли ошибка с недостаточным балансом
+        if (burnResult.error && burnResult.error.includes('Insufficient balance')) {
+          this.logger.error(`[DEBUG] CRITICAL: Insufficient relayer balance for burn! Transaction ${tx.lt} marked as FAILED`);
+          transaction.status = TransactionStatus.FAILED;
+          transaction.errorMessage = `Insufficient relayer balance for burn: ${burnResult.error}`;
+          transaction.processedAt = new Date();
+          await this.transactionRepository.save(transaction);
+          return;
+        }
+        
         // Burn failed - send refund
         await this.handleBurnFailure(
           transaction,

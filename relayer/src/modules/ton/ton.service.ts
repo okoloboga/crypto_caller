@@ -534,6 +534,18 @@ export class TonService {
       // Ensure wallet is initialized before proceeding
       await this.ensureWalletInitialized();
       
+      // ⚠️ КРИТИЧНО: Проверяем баланс перед отправкой
+      const currentBalance = await this.getWalletBalance();
+      const requiredAmount = value + BigInt(this.config.gasForCallback); // value + gas
+      
+      this.logger.debug(`[DEBUG] Balance check: current=${currentBalance}, required=${requiredAmount}`);
+      
+      if (currentBalance < requiredAmount) {
+        const error = `Insufficient balance: ${currentBalance} < ${requiredAmount} (value: ${value} + gas: ${this.config.gasForCallback})`;
+        this.logger.error(`[DEBUG] ${error}`);
+        throw new Error(error);
+      }
+      
       const walletContract = this.client.open(this.relayerWallet);
       const seqno = await walletContract.getSeqno();
       this.logger.debug(`[DEBUG] Got seqno: ${seqno}`);
