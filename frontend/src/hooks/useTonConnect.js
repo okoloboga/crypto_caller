@@ -51,17 +51,14 @@ export const useTonConnect = () => {
     }
   }, [tonConnectUI]);
 
-  // Challenge will be generated when TonConnect button is clicked, not on mount
-  
-  // Handle connect request - generate challenge when user clicks TonConnect button
+  // Generate challenge when component mounts (like in working example)
   useEffect(() => {
-    const unsubscribe = tonConnectUI.onConnectRequest(async () => {
-      console.log('TonConnect button clicked, generating challenge...');
-      await recreateProofPayload();
-    });
-
-    return () => unsubscribe();
-  }, [tonConnectUI, recreateProofPayload]);
+    if (firstProofLoading.current) {
+      tonConnectUI.setConnectRequestParameters({ state: 'loading' });
+      firstProofLoading.current = false;
+    }
+    recreateProofPayload();
+  }, [recreateProofPayload]);
 
   // Handle wallet status changes
   useEffect(() => {
@@ -111,12 +108,13 @@ export const useTonConnect = () => {
         console.log('Wallet is connected, but no proof. Requesting new proof payload.');
         setHasTonProof(false);
         setIsConnected(true);
-        // Challenge будет сгенерирован при следующем подключении
+        // If we aren't authenticated with our backend yet, we need a proof.
+        recreateProofPayload();
       }
     });
 
     return () => unsubscribe();
-  }, [tonConnectUI, clientId]);
+  }, [tonConnectUI, clientId, recreateProofPayload]);
 
   return {
     walletAddress,
