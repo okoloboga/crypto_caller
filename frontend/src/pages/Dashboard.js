@@ -41,7 +41,7 @@ const Dashboard = () => {
   const { t } = useTranslation();
 
   // Language context to access the current language
-  const { language } = useLanguage();
+  const { } = useLanguage();
 
   // State to track subscription status
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -93,7 +93,7 @@ const Dashboard = () => {
       checkSubscriptionStatus();
       fetchUserData();
     }
-  }, [walletAddress]);
+  }, [walletAddress, checkSubscriptionStatus, fetchUserData]);
 
   // Effect for polling the subscription status
   useEffect(() => {
@@ -116,14 +116,14 @@ const Dashboard = () => {
       clearInterval(pollingId);
       clearTimeout(timeoutId);
     };
-  }, [isPolling, walletAddress]);
+  }, [isPolling, walletAddress, checkSubscriptionStatus, t]);
 
   // Fetch tasks if the user is subscribed and has a wallet address
   useEffect(() => {
     if (walletAddress && isSubscribed) {
       fetchTasks();
     }
-  }, [walletAddress, isSubscribed]);
+  }, [walletAddress, isSubscribed, fetchTasks]);
 
   // Load total points from localStorage on mount
   useEffect(() => {
@@ -189,7 +189,7 @@ const Dashboard = () => {
     localStorage.setItem('totalPoints', newTotalPoints.toString());
     localStorage.setItem('lastUpdated', newLastUpdated.toISOString());
     fetchUserData();
-  }, []);
+  }, [fetchUserData]);
 
   /**
    * Fetch user data from the backend using the wallet address.

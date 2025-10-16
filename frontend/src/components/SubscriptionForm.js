@@ -37,7 +37,7 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
   const { t } = useTranslation();
 
   // Use custom TonConnect hook for simplified wallet management
-  const { walletAddress, wallet, hasTonProof, clientId } = useTonConnect();
+  const { walletAddress, wallet, hasTonProof } = useTonConnect();
   
   // Get TonConnect UI instance for direct access
   const [tonConnectUI] = useTonConnectUI();
@@ -50,7 +50,7 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
   const [open, setOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [hasShownNotification, setHasShownNotification] = useState(false);
-  const [challenge, setChallenge] = useState(null);
+  // const [challenge, setChallenge] = useState(null); // Removed - now managed by useTonConnect
 
   // Check if wallet has TON proof when wallet changes
   useEffect(() => {

@@ -40,7 +40,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
 
   // State for local points tracking
   const [localLastPoints, setLastPoints] = useState(lastPoints);
-  const [localTotalPoints, setTotalPoints] = useState(totalPoints);
+  const [, setTotalPoints] = useState(totalPoints);
 
   // State to track user activity (active/inactive)
   const [isActive, setIsActive] = useState(true);
@@ -88,7 +88,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
 
     // Cleanup: Clear the interval on unmount
     return () => clearInterval(interval);
-  }, [walletAddress, lastUpdated]);
+  }, [walletAddress, lastUpdated, incrementPoints]);
 
   // Update points based on elapsed time since last update
   useEffect(() => {
@@ -104,7 +104,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
         saveProgressToServer(newPoints);
       }
     }
-  }, [lastUpdated]);
+  }, [lastUpdated, isActive, localLastPoints, saveProgressToServer]);
 
   // Sync local total points with the prop value
   useEffect(() => {

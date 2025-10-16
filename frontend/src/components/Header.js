@@ -5,7 +5,7 @@
  * The header integrates with TON Connect for wallet authentication and supports internationalization.
  */
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 // Import custom TonConnect hook
 import { useTonConnect } from '../hooks/useTonConnect';
@@ -30,11 +30,8 @@ import { Button, List, ListItem, Box } from '@mui/material';
  * @returns {JSX.Element} The rendered Header component.
  */
 const Header = ({ showNotification, handleSubscribe }) => {
-  // Translation hook for internationalization
-  const { t } = useTranslation();
-
   // Use custom TonConnect hook for simplified wallet management
-  const { walletAddress, hasTonProof } = useTonConnect();
+  const { } = useTonConnect();
 
   // Access the current language and function to change it
   const { language, changeLanguage } = useLanguage();

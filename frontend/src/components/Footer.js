@@ -7,9 +7,8 @@
 
 import { Button, Box } from '@mui/material';
 
-// Import hooks for internationalization and language context
+// Import hooks for internationalization
 import { useTranslation } from 'react-i18next';
-import { useLanguage } from '../contexts/LanguageContext';
 
 /**
  * Footer component that renders a navigation bar with a task creation button.
