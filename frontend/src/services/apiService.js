@@ -269,18 +269,17 @@ export const deleteTask = async (taskId) => {
  * @returns {Promise<string>} The generated challenge string.
  * @throws {Error} If the request fails or the response structure is invalid.
  */
-export const getChallenge = async (walletAddress) => {
+export const getChallenge = async (walletAddress = null) => {
   try {
-    const response = await api.get('/challenge/generate', {
-      params: { walletAddress },
-    });
+    const params = walletAddress ? { walletAddress } : {};
+    const response = await api.get('/challenge/generate', { params });
     console.log('Full response from server:', response);
     if (!response.challenge) {
       throw new Error('Invalid response structure from server.');
     }
     return response.challenge;
   } catch (error) {
-    console.error(`Error requesting challenge for walletAddress ${walletAddress}:`, error.message);
+    console.error(`Error requesting challenge for walletAddress ${walletAddress || 'none'}:`, error.message);
     throw error;
   }
 };

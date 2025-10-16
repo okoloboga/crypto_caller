@@ -37,7 +37,8 @@ export const useTonConnect = () => {
     }
     
     try {
-      const challengeData = await getChallenge(walletAddress || 'unknown');
+      // Генерируем challenge БЕЗ walletAddress (как в рабочем примере)
+      const challengeData = await getChallenge();
       setClientId(challengeData.clientId);
       
       if (challengeData.challenge) {
@@ -53,7 +54,7 @@ export const useTonConnect = () => {
       console.error('❌ Failed to generate challenge:', e);
       tonConnectUI.setConnectRequestParameters(null);
     }
-  }, [tonConnectUI, walletAddress]);
+  }, [tonConnectUI]);
 
   // Initialize challenge on mount
   useEffect(() => {
@@ -87,7 +88,21 @@ export const useTonConnect = () => {
         setIsConnected(true);
         // If we aren't authenticated with our backend yet, we need a proof.
         if (!hasTonProof) {
-          recreateProofPayload();
+          // В Case 2 генерируем challenge С walletAddress для re-authentication
+          try {
+            const challengeData = await getChallenge(walletAddress);
+            setClientId(challengeData.clientId);
+            
+            if (challengeData.challenge) {
+              tonConnectUI.setConnectRequestParameters({
+                state: 'ready',
+                value: { tonProof: challengeData.challenge },
+              });
+              console.log('✅ New challenge generated for re-authentication');
+            }
+          } catch (e) {
+            console.error('❌ Failed to generate new challenge:', e);
+          }
         }
       }
     });
