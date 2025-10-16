@@ -239,6 +239,7 @@ export class RelayerService implements OnModuleInit {
    */
   async processSubscription(data: {
     userAddress: string;
+    phoneNumber: string;
     amount: string;
     txHash: string;
     subscriptionContractAddress: string;
@@ -310,6 +311,7 @@ export class RelayerService implements OnModuleInit {
           // Notify backend about success
           await this.backendNotificationService.notifySwapResult({
             userAddress: data.userAddress,
+            phoneNumber: data.phoneNumber,
             success: true,
             txId: transaction.id.toString(),
             jettonAmount: swapResult.jettonAmount.toString(),
@@ -335,6 +337,7 @@ export class RelayerService implements OnModuleInit {
 
           await this.backendNotificationService.notifySwapResult({
             userAddress: data.userAddress,
+            phoneNumber: data.phoneNumber,
             success: false,
             txId: transaction.id.toString(),
             error: "Burn failed, refund sent",
@@ -358,6 +361,7 @@ export class RelayerService implements OnModuleInit {
 
         await this.backendNotificationService.notifySwapResult({
           userAddress: data.userAddress,
+          phoneNumber: data.phoneNumber,
           success: false,
           txId: transaction.id.toString(),
           error: "Swap failed, refund sent",

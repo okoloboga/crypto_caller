@@ -4,6 +4,7 @@ import { firstValueFrom } from "rxjs";
 
 export interface BackendNotificationRequest {
   userAddress: string;
+  phoneNumber: string;
   success: boolean;
   txId: string;
   jettonAmount?: string;

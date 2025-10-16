@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 
 export interface RelayerSubscriptionRequest {
   userAddress: string;
+  phoneNumber: string;
   amount: string; // in TON
   txHash: string;
   subscriptionContractAddress: string;

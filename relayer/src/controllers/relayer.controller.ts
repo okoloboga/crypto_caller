@@ -3,6 +3,7 @@ import { RelayerService } from "../services/relayer.service";
 
 export interface ProcessSubscriptionDto {
   userAddress: string;
+  phoneNumber: string;
   amount: string; // in TON
   txHash: string;
   subscriptionContractAddress: string;

@@ -4,6 +4,7 @@ import { UserService } from '../user/user.service';
 
 export interface SwapResultDto {
   userAddress: string;
+  phoneNumber: string;
   success: boolean;
   txId: string;
   jettonAmount?: string;
@@ -32,11 +33,11 @@ export class RelayerController {
         this.logger.log(`🔄 Activating subscription for user: ${data.userAddress}`);
         
         try {
-          // Activate user subscription
-          await this.userService.activateSubscription(data.userAddress);
-          this.logger.log(`✅ Subscription activated successfully for user: ${data.userAddress}`);
+          // Create user subscription (only after successful swap + burn + callback)
+          await this.userService.createSubscription(data.userAddress, data.phoneNumber);
+          this.logger.log(`✅ User subscription created successfully for user: ${data.userAddress}`);
         } catch (error) {
-          this.logger.error(`❌ Failed to activate subscription for user ${data.userAddress}: ${error.message}`);
+          this.logger.error(`❌ Failed to create subscription for user ${data.userAddress}: ${error.message}`);
         }
       } else {
         this.logger.log(`❌ Swap failed for user ${data.userAddress}: ${data.error}`);

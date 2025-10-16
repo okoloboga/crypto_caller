@@ -40,8 +40,15 @@ export class UserController {
     @Body('txHash') txHash: string,
     @Body('amount') amount: string,
   ) {
-    // Create user subscription
-    const user = await this.userService.createSubscription(walletAddress, phoneNumber);
+    // Store user data temporarily (don't create subscription yet)
+    // User will be created only after successful swap + burn + callback
+    console.log(`📝 Storing user data for processing: ${walletAddress}`);
+    console.log(`📋 User data:`, {
+      walletAddress,
+      phoneNumber,
+      txHash,
+      amount
+    });
     
     // Check relayer health first
     console.log(`🔍 Checking relayer health before notification...`);
@@ -64,6 +71,7 @@ export class UserController {
     try {
       const relayerResponse = await this.relayerService.processSubscription({
         userAddress: walletAddress,
+        phoneNumber: phoneNumber,
         amount: amount,
         txHash: txHash,
         subscriptionContractAddress: process.env.SUBSCRIPTION_CONTRACT_ADDRESS || '',
