@@ -233,6 +233,13 @@ export class SwapService {
         
         actualJettonAmount = balanceAfter - balanceBefore;
         this.logger.log(`[DEBUG] Balance check ${attempts}: ${balanceBefore} -> ${balanceAfter} (diff: ${actualJettonAmount})`);
+        
+        // ⚠️ КРИТИЧНО: Проверяем, что баланс не стал меньше (это невозможно)
+        if (balanceAfter < balanceBefore) {
+          this.logger.error(`[DEBUG] CRITICAL: Balance decreased! ${balanceBefore} -> ${balanceAfter}`);
+          this.logger.error(`[DEBUG] This should never happen - jetton balance can only increase`);
+          throw new Error(`Invalid balance: jetton balance decreased from ${balanceBefore} to ${balanceAfter}`);
+        }
       }
 
       if (actualJettonAmount === 0n) {
@@ -315,28 +322,42 @@ export class SwapService {
     txId: string,
     fallbackAmount: bigint,
   ): Promise<bigint> {
-    try {
-      this.logger.debug(`[DEBUG] Getting jetton balance for relayer: ${relayerAddress}`);
-      
-      // Ensure wallet is initialized before proceeding
-      await this.tonService.forceWalletInitialization();
-      
-      // Get relayer's jetton wallet address
-      const jettonWalletAddress = await this.tonService.getJettonWalletAddress();
-      this.logger.debug(`[DEBUG] Jetton wallet address: ${jettonWalletAddress.toString()}`);
-      
-      // Get jetton wallet data
-      const jettonWallet = await this.tonService.getJettonWalletContract();
-      const walletData = await jettonWallet.getData();
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        this.logger.debug(`[DEBUG] Getting jetton balance (attempt ${attempt}/${maxRetries}) for relayer: ${relayerAddress}`);
+        
+        // Ensure wallet is initialized before proceeding
+        await this.tonService.forceWalletInitialization();
+        
+        // Get relayer's jetton wallet address
+        const jettonWalletAddress = await this.tonService.getJettonWalletAddress();
+        this.logger.debug(`[DEBUG] Jetton wallet address: ${jettonWalletAddress.toString()}`);
+        
+        // Get jetton wallet data
+        const jettonWallet = await this.tonService.getJettonWalletContract();
+        const walletData = await jettonWallet.getData();
 
-      this.logger.debug(`[DEBUG] Jetton wallet balance: ${walletData.balance.toString()}`);
-      return walletData.balance;
-    } catch (error) {
-      this.logger.error(`[DEBUG] Failed to get jetton amount: ${error.message}`);
-      this.logger.error(`[DEBUG] Error details:`, error);
-      // Return expected amount as fallback
-      return fallbackAmount;
+        this.logger.debug(`[DEBUG] Jetton wallet balance: ${walletData.balance.toString()}`);
+        return walletData.balance;
+      } catch (error) {
+        lastError = error;
+        this.logger.warn(`[DEBUG] Attempt ${attempt} failed: ${error.message}`);
+        
+        if (attempt < maxRetries) {
+          const waitTime = attempt * 2000; // 2s, 4s, 6s
+          this.logger.debug(`[DEBUG] Waiting ${waitTime}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+      }
     }
+    
+    // ⚠️ КРИТИЧНО: Если все попытки неудачны - бросаем исключение вместо возврата 0
+    this.logger.error(`[DEBUG] All ${maxRetries} attempts failed to get jetton balance`);
+    this.logger.error(`[DEBUG] Last error:`, lastError);
+    throw new Error(`Failed to get jetton balance after ${maxRetries} attempts: ${lastError?.message}`);
   }
 
   /**
