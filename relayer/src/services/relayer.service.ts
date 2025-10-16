@@ -53,11 +53,6 @@ export class RelayerService implements OnModuleInit {
     // ✅ УБРАНО: startProcessingLoop - больше не нужен, так как нет автоматического сканирования
   }
 
-  // ✅ УБРАНО: processTransactions - больше не нужен, так как нет автоматического сканирования
-
-  // ✅ УБРАНО: processTransaction - больше не нужен, так как нет автоматического сканирования
-  // Вся логика swap, burn и ton остается в processSubscription
-
   /**
    * Handle swap failure
    */
