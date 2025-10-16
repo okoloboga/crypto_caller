@@ -2,10 +2,10 @@ import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { Cron, CronExpression } from "@nestjs/schedule";
+// ✅ УБРАНО: Cron, CronExpression - больше не нужны, так как нет автоматического сканирования
 import Bottleneck from "bottleneck";
 
-import { TonService, ParsedTransaction } from "../modules/ton/ton.service";
+import { TonService } from "../modules/ton/ton.service";
 import { SwapService } from "../modules/swap/swap.service";
 import { BurnService } from "../modules/burn/burn.service";
 import { MonitoringService } from "../modules/monitoring/monitoring.service";
@@ -50,268 +50,13 @@ export class RelayerService implements OnModuleInit {
     // Check wallet balance
     await this.checkWalletBalance();
 
-    // Start processing loop
-    this.startProcessingLoop();
+    // ✅ УБРАНО: startProcessingLoop - больше не нужен, так как нет автоматического сканирования
   }
 
-  /**
-   * Main processing loop - runs every 30 seconds (reduced frequency to avoid spam)
-   */
-  @Cron(CronExpression.EVERY_30_SECONDS)
-  async processTransactions() {
-    if (this.isRunning) {
-      this.logger.debug("Processing already in progress, skipping...");
-      return;
-    }
+  // ✅ УБРАНО: processTransactions - больше не нужен, так как нет автоматического сканирования
 
-    this.isRunning = true;
-
-    try {
-      // Get recent transactions
-      const transactions = await this.tonService.getRecentTransactions(25);
-
-      // Process each transaction
-      for (const tx of transactions) {
-        await this.limiter.schedule(() => this.processTransaction(tx));
-      }
-    } catch (error) {
-      this.logger.error(`Error in processTransactions: ${error.message}`);
-      this.monitoringService.logError(error, "processTransactions");
-      // Don't rethrow - let the cron continue running
-    } finally {
-      this.isRunning = false;
-    }
-  }
-
-  /**
-   * Process a single transaction
-   */
-  private async processTransaction(tx: ParsedTransaction): Promise<void> {
-    const startTime = Date.now();
-    
-
-    try {
-      // Check if transaction already processed FIRST
-      const existingTx = await this.transactionRepository.findOne({
-        where: { lt: tx.lt },
-      });
-
-      if (existingTx) {
-        // ⚠️ КРИТИЧНО: Не обрабатываем транзакции с финальными статусами
-        if (existingTx.status === TransactionStatus.FAILED || 
-            existingTx.status === TransactionStatus.COMPLETED || 
-            existingTx.status === TransactionStatus.REFUNDED) {
-          this.logger.debug(`[DEBUG] Transaction ${tx.lt} already processed with status: ${existingTx.status}`);
-          return;
-        }
-        
-        // Если транзакция в процессе - тоже не трогаем
-        if (existingTx.status === TransactionStatus.PROCESSING) {
-          this.logger.debug(`[DEBUG] Transaction ${tx.lt} is already being processed`);
-          return;
-        }
-      }
-
-      // No minimum transaction amount check - process any amount
-
-      // Calculate gas and swap amounts
-      const gasAmount = BigInt(this.config.gasAmount);
-      const swapAmount = tx.valueNanotons - gasAmount;
-      
-      // Check if there's enough for gas
-      if (swapAmount <= 0n) {
-        this.logger.warn(`Transaction ${tx.lt} insufficient for gas: ${tx.valueNanotons} < ${gasAmount}`);
-        // Create transaction record for refund
-        const transaction = this.transactionRepository.create({
-          lt: tx.lt,
-          hash: tx.hash,
-          userAddress: tx.userAddress,
-          fromAddress: tx.fromAddress,
-          toAddress: tx.toAddress,
-          amountNanotons: tx.valueNanotons.toString(),
-          status: TransactionStatus.FAILED,
-          errorMessage: `Insufficient amount for gas: ${tx.valueNanotons} < ${gasAmount}`,
-        });
-        await this.transactionRepository.save(transaction);
-        return;
-      }
-
-      // ⚠️ КРИТИЧНО: Проверяем баланс relayer'а ПЕРЕД началом обработки
-      const relayerBalance = await this.tonService.getWalletBalance();
-      const requiredForSwap = swapAmount + BigInt(this.config.gasForCallback); // swap amount + gas
-      const requiredForBurn = BigInt("100000000"); // 0.1 TON для burn
-      const totalRequired = requiredForSwap + requiredForBurn;
-      
-      this.logger.log(`[DEBUG] BALANCE CHECK for transaction ${tx.lt}:`);
-      this.logger.log(`[DEBUG]   - Relayer balance: ${relayerBalance} nanotons (${relayerBalance / 1_000_000_000n} TON)`);
-      this.logger.log(`[DEBUG]   - Swap amount: ${swapAmount} nanotons (${swapAmount / 1_000_000_000n} TON)`);
-      this.logger.log(`[DEBUG]   - Required for swap: ${requiredForSwap} nanotons (${requiredForSwap / 1_000_000_000n} TON)`);
-      this.logger.log(`[DEBUG]   - Required for burn: ${requiredForBurn} nanotons (${requiredForBurn / 1_000_000_000n} TON)`);
-      this.logger.log(`[DEBUG]   - Total required: ${totalRequired} nanotons (${totalRequired / 1_000_000_000n} TON)`);
-      
-      if (relayerBalance < totalRequired) {
-        this.logger.error(`[DEBUG] CRITICAL: Insufficient relayer balance for transaction ${tx.lt}!`);
-        this.logger.error(`[DEBUG] Balance: ${relayerBalance} < Required: ${totalRequired}`);
-        this.logger.error(`[DEBUG] Shortage: ${totalRequired - relayerBalance} nanotons (${(totalRequired - relayerBalance) / 1_000_000_000n} TON)`);
-        
-        // Создаем транзакцию с FAILED статусом - больше НЕ ОБРАБАТЫВАЕМ
-        const transaction = this.transactionRepository.create({
-          lt: tx.lt,
-          hash: tx.hash,
-          userAddress: tx.userAddress,
-          fromAddress: tx.fromAddress,
-          toAddress: tx.toAddress,
-          amountNanotons: tx.valueNanotons.toString(),
-          status: TransactionStatus.FAILED,
-          errorMessage: `Insufficient relayer balance: ${relayerBalance} < ${totalRequired} (shortage: ${totalRequired - relayerBalance})`,
-        });
-        await this.transactionRepository.save(transaction);
-        this.logger.error(`[DEBUG] Transaction ${tx.lt} marked as FAILED and will NEVER be processed again`);
-        return;
-      }
-      
-      // Transaction breakdown calculated
-
-      // Create transaction record
-      const transaction = this.transactionRepository.create({
-        lt: tx.lt,
-        hash: tx.hash,
-        userAddress: tx.userAddress,
-        fromAddress: tx.fromAddress,
-        toAddress: tx.toAddress,
-        amountNanotons: tx.valueNanotons.toString(),
-        status: TransactionStatus.PROCESSING,
-      });
-
-      await this.transactionRepository.save(transaction);
-      // Transaction record created
-
-      this.monitoringService.logTransactionStart(
-        tx.lt,
-        tx.userAddress,
-        tx.valueNanotons,
-      );
-
-      // Perform swap with reduced amount (after gas deduction)
-      this.logger.log(`[DEBUG] Starting swap for transaction ${tx.lt} with amount ${swapAmount} (after gas deduction)`);
-      const swapResult = await this.swapService.performSwap(
-        swapAmount, // Use reduced amount instead of full amount
-        tx.userAddress,
-        tx.lt,
-      );
-
-      if (!swapResult.success) {
-        this.logger.error(`[DEBUG] Swap failed for transaction ${tx.lt}: ${swapResult.error}`);
-        
-        // ⚠️ КРИТИЧНО: Проверяем, не связана ли ошибка с недостаточным балансом
-        if (swapResult.error && swapResult.error.includes('Insufficient balance')) {
-          this.logger.error(`[DEBUG] CRITICAL: Insufficient relayer balance for swap! Transaction ${tx.lt} marked as FAILED`);
-          transaction.status = TransactionStatus.FAILED;
-          transaction.errorMessage = `Insufficient relayer balance: ${swapResult.error}`;
-          transaction.processedAt = new Date();
-          await this.transactionRepository.save(transaction);
-          return;
-        }
-        
-        // Swap failed - send refund
-        await this.handleSwapFailure(transaction, swapResult.error);
-        return;
-      }
-
-      this.logger.log(`[DEBUG] Swap successful for transaction ${tx.lt}, received ${swapResult.jettonAmount} jettons`);
-
-      // Perform burn
-      this.logger.log(`[DEBUG] Starting burn for transaction ${tx.lt}`);
-      const burnResult = await this.burnService.burnJetton(
-        swapResult.jettonAmount,
-        tx.userAddress,
-        tx.lt,
-      );
-
-      if (!burnResult.success) {
-        this.logger.error(`[DEBUG] Burn failed for transaction ${tx.lt}: ${burnResult.error}`);
-        
-        // ⚠️ КРИТИЧНО: Проверяем, не связана ли ошибка с недостаточным балансом
-        if (burnResult.error && burnResult.error.includes('Insufficient balance')) {
-          this.logger.error(`[DEBUG] CRITICAL: Insufficient relayer balance for burn! Transaction ${tx.lt} marked as FAILED`);
-          transaction.status = TransactionStatus.FAILED;
-          transaction.errorMessage = `Insufficient relayer balance for burn: ${burnResult.error}`;
-          transaction.processedAt = new Date();
-          await this.transactionRepository.save(transaction);
-          return;
-        }
-        
-        // Burn failed - send refund
-        await this.handleBurnFailure(
-          transaction,
-          swapResult.jettonAmount,
-          burnResult.error,
-        );
-        return;
-      }
-
-      this.logger.log(`[DEBUG] Burn successful for transaction ${tx.lt}`);
-
-      // Send success callback
-      this.logger.log(`[DEBUG] Sending success callback for transaction ${tx.lt}`);
-      this.logger.log(`[DEBUG] User address for callback: ${tx.userAddress}`);
-      this.logger.log(`[DEBUG] Jetton amount for callback: ${swapResult.jettonAmount}`);
-      
-      await this.tonService.sendOnSwapCallback(
-        tx.userAddress,
-        swapResult.jettonAmount,
-        true,
-      );
-
-      // Update transaction status
-      transaction.status = TransactionStatus.COMPLETED;
-      transaction.jettonAmount = swapResult.jettonAmount.toString();
-      transaction.processedAt = new Date();
-      await this.transactionRepository.save(transaction);
-
-      // Record metrics
-      const processingTime = Date.now() - startTime;
-      this.logger.log(`[DEBUG] Transaction ${tx.lt} completed successfully in ${processingTime}ms`);
-      
-      this.metricsService.recordTransaction(
-        true,
-        swapResult.jettonAmount,
-        tx.valueNanotons,
-        processingTime,
-      );
-
-      this.monitoringService.logTransactionComplete(
-        tx.lt,
-        true,
-        swapResult.jettonAmount,
-      );
-    } catch (error) {
-      this.logger.error(`[DEBUG] Error processing transaction ${tx.lt}: ${error.message}`);
-      this.logger.error(`[DEBUG] Error details:`, error);
-      this.monitoringService.logError(error, "processTransaction", tx.lt);
-
-      // Update transaction status
-      const transaction = await this.transactionRepository.findOne({
-        where: { lt: tx.lt },
-      });
-
-      if (transaction) {
-        transaction.status = TransactionStatus.FAILED;
-        transaction.errorMessage = error.message;
-        transaction.retryCount++;
-        await this.transactionRepository.save(transaction);
-      }
-
-      // Record metrics
-      const processingTime = Date.now() - startTime;
-      this.metricsService.recordTransaction(
-        false,
-        0n,
-        tx.valueNanotons,
-        processingTime,
-      );
-    }
-  }
+  // ✅ УБРАНО: processTransaction - больше не нужен, так как нет автоматического сканирования
+  // Вся логика swap, burn и ton остается в processSubscription
 
   /**
    * Handle swap failure
@@ -627,11 +372,5 @@ export class RelayerService implements OnModuleInit {
     }
   }
 
-  /**
-   * Start processing loop (for manual start)
-   */
-  private startProcessingLoop(): void {
-    this.logger.log("Starting transaction processing loop...");
-    // The cron job will handle the actual processing
-  }
+  // ✅ УБРАНО: startProcessingLoop - больше не нужен, так как нет автоматического сканирования
 }

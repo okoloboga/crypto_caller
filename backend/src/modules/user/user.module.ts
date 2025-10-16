@@ -11,6 +11,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'; // Import TypeOrmModule for dat
 import { UserController } from './user.controller'; // Import the UserController for HTTP endpoints
 import { UserService } from './user.service'; // Import the UserService for business logic
 import { User } from './user.entity'; // Import the User entity for database mapping
+import { RelayerModule } from '../relayer/relayer.module'; // Import RelayerModule for relayer integration
 
 /**
  * UserModule class defining the user feature module.
@@ -22,6 +23,8 @@ import { User } from './user.entity'; // Import the User entity for database map
   imports: [
     // Configure TypeORM to use the User entity for database operations
     TypeOrmModule.forFeature([User]),
+    // Import RelayerModule for relayer integration
+    RelayerModule,
   ],
   controllers: [
     UserController, // Register the UserController to handle HTTP requests

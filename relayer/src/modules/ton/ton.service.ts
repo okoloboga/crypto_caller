@@ -13,15 +13,7 @@ import { mnemonicToWalletKey } from "@ton/crypto";
 import { RelayerConfig } from "../../config/relayer.config";
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-export interface ParsedTransaction {
-  lt: string;
-  hash: string;
-  fromAddress: string;
-  toAddress: string;
-  valueNanotons: bigint;
-  userAddress: string;
-  body?: Cell;
-}
+// ✅ УБРАНО: ParsedTransaction - больше не нужен, так как нет автоматического сканирования
 
 @Injectable()
 export class TonService {
@@ -220,128 +212,9 @@ export class TonService {
     }
   }
 
-  /**
-   * Get recent transactions for the relayer wallet
-   */
-  async getRecentTransactions(
-    limit: number = 25,
-  ): Promise<ParsedTransaction[]> {
-    try {
-      // Ensure wallet is initialized before proceeding
-      await this.ensureWalletInitialized();
-      
-      this.logger.debug(`Requesting transactions for address: ${this.relayerAddress.toString()}`);
-      this.logger.debug(`Request params: limit=${limit}`);
-      
-      // Try direct axios call like in working project
-      const apiKey = process.env.TON_API_KEY;
-      const url = `https://toncenter.com/api/v2/getTransactions`;
-      
-      this.logger.debug(`Making direct API call to: ${url}`);
-      
-      const response = await axios.get(url, {
-        params: {
-          address: this.relayerAddress.toString(),
-          limit: limit,
-          archival: true
-        },
-        headers: {
-          'X-API-Key': apiKey,
-          'Content-Type': 'application/json'
-        }
-      });
+  // ✅ УБРАНО: getRecentTransactions - больше не нужен, так как нет автоматического сканирования
 
-      if (!response.data.ok) {
-        throw new Error(`API returned error: ${JSON.stringify(response.data)}`);
-      }
-
-      const transactions = response.data.result || [];
-      this.logger.debug(`Successfully received ${transactions.length} transactions via direct API`);
-      
-      const parsedTransactions: ParsedTransaction[] = [];
-
-      for (const tx of transactions) {
-        try {
-          // Skip aborted/failed transactions
-          if (tx.aborted === true) {
-            this.logger.debug(`Skipping aborted transaction: ${tx.transaction_id?.hash || 'unknown'}`);
-            continue;
-          }
-
-          // Parse transaction from API response format
-          const parsed = this.parseApiTransaction(tx);
-          if (parsed) {
-            parsedTransactions.push(parsed);
-          }
-        } catch (error) {
-          this.logger.warn(`Failed to parse transaction: ${error.message}`);
-        }
-      }
-
-      return parsedTransactions;
-    } catch (error) {
-      this.logger.error("Failed to get recent transactions:", error);
-      this.logger.error(`Request details: address=${this.relayerAddress.toString()}, limit=${limit}`);
-      
-      // Fallback to TonClient method
-      this.logger.warn("Trying fallback with TonClient...");
-      try {
-        const transactions = await this.client.getTransactions(
-          this.relayerAddress,
-          {
-            limit,
-            hash: undefined,
-            lt: undefined,
-          },
-        );
-
-        const parsedTransactions: ParsedTransaction[] = [];
-        for (const tx of transactions) {
-          try {
-            const parsed = await this.parseTransaction(tx);
-            if (parsed) {
-              parsedTransactions.push(parsed);
-            }
-          } catch (error) {
-            this.logger.warn(`Failed to parse transaction: ${error.message}`);
-          }
-        }
-        return parsedTransactions;
-      } catch (fallbackError) {
-        this.logger.error("Fallback also failed:", fallbackError);
-        throw error;
-      }
-    }
-  }
-
-  /**
-   * Parse a transaction from API response format
-   */
-  private parseApiTransaction(tx: any): ParsedTransaction | null {
-    try {
-      if (!tx.transaction_id || !tx.in_msg) {
-        return null;
-      }
-
-      // Skip transactions without valid source address or zero value
-      if (!tx.in_msg.source || !tx.in_msg.value || BigInt(tx.in_msg.value) === 0n) {
-        return null;
-      }
-
-      return {
-        lt: tx.transaction_id.lt,
-        hash: tx.transaction_id.hash,
-        fromAddress: tx.in_msg.source,
-        toAddress: tx.in_msg.destination || '',
-        valueNanotons: BigInt(tx.in_msg.value),
-        userAddress: tx.in_msg.source,
-        body: tx.in_msg.body ? this.parseMessageBody(tx.in_msg.body) : undefined,
-      };
-    } catch (error) {
-      this.logger.warn(`Failed to parse API transaction: ${error.message}`);
-      return null;
-    }
-  }
+  // ✅ УБРАНО: parseApiTransaction - больше не нужен, так как нет автоматического сканирования
 
   private parseMessageBody(bodyBase64: string): Cell | undefined {
     try {
@@ -352,71 +225,7 @@ export class TonService {
     }
   }
 
-  /**
-   * Parse a transaction and extract relevant information
-   */
-  private async parseTransaction(tx: any): Promise<ParsedTransaction | null> {
-    try {
-      // Check if this is an incoming transaction
-      if (!tx.inMessage) {
-        return null;
-      }
-
-      const inMsg = tx.inMessage;
-      const fromAddress = inMsg.source?.toString();
-      const toAddress = inMsg.destination?.toString();
-      const valueNanotons = BigInt(inMsg.value || 0);
-
-      // Only process transactions from subscription contract
-      if (fromAddress !== this.config.subscriptionContractAddress) {
-        return null;
-      }
-
-      // Only process transactions to relayer wallet
-      if (toAddress !== this.relayerAddress.toString()) {
-        return null;
-      }
-
-      // Parse user address from message body
-      let userAddress: string;
-      let body: Cell | undefined;
-
-      if (inMsg.body) {
-        try {
-          body = Cell.fromBase64(inMsg.body);
-          const slice = body.beginParse();
-
-          // Check for our marker (0x73616d70)
-          const op = slice.loadUint(32);
-          if (op === 0x73616d70) {
-            userAddress = slice.loadAddress().toString();
-          } else {
-            this.logger.warn(`Unknown message op: ${op}`);
-            return null;
-          }
-        } catch (error) {
-          this.logger.warn(`Failed to parse message body: ${error.message}`);
-          return null;
-        }
-      } else {
-        // Fallback to source address if no body
-        userAddress = fromAddress;
-      }
-
-      return {
-        lt: tx.lt.toString(),
-        hash: tx.hash().toString("hex"),
-        fromAddress,
-        toAddress,
-        valueNanotons,
-        userAddress,
-        body,
-      };
-    } catch (error) {
-      this.logger.warn(`Failed to parse transaction: ${error.message}`);
-      return null;
-    }
-  }
+  // ✅ УБРАНО: parseTransaction - больше не нужен, так как нет автоматического сканирования
 
   /**
    * Send OnSwapCallback message to subscription contract

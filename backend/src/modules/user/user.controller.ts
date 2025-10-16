@@ -7,6 +7,7 @@
 
 import { Controller, Post, Body, Param, Get, Patch, Query, BadRequestException, InternalServerErrorException } from '@nestjs/common'; // Import NestJS core decorators and exceptions
 import { UserService } from './user.service'; // Import the UserService for business logic
+import { RelayerService } from '../relayer/relayer.service'; // Import RelayerService for relayer integration
 
 /**
  * UserController class handling user management endpoints.
@@ -18,21 +19,46 @@ export class UserController {
    * Constructor to inject dependencies.
    * @param userService - The service handling user-related operations.
    */
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly relayerService: RelayerService,
+  ) {}
 
   /**
    * Create or update a user's subscription by associating a phone number with their wallet address.
    * Endpoint: POST /api/user/subscription
    * @param walletAddress - The wallet address of the user.
    * @param phoneNumber - The phone number to associate with the user.
+   * @param txHash - The transaction hash from the blockchain.
+   * @param amount - The amount paid for subscription.
    * @returns The result of the subscription creation/update.
    */
   @Post('subscription')
   async createSubscription(
     @Body('walletAddress') walletAddress: string,
     @Body('phoneNumber') phoneNumber: string,
+    @Body('txHash') txHash: string,
+    @Body('amount') amount: string,
   ) {
-    return this.userService.createSubscription(walletAddress, phoneNumber);
+    // Create user subscription
+    const user = await this.userService.createSubscription(walletAddress, phoneNumber);
+    
+    // Notify relayer about the subscription
+    try {
+      await this.relayerService.processSubscription({
+        userAddress: walletAddress,
+        amount: amount,
+        txHash: txHash,
+        subscriptionContractAddress: process.env.SUBSCRIPTION_CONTRACT_ADDRESS || '',
+      });
+      
+      console.log(`✅ Relayer notified about subscription for ${walletAddress}`);
+    } catch (error) {
+      console.error(`❌ Failed to notify relayer: ${error.message}`);
+      // Don't throw error - user subscription is created, relayer notification is optional
+    }
+    
+    return user;
   }
 
   /**
