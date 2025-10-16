@@ -61,6 +61,8 @@ const Dashboard = () => {
       showNotification(t('checkingSubscriptionStatus')); // Inform user
       setIsPolling(true);
       setIsPendingSubscription(true); // Show pending state
+      // Ensure subscription form is closed immediately to reveal pending overlay
+      setOnSubscription(false);
     }
   };
 
