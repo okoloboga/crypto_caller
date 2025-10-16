@@ -293,6 +293,20 @@ export class RelayerService implements OnModuleInit {
           transaction.status = TransactionStatus.COMPLETED;
           await this.transactionRepository.save(transaction);
 
+          // Send OnSwapCallback to contract to activate subscription
+          this.logger.log(`🔄 Sending OnSwapCallback to contract for user: ${data.userAddress}`);
+          try {
+            await this.tonService.sendOnSwapCallback(
+              data.userAddress,
+              swapResult.jettonAmount,
+              true // success
+            );
+            this.logger.log(`✅ OnSwapCallback sent successfully to contract`);
+          } catch (callbackError) {
+            this.logger.error(`❌ Failed to send OnSwapCallback to contract: ${callbackError.message}`);
+            // Don't throw error - subscription is still processed in backend
+          }
+
           // Notify backend about success
           await this.backendNotificationService.notifySwapResult({
             userAddress: data.userAddress,
