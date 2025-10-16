@@ -429,7 +429,7 @@ export class SwapService {
       }
 
       // Note: No need to check relayer balance since gas is already deducted from transaction amount
-      // The gas amount (0.35 TON) is reserved from the incoming transaction
+      // The gas amount (0.2 TON) is reserved from the incoming transaction
       // Gas already deducted from transaction amount, checking pool liquidity only
 
       // Get jetton master address (not wallet address)

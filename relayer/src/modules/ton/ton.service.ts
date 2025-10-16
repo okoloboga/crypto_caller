@@ -686,13 +686,28 @@ export class TonService {
     // Ensure wallet is initialized before proceeding
     await this.ensureWalletInitialized();
     
-    // This would return a jetton wallet contract instance
-    // For now, we'll use a simplified approach
-    // In production, you would import and use the actual jetton wallet contract
+    // Get jetton wallet address for relayer
+    const jettonWalletAddress = await this.getJettonWalletAddress();
+    
     return {
       getData: async () => {
-        // Mock implementation - in production, call actual jetton wallet getData method
-        return { balance: 1000000n };
+        try {
+          // Call get_wallet_data method on jetton wallet contract
+          const response = await this.client.runMethod(
+            jettonWalletAddress,
+            'get_wallet_data'
+          );
+          
+          // get_wallet_data returns: (balance, owner, jetton_master, jetton_wallet_code)
+          const balance = response.stack.readBigNumber();
+          
+          this.logger.debug(`[DEBUG] Real jetton wallet balance: ${balance.toString()}`);
+          return { balance };
+        } catch (error) {
+          this.logger.error(`[DEBUG] Failed to get real jetton balance: ${error.message}`);
+          // Fallback to 0 balance if method fails
+          return { balance: 0n };
+        }
       },
     };
   }

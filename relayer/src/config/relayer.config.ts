@@ -49,8 +49,8 @@ export const getRelayerConfigData = (): RelayerConfig => {
     pollIntervalMs: Number(process.env.POLL_INTERVAL_MS || 5000),
     maxRetries: Number(process.env.MAX_RETRIES || 3),
     gasForCallback: process.env.GAS_FOR_CALLBACK || "10000000", // 0.01 TON
-    minTransactionAmount: process.env.MIN_TRANSACTION_AMOUNT || "700000000", // 0.7 TON (0.35 gas + 0.2 swap + 0.15 buffer)
-    gasAmount: process.env.GAS_AMOUNT || "350000000", // 0.35 TON
+    minTransactionAmount: process.env.MIN_TRANSACTION_AMOUNT || "700000000", // 0.7 TON (0.2 gas + 0.2 swap + 0.3 buffer)
+    gasAmount: process.env.GAS_AMOUNT || "200000000", // 0.2 TON
 
     processDbPath: process.env.PROCESS_DB || "./relayer_state.json",
 
