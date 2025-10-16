@@ -89,11 +89,6 @@ export class RelayerService implements OnModuleInit {
   private async processTransaction(tx: ParsedTransaction): Promise<void> {
     const startTime = Date.now();
     
-    this.logger.log(`[DEBUG] Processing transaction ${tx.lt}:`);
-    this.logger.log(`[DEBUG]   - User: ${tx.userAddress}`);
-    this.logger.log(`[DEBUG]   - Amount: ${tx.valueNanotons} nanotons (${tx.valueNanotons / 1_000_000_000n} TON)`);
-    this.logger.log(`[DEBUG]   - From: ${tx.fromAddress}`);
-    this.logger.log(`[DEBUG]   - To: ${tx.toAddress}`);
 
     try {
       // Check if transaction already processed FIRST
