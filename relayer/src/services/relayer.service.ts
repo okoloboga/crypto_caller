@@ -368,7 +368,20 @@ export class RelayerService implements OnModuleInit {
         name: error.name,
       });
 
-      // Send refund on error
+      // Check if it's a database field length error
+      if (error.message.includes('value too long for type character varying')) {
+        this.logger.error(`🚨 Database field length error detected!`);
+        this.logger.error(`🚨 This means the database schema needs to be updated.`);
+        this.logger.error(`🚨 NOT sending refund - this is a database configuration issue.`);
+        
+        return {
+          success: false,
+          txId: "",
+          message: "Database configuration error - field length too short",
+        };
+      }
+
+      // Send refund on other errors
       this.logger.log(`🔄 Sending refund due to error: ${data.userAddress}`);
       try {
         await this.tonService.sendRefundUser(
