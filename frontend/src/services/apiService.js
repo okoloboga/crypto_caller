@@ -143,6 +143,37 @@ export const checkSubscription = async (walletAddress) => {
 };
 
 /**
+ * Notify backend about subscription transaction completion.
+ * @param {string} walletAddress - The TON wallet address of the user.
+ * @param {string} phoneNumber - The phone number of the user.
+ * @param {string} txHash - The transaction hash from the blockchain.
+ * @param {string} amount - The amount paid for subscription.
+ * @returns {Promise<Object>} The server response.
+ * @throws {Error} If the request fails.
+ */
+export const notifySubscriptionTransaction = async (walletAddress, phoneNumber, txHash, amount) => {
+  console.log(`Notifying backend about subscription transaction:`, {
+    walletAddress,
+    phoneNumber,
+    txHash,
+    amount
+  });
+  try {
+    const response = await api.post('/user/subscription', {
+      walletAddress,
+      phoneNumber,
+      txHash,
+      amount
+    });
+    console.log('Subscription transaction notification successful:', response);
+    return response;
+  } catch (error) {
+    console.error(`Error notifying subscription transaction:`, error.message);
+    throw error;
+  }
+};
+
+/**
  * Update the user's phone number.
  * @param {string} walletAddress - The TON wallet address of the user.
  * @param {string} phoneNumber - The new phone number to set.

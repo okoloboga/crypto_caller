@@ -14,7 +14,7 @@ import { useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-rea
 import { beginCell } from '@ton/core';
 
 // Import API service functions for user data, subscription, and challenge verification
-import { getUserByWalletAddress, updatePhoneNumber, getSubscriptionConfig, checkSubscription, getChallenge, verifyChallenge } from '../services/apiService';
+import { getUserByWalletAddress, updatePhoneNumber, getSubscriptionConfig, checkSubscription, getChallenge, verifyChallenge, notifySubscriptionTransaction } from '../services/apiService';
 
 // Import translation hook for internationalization
 import { useTranslation } from 'react-i18next';
@@ -302,6 +302,22 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
         
         const result = await tonConnectUI.sendTransaction(txSubscription);
         console.log('🔍 DEBUG: Transaction result:', result);
+        
+        // 6. Notify backend about the successful transaction
+        console.log('🔍 DEBUG: Notifying backend about transaction completion...');
+        try {
+          await notifySubscriptionTransaction(
+            walletAddress,
+            newPhoneNumber,
+            result.boc, // Transaction hash/BOC
+            config.price // Amount in TON
+          );
+          console.log('✅ Backend notified successfully about transaction');
+        } catch (backendError) {
+          console.error('❌ Failed to notify backend:', backendError);
+          // Don't throw error - transaction was successful, backend notification is optional
+        }
+        
       } catch (error) {
         console.error('🔍 DEBUG: Transaction error:', error);
         
@@ -319,7 +335,7 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
       
       showNotification(t('transactionSuccess')); // "Transaction sent successfully!"
       
-      // 6. Close the form and trigger the parent component to start polling for status change
+      // 7. Close the form and trigger the parent component to start polling for status change
       onSubscriptionChange(true); // This will now signal the Dashboard to start polling
       onCancel(); // Close the subscription form
 
