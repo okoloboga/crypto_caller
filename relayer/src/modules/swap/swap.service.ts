@@ -47,8 +47,7 @@ export class SwapService {
       this.logger.log("Initializing Router with manual configuration...");
       
       const stonApi = new StonApiClient();
-      
-      // Use hardcoded router address for faster development
+
       const routerAddress = "EQCDT9dCT52pdfsLNW0e6qP5T3cgq7M4Ug72zkGYgP17tsWD";
       
       this.logger.log(`[DEBUG] Using hardcoded router address: ${routerAddress}`);
