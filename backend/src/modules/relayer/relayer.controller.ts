@@ -1,5 +1,6 @@
 import { Controller, Post, Body, Logger } from '@nestjs/common';
 import { RelayerService } from './relayer.service';
+import { UserService } from '../user/user.service';
 
 export interface SwapResultDto {
   userAddress: string;
@@ -9,11 +10,14 @@ export interface SwapResultDto {
   error?: string;
 }
 
-@Controller('api/relayer')
+@Controller('relayer')
 export class RelayerController {
   private readonly logger = new Logger(RelayerController.name);
 
-  constructor(private readonly relayerService: RelayerService) {}
+  constructor(
+    private readonly relayerService: RelayerService,
+    private readonly userService: UserService,
+  ) {}
 
   @Post('swap-result')
   async handleSwapResult(@Body() data: SwapResultDto) {
@@ -24,13 +28,27 @@ export class RelayerController {
       // For example, activate subscription if success, or handle refund if failed
       
       if (data.success) {
-        this.logger.log(`Swap successful for user ${data.userAddress}, jetton amount: ${data.jettonAmount}`);
-        // TODO: Update user subscription status in database
-        // await this.userService.activateSubscription(data.userAddress);
+        this.logger.log(`✅ Swap successful for user ${data.userAddress}, jetton amount: ${data.jettonAmount}`);
+        this.logger.log(`🔄 Activating subscription for user: ${data.userAddress}`);
+        
+        try {
+          // Activate user subscription
+          await this.userService.activateSubscription(data.userAddress);
+          this.logger.log(`✅ Subscription activated successfully for user: ${data.userAddress}`);
+        } catch (error) {
+          this.logger.error(`❌ Failed to activate subscription for user ${data.userAddress}: ${error.message}`);
+        }
       } else {
-        this.logger.log(`Swap failed for user ${data.userAddress}: ${data.error}`);
-        // TODO: Handle failed swap (maybe send notification to user)
-        // await this.userService.handleFailedSubscription(data.userAddress, data.error);
+        this.logger.log(`❌ Swap failed for user ${data.userAddress}: ${data.error}`);
+        this.logger.log(`🔄 Handling failed swap for user: ${data.userAddress}`);
+        
+        try {
+          // Handle failed subscription
+          await this.userService.handleFailedSubscription(data.userAddress, data.error);
+          this.logger.log(`✅ Failed subscription handled for user: ${data.userAddress}`);
+        } catch (error) {
+          this.logger.error(`❌ Failed to handle failed subscription for user ${data.userAddress}: ${error.message}`);
+        }
       }
       
       return { success: true };

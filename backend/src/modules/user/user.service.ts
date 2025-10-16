@@ -212,4 +212,44 @@ export class UserService {
       return false;
     }
   }
+
+  /**
+   * Activate subscription for a user after successful swap and burn.
+   * @param walletAddress - The wallet address of the user.
+   * @returns The updated user.
+   */
+  async activateSubscription(walletAddress: string): Promise<User> {
+    console.log(`🔄 Activating subscription for user: ${walletAddress}`);
+    
+    const user = await this.userRepository.findOne({ where: { walletAddress } });
+    
+    if (!user) {
+      throw new Error(`User with walletAddress ${walletAddress} not found`);
+    }
+
+    // Update subscription date to current time (this extends the subscription)
+    user.subscriptionDate = new Date();
+    user.lastUpdated = new Date();
+    
+    const savedUser = await this.userRepository.save(user);
+    console.log(`✅ Subscription activated successfully for user: ${walletAddress}`);
+    return savedUser;
+  }
+
+  /**
+   * Handle failed subscription (when swap or burn fails).
+   * @param walletAddress - The wallet address of the user.
+   * @param error - The error message from the failed operation.
+   */
+  async handleFailedSubscription(walletAddress: string, error: string): Promise<void> {
+    console.log(`🔄 Handling failed subscription for user: ${walletAddress}`);
+    console.log(`❌ Error details: ${error}`);
+    
+    // For now, we just log the failure. In the future, we might want to:
+    // - Send notification to user
+    // - Update user status
+    // - Log to analytics
+    
+    console.log(`✅ Failed subscription handled for user: ${walletAddress}`);
+  }
 }
