@@ -275,8 +275,12 @@ export class RelayerService implements OnModuleInit {
       this.logger.log(`✅ Transaction record created successfully: ${transaction.id}`);
 
       // Process the subscription (swap + burn)
+      // Use 2/3 of the payment amount for swap (same as what contract sends to relayer)
+      const swapAmount = BigInt(parseFloat(data.amount) * 1_000_000_000 * 2 / 3); // 2/3 of payment amount
+      this.logger.log(`[DEBUG] Using 2/3 of payment for swap: ${data.amount} TON -> ${swapAmount} nanotons`);
+      
       const swapResult = await this.swapService.performSwap(
-        BigInt(parseFloat(data.amount) * 1_000_000_000), // Convert to nanotons
+        swapAmount, // Use 2/3 of the payment amount
         data.userAddress,
         transaction.id.toString(),
       );
