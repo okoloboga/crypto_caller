@@ -1,16 +1,5 @@
-/**
- * API service module for the RUBLE Farming App.
- * This module provides functions to interact with the backend API, handling user data, token withdrawals,
- * subscriptions, tasks, and challenge verification. It uses Axios for HTTP requests with a configured instance.
- */
-
-// Import Axios for making HTTP requests
 import axios from 'axios';
 
-/**
- * Create an Axios instance with a base URL and default headers.
- * The base URL is set from the environment variable API_URL or defaults to the production API endpoint.
- */
 const api = axios.create({
   baseURL: process.env.API_URL || 'https://caller.ruble.website/api',
   headers: {
@@ -18,24 +7,14 @@ const api = axios.create({
   },
 });
 
-/**
- * Add an interceptor to handle API response errors.
- * Successful responses return the response data directly, while errors are logged and rejected.
- */
 api.interceptors.response.use(
-  (response) => response.data, // Return the response data directly
+  (response) => response.data,
   (error) => {
     console.error('API Error:', error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
 
-/**
- * Fetch user data by wallet address.
- * @param {string} walletAddress - The TON wallet address of the user.
- * @returns {Promise<Object>} The user data from the server.
- * @throws {Error} If the request fails.
- */
 export const getUserByWalletAddress = async (walletAddress) => {
   console.log(`Fetching user data for walletAddress: ${walletAddress}`);
   try {
@@ -49,19 +28,12 @@ export const getUserByWalletAddress = async (walletAddress) => {
   }
 };
 
-/**
- * Request a token withdrawal to the user's wallet.
- * @param {string} walletAddress - The TON wallet address to send tokens to.
- * @param {number} amount - The amount of tokens to withdraw.
- * @returns {Promise<Object>} The server response confirming the withdrawal.
- * @throws {Error} If the request fails.
- */
 export const requestTokenWithdrawal = async (walletAddress, amount) => {
   console.log(`Requesting token withdrawal for walletAddress: ${walletAddress}, amount: ${amount}`);
   try {
     const response = await api.post('/withdrawal/send-tokens', {
       recipientAddress: walletAddress,
-      amount: amount.toString(), // Ensure amount is a string
+      amount: amount.toString(),
     });
     console.log('Token withdrawal successful:', response.data);
     return response.data;
@@ -71,13 +43,6 @@ export const requestTokenWithdrawal = async (walletAddress, amount) => {
   }
 };
 
-/**
- * Update the user's points.
- * @param {string} walletAddress - The TON wallet address of the user.
- * @param {number} newPoints - The new points value to set.
- * @returns {Promise<Object>} The server response with updated points.
- * @throws {Error} If the request fails.
- */
 export const updatePoints = async (walletAddress, newPoints) => {
   try {
     const response = await api.post('/user/update-points', { walletAddress, newPoints });
@@ -88,13 +53,6 @@ export const updatePoints = async (walletAddress, newPoints) => {
   }
 };
 
-/**
- * Claim points for the user, adding them to their account.
- * @param {string} walletAddress - The TON wallet address of the user.
- * @param {number} points - The points to claim.
- * @returns {Promise<Object>} The server response confirming the points were claimed.
- * @throws {Error} If the request fails.
- */
 export const claimPoints = async (walletAddress, points) => {
   try {
     console.log(`Claiming points for walletAddress: ${walletAddress} with points: ${points}`);
@@ -107,11 +65,6 @@ export const claimPoints = async (walletAddress, points) => {
   }
 };
 
-/**
- * Get the subscription configuration from the backend.
- * @returns {Promise<Object>} The subscription configuration including contract address and price.
- * @throws {Error} If the request fails.
- */
 export const getSubscriptionConfig = async () => {
   console.log('Fetching subscription config');
   try {
@@ -124,12 +77,6 @@ export const getSubscriptionConfig = async () => {
   }
 };
 
-/**
- * Check the subscription status of a user by querying the backend, which checks the blockchain.
- * @param {string} walletAddress - The TON wallet address of the user.
- * @returns {Promise<Object>} The server response with the subscription status (e.g., { expiresAt: number }).
- * @throws {Error} If the request fails.
- */
 export const checkSubscription = async (walletAddress) => {
   console.log(`Checking subscription status for walletAddress: ${walletAddress}`);
   try {
@@ -142,15 +89,6 @@ export const checkSubscription = async (walletAddress) => {
   }
 };
 
-/**
- * Notify backend about subscription transaction completion.
- * @param {string} walletAddress - The TON wallet address of the user.
- * @param {string} phoneNumber - The phone number of the user.
- * @param {string} txHash - The transaction hash from the blockchain.
- * @param {string} amount - The amount paid for subscription.
- * @returns {Promise<Object>} The server response.
- * @throws {Error} If the request fails.
- */
 export const notifySubscriptionTransaction = async (walletAddress, phoneNumber, txHash, amount) => {
   console.log(`Notifying backend about subscription transaction:`, {
     walletAddress,
@@ -173,13 +111,6 @@ export const notifySubscriptionTransaction = async (walletAddress, phoneNumber, 
   }
 };
 
-/**
- * Update the user's phone number.
- * @param {string} walletAddress - The TON wallet address of the user.
- * @param {string} phoneNumber - The new phone number to set.
- * @returns {Promise<Object>} The server response confirming the update.
- * @throws {Error} If the request fails.
- */
 export const updatePhoneNumber = async (walletAddress, phoneNumber) => {
   try {
     const response = await api.patch(`/user/${walletAddress}/phone`, { phoneNumber });
@@ -190,12 +121,6 @@ export const updatePhoneNumber = async (walletAddress, phoneNumber) => {
   }
 };
 
-/**
- * Fetch the list of tasks for a user.
- * @param {string} walletAddress - The TON wallet address of the user.
- * @returns {Promise<Object>} The server response with the user's task list.
- * @throws {Error} If the request fails.
- */
 export const getUserTasks = async (walletAddress) => {
   console.log(`Fetching task list for walletAddress: ${walletAddress}`);
   try {
@@ -208,12 +133,6 @@ export const getUserTasks = async (walletAddress) => {
   }
 };
 
-/**
- * Create a new task for monitoring a currency pair.
- * @param {Object} taskData - The task data, including currency pair and price trigger.
- * @returns {Promise<Object>} The server response confirming the task creation.
- * @throws {Error} If the request fails.
- */
 export const createTask = async (taskData) => {
   console.log('Creating a new task with data:', taskData);
   try {
@@ -226,13 +145,6 @@ export const createTask = async (taskData) => {
   }
 };
 
-/**
- * Update an existing task.
- * @param {string} taskId - The ID of the task to update.
- * @param {Object} updates - The updated task data.
- * @returns {Promise<Object>} The server response confirming the task update.
- * @throws {Error} If the request fails.
- */
 export const updateTask = async (taskId, updates) => {
   console.log(`Updating task with ID ${taskId}. Updated data:`, updates);
   try {
@@ -245,12 +157,6 @@ export const updateTask = async (taskId, updates) => {
   }
 };
 
-/**
- * Delete a task.
- * @param {string} taskId - The ID of the task to delete.
- * @returns {Promise<Object>} The server response confirming the task deletion.
- * @throws {Error} If the request fails.
- */
 export const deleteTask = async (taskId) => {
   console.log(`Deleting task with ID ${taskId}`);
   try {
@@ -263,11 +169,6 @@ export const deleteTask = async (taskId) => {
   }
 };
 
-/**
- * Generate a challenge for wallet verification.
- * @returns {Promise<Object>} The generated challenge object with clientId and challenge.
- * @throws {Error} If the request fails or the response structure is invalid.
- */
 export const getChallenge = async () => {
   try {
     const response = await api.get('/challenge/generate');
@@ -285,14 +186,6 @@ export const getChallenge = async () => {
   }
 };
 
-/**
- * Verify a TON proof for wallet authentication.
- * @param {Object} account - The account object containing address, publicKey, and walletStateInit.
- * @param {Object} tonProof - The TON proof object containing the signature and timestamp.
- * @param {string} clientId - The client ID associated with the challenge.
- * @returns {Promise<Object>} The server response with verification result.
- * @throws {Error} If the request fails.
- */
 export const verifyProof = async (account, tonProof, clientId) => {
   try {
     const response = await api.post('/challenge/verify', {
@@ -309,14 +202,6 @@ export const verifyProof = async (account, tonProof, clientId) => {
   }
 };
 
-/**
- * Verify a challenge for wallet authentication.
- * @param {string} walletAddress - The TON wallet address of the user.
- * @param {string} tonProof - The proof provided by the TON wallet.
- * @param {Object} account - The account details for verification.
- * @returns {Promise<boolean>} True if the challenge is valid, false otherwise.
- * @throws {Error} If the request fails.
- */
 export const verifyChallenge = async (walletAddress, tonProof, account) => {
   try {
     const response = await api.post('/challenge/verify', {

@@ -1,32 +1,12 @@
-/**
- * Service for handling challenge-related operations in the RUBLE Farming App backend.
- * This service provides methods for generating challenges and verifying TON proof for wallet authentication.
- * It uses the TON blockchain client (TonClient4) to interact with the TON network and validate proofs.
- */
+import { Injectable, Logger } from '@nestjs/common';
+import { randomBytes } from 'crypto';
+import { Address, Cell, contractAddress, loadStateInit, TonClient4 } from 'ton';
 
-import { Injectable, Logger } from '@nestjs/common'; // Import Injectable and Logger from NestJS
-import { randomBytes } from 'crypto'; // Import randomBytes for generating random challenges
-import { Address, Cell, contractAddress, loadStateInit, TonClient4 } from 'ton'; // Import TON blockchain utilities
-
-/**
- * ChallengeService class providing business logic for challenge generation and TON proof verification.
- * Maintains a map of challenges and uses TonClient4 to interact with the TON blockchain.
- */
 @Injectable()
 export class ChallengeService {
-  // Logger instance for logging service events
   private readonly logger = new Logger(ChallengeService.name);
-
-  // Map to store challenges with their validity period, keyed by wallet address
   private challenges = new Map<string, { challenge: string; validUntil: number }>();
-
-  // TON client for interacting with the TON blockchain
   private client: TonClient4;
-
-  /**
-   * Constructor to initialize the TON client.
-   * Sets up the TonClient4 instance with the mainnet endpoint.
-   */
   constructor() {
     const endpoint = process.env.TON_NETWORK === 'testnet' 
       ? 'https://testnet-v4.tonhubapi.com' 
@@ -37,35 +17,19 @@ export class ChallengeService {
     });
   }
 
-  /**
-   * Generate a random challenge for a given client ID.
-   * Stores the challenge with a 5-minute validity period.
-   * @param clientId - The client ID for which to generate the challenge.
-   * @returns The generated challenge string.
-   */
   generateChallenge(clientId: string): string {
-    const challenge = randomBytes(32).toString('hex'); // Generate a 32-byte random challenge as a hex string
-    const validUntil = Date.now() + 5 * 60 * 1000; // Set validity to 5 minutes from now
+    const challenge = randomBytes(32).toString('hex');
+    const validUntil = Date.now() + 5 * 60 * 1000;
     
     const challengeData = { challenge, validUntil };
-    
-    // Log the challenge data for debugging
     this.logger.log('Challenge data:', challengeData);
-    
-    // Store the challenge in the map using clientId
     this.challenges.set(clientId, challengeData);
   
     this.logger.log(`Generated challenge for clientId ${clientId}: ${challenge}`);
     return challenge;
   }
 
-  /**
-   * Verify a TON proof submitted by the client.
-   * Validates the proof by checking the public key, address, and timestamp against the TON blockchain.
-   * @param account - The account object containing address, publicKey, and walletStateInit.
-   * @param proof - The TON proof object containing the signature and timestamp.
-   * @returns A boolean indicating whether the TON proof is valid.
-   */
+  // Verify TON proof by checking public key, address, and timestamp against blockchain
   async verifyTonProof(account: any, proof: any): Promise<boolean> {
     // Construct the payload for verification
     const payload = {
