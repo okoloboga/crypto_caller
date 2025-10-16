@@ -24,21 +24,15 @@ export class ChallengeController {
 
   /**
    * Generate a challenge for TON proof authentication.
-   * Endpoint: GET /api/challenge/generate?walletAddress=<walletAddress>
-   * @param walletAddress - The wallet address for which to generate the challenge.
-   * @returns An object containing the generated challenge string.
-   * @throws BadRequestException if the wallet address is not provided.
+   * Endpoint: GET /api/challenge/generate
+   * @returns An object containing the generated challenge string and clientId.
    */
   @Get('generate')
-  generateChallenge(@Query('walletAddress') walletAddress: string): { challenge: string } {
-    // Validate the presence of the wallet address
-    if (!walletAddress) {
-      throw new BadRequestException('Wallet address is required');
-    }
-
+  generateChallenge(): { challenge: string; clientId: string } {
+    const clientId = Date.now().toString();
     // Generate the challenge using the service
-    const challenge = this.challengeService.generateChallenge(walletAddress);
-    return { challenge };
+    const challenge = this.challengeService.generateChallenge(clientId);
+    return { challenge, clientId };
   }
 
   /**

@@ -265,21 +265,46 @@ export const deleteTask = async (taskId) => {
 
 /**
  * Generate a challenge for wallet verification.
- * @param {string} walletAddress - The TON wallet address of the user.
- * @returns {Promise<string>} The generated challenge string.
+ * @returns {Promise<Object>} The generated challenge object with clientId and challenge.
  * @throws {Error} If the request fails or the response structure is invalid.
  */
-export const getChallenge = async (walletAddress = null) => {
+export const getChallenge = async () => {
   try {
-    const params = walletAddress ? { walletAddress } : {};
-    const response = await api.get('/challenge/generate', { params });
+    const response = await api.get('/challenge/generate');
     console.log('Full response from server:', response);
     if (!response.challenge) {
       throw new Error('Invalid response structure from server.');
     }
-    return response.challenge;
+    return {
+      clientId: response.clientId || Date.now().toString(),
+      challenge: response.challenge
+    };
   } catch (error) {
-    console.error(`Error requesting challenge for walletAddress ${walletAddress || 'none'}:`, error.message);
+    console.error('Error requesting challenge:', error.message);
+    throw error;
+  }
+};
+
+/**
+ * Verify a TON proof for wallet authentication.
+ * @param {Object} account - The account object containing address, publicKey, and walletStateInit.
+ * @param {Object} tonProof - The TON proof object containing the signature and timestamp.
+ * @param {string} clientId - The client ID associated with the challenge.
+ * @returns {Promise<Object>} The server response with verification result.
+ * @throws {Error} If the request fails.
+ */
+export const verifyProof = async (account, tonProof, clientId) => {
+  try {
+    const response = await api.post('/challenge/verify', {
+      walletAddress: account.address,
+      tonProof: tonProof,
+      account: account,
+      clientId: clientId
+    });
+    console.log('Proof verification response:', response);
+    return response;
+  } catch (error) {
+    console.error('Error verifying proof:', error.message);
     throw error;
   }
 };

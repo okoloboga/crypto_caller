@@ -5,7 +5,7 @@
 
 import { useTonAddress, useTonWallet, useIsConnectionRestored, useTonConnectUI } from '@tonconnect/ui-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getChallenge } from '../services/apiService';
+import { getChallenge, verifyProof } from '../services/apiService';
 
 /**
  * Custom hook that manages TonConnect wallet state and provides simplified interface.
@@ -80,19 +80,43 @@ export const useTonConnect = () => {
         console.log('✅ TON Proof received:', wallet.connectItems.tonProof);
         setHasTonProof(true);
         setIsConnected(true);
+        
+        // ВАЖНО: Отправляем tonProof на бэкенд для проверки
+        if (!clientId) {
+          console.error('Client ID not available for proof verification.');
+          return;
+        }
+        
+        try {
+          const authResponse = await verifyProof(
+            wallet.account,
+            wallet.connectItems.tonProof,
+            clientId
+          );
+          
+          if (authResponse.valid) {
+            console.log('✅ Proof verification successful');
+            // Здесь можно сохранить токен или выполнить другие действия
+          } else {
+            console.error('❌ Proof verification failed');
+            tonConnectUI.disconnect();
+          }
+        } catch (e) {
+          console.error('TonProof verification failed:', e);
+          tonConnectUI.disconnect();
+        }
       } else {
         // Case 2: Wallet is connected, but no proof is present.
         // This can happen on page load with a pre-connected wallet.
         console.log('Wallet is connected, but no proof. Requesting new proof payload.');
         setHasTonProof(false);
         setIsConnected(true);
-        // If we aren't authenticated with our backend yet, we need a proof.
-        // Challenge will be generated when user clicks TonConnect button again
+        // Challenge будет сгенерирован при следующем подключении
       }
     });
 
     return () => unsubscribe();
-  }, [tonConnectUI, hasTonProof, recreateProofPayload]);
+  }, [tonConnectUI, clientId]);
 
   return {
     walletAddress,

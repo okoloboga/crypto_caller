@@ -38,12 +38,12 @@ export class ChallengeService {
   }
 
   /**
-   * Generate a random challenge for a given wallet address.
+   * Generate a random challenge for a given client ID.
    * Stores the challenge with a 5-minute validity period.
-   * @param walletAddress - The wallet address for which to generate the challenge.
+   * @param clientId - The client ID for which to generate the challenge.
    * @returns The generated challenge string.
    */
-  generateChallenge(walletAddress: string): string {
+  generateChallenge(clientId: string): string {
     const challenge = randomBytes(32).toString('hex'); // Generate a 32-byte random challenge as a hex string
     const validUntil = Date.now() + 5 * 60 * 1000; // Set validity to 5 minutes from now
     
@@ -52,10 +52,10 @@ export class ChallengeService {
     // Log the challenge data for debugging
     this.logger.log('Challenge data:', challengeData);
     
-    // Store the challenge in the map
-    this.challenges.set(walletAddress, challengeData);
+    // Store the challenge in the map using clientId
+    this.challenges.set(clientId, challengeData);
   
-    this.logger.log(`Generated challenge for walletAddress ${walletAddress}: ${challenge}`);
+    this.logger.log(`Generated challenge for clientId ${clientId}: ${challenge}`);
     return challenge;
   }
 
