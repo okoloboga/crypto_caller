@@ -88,7 +88,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
 
     // Cleanup: Clear the interval on unmount
     return () => clearInterval(interval);
-  }, [walletAddress, lastUpdated, incrementPoints]);
+  }, [walletAddress, lastUpdated]);
 
   // Update points based on elapsed time since last update
   useEffect(() => {
@@ -104,7 +104,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
         saveProgressToServer(newPoints);
       }
     }
-  }, [lastUpdated, isActive, localLastPoints, saveProgressToServer]);
+  }, [lastUpdated]);
 
   // Sync local total points with the prop value
   useEffect(() => {
