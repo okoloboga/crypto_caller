@@ -31,11 +31,6 @@ export const useTonConnect = () => {
    * Generate challenge and set up TonConnect parameters
    */
   const recreateProofPayload = useCallback(async () => {
-    if (firstProofLoading.current) {
-      tonConnectUI.setConnectRequestParameters({ state: 'loading' });
-      firstProofLoading.current = false;
-    }
-    
     try {
       // Генерируем challenge БЕЗ walletAddress (как в рабочем примере)
       const challengeData = await getChallenge();
@@ -56,12 +51,17 @@ export const useTonConnect = () => {
     }
   }, [tonConnectUI]);
 
-  // Initialize challenge on mount
+  // Challenge will be generated when TonConnect button is clicked, not on mount
+  
+  // Handle connect request - generate challenge when user clicks TonConnect button
   useEffect(() => {
-    if (firstProofLoading.current) {
-      recreateProofPayload();
-    }
-  }, [recreateProofPayload]);
+    const unsubscribe = tonConnectUI.onConnectRequest(async () => {
+      console.log('TonConnect button clicked, generating challenge...');
+      await recreateProofPayload();
+    });
+
+    return () => unsubscribe();
+  }, [tonConnectUI, recreateProofPayload]);
 
   // Handle wallet status changes
   useEffect(() => {
@@ -87,23 +87,7 @@ export const useTonConnect = () => {
         setHasTonProof(false);
         setIsConnected(true);
         // If we aren't authenticated with our backend yet, we need a proof.
-        if (!hasTonProof) {
-          // В Case 2 генерируем challenge С walletAddress для re-authentication
-          try {
-            const challengeData = await getChallenge(walletAddress);
-            setClientId(challengeData.clientId);
-            
-            if (challengeData.challenge) {
-              tonConnectUI.setConnectRequestParameters({
-                state: 'ready',
-                value: { tonProof: challengeData.challenge },
-              });
-              console.log('✅ New challenge generated for re-authentication');
-            }
-          } catch (e) {
-            console.error('❌ Failed to generate new challenge:', e);
-          }
-        }
+        // Challenge will be generated when user clicks TonConnect button again
       }
     });
 
