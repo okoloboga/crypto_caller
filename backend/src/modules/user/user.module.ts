@@ -35,6 +35,8 @@ import { RelayerModule } from '../relayer/relayer.module'; // Import RelayerModu
   exports: [
     // Export the TypeORM configuration for the User entity so other modules can access the User repository
     TypeOrmModule.forFeature([User]),
+    // Export UserService so other modules can use it
+    UserService,
   ],
 })
 export class UserModule {}
