@@ -1,21 +1,5 @@
-/**
- * Footer component for the RUBLE Farming App.
- * This component renders a footer navigation bar at the bottom of the app.
- * It includes a button to create a new task for monitoring currency pairs.
- * The footer is styled with Material-UI and supports internationalization for the button text.
- */
-
 import { Button, Box } from '@mui/material';
-
-// Import hooks for internationalization
 import { useTranslation } from 'react-i18next';
-
-/**
- * Footer component that renders a navigation bar with a task creation button.
- * @param {Object} props - The component props.
- * @param {Function} props.handleCreateTask - Function to handle the creation of a new task.
- * @returns {JSX.Element} The rendered Footer component.
- */
 const Footer = ({ handleCreateTask }) => {
   // Translation hook for internationalization
   const { t } = useTranslation();

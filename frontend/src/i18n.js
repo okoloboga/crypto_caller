@@ -1,16 +1,5 @@
-/**
- * Internationalization (i18n) configuration for the RUBLE Farming App.
- * This file sets up i18next for multi-language support, enabling the app to load translations
- * dynamically from JSON files and integrate with React components.
- */
-
-// Import the core i18next library for internationalization
 import i18n from 'i18next';
-
-// Import the React i18next adapter to integrate i18next with React
 import { initReactI18next } from 'react-i18next';
-
-// Import the HTTP backend for i18next to load translation files dynamically
 import i18nextHttpBackend from 'i18next-http-backend';
 
 // Initialize i18next with the necessary plugins and configuration

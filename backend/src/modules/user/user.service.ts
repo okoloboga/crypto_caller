@@ -1,36 +1,15 @@
-/**
- * Service for handling user-related operations in the RUBLE Farming App backend.
- * This service provides methods for managing users, including finding users, creating/updating
- * subscriptions, updating phone numbers, managing points (updating and claiming), and checking
- * subscription status. It interacts with the database using TypeORM and is part of the UserModule.
- */
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './user.entity';
 
-import { Injectable } from '@nestjs/common'; // Import Injectable decorator for NestJS service
-import { InjectRepository } from '@nestjs/typeorm'; // Import InjectRepository for repository injection
-import { Repository } from 'typeorm'; // Import Repository for database operations
-import { User } from './user.entity'; // Import the User entity for database mapping
-
-/**
- * UserService class providing business logic for user management.
- * Handles user retrieval, subscription creation/updates, phone number updates, points management,
- * and subscription status checks.
- */
 @Injectable()
 export class UserService {
-  /**
-   * Constructor to inject dependencies.
-   * @param userRepository - The repository for User entities.
-   */
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
 
-  /**
-   * Find a user by their wallet address.
-   * @param walletAddress - The wallet address of the user.
-   * @returns The user if found, or null if not found.
-   */
   async findOne(walletAddress: string): Promise<User | null> {
     // Log the search operation
     console.log(`Ищем пользователя с walletAddress: ${walletAddress}`);
@@ -45,13 +24,6 @@ export class UserService {
     return user;
   }
 
-  /**
-   * Create or update a user's subscription by associating a phone number with their wallet address.
-   * If the user does not exist, a new user is created. If the user exists, their subscription is updated.
-   * @param walletAddress - The wallet address of the user.
-   * @param phoneNumber - The phone number to associate with the user.
-   * @returns The created or updated user.
-   */
   async createSubscription(walletAddress: string, phoneNumber: string): Promise<User> {
     // Log the subscription operation
     console.log(`Создание/обновление подписки для walletAddress: ${walletAddress}`);
@@ -80,12 +52,6 @@ export class UserService {
     return savedUser;
   }
 
-  /**
-   * Update the phone number of a user by their wallet address.
-   * @param walletAddress - The wallet address of the user.
-   * @param phoneNumber - The new phone number to set.
-   * @returns The updated user, or null if the user is not found.
-   */
   async updatePhoneNumber(walletAddress: string, phoneNumber: string): Promise<User | null> {
     // Log the phone number update operation
     console.log(`Обновление номера телефона для walletAddress: ${walletAddress}`);

@@ -1,34 +1,9 @@
-/**
- * Header component for the RUBLE Farming App.
- * This component renders a navigation bar at the top of the app.
- * It includes buttons for subscription, TON wallet connection, and language switching.
- * The header integrates with TON Connect for wallet authentication and supports internationalization.
- */
-
 import React from 'react';
-
-// Import custom TonConnect hook
 import { useTonConnect } from '../hooks/useTonConnect';
-
-// Import the TON Connect button component
 import { TonConnectButton } from '@tonconnect/ui-react';
-
-// Import language context for managing the app's language
 import { useLanguage } from '../contexts/LanguageContext';
-
-// Import translation hook for internationalization
 import { useTranslation } from 'react-i18next';
-
-// Import Material-UI components for layout and styling
 import { Button, List, ListItem, Box } from '@mui/material';
-
-/**
- * Header component that renders a navigation bar with subscription, wallet connection, and language switch buttons.
- * @param {Object} props - The component props.
- * @param {Function} props.showNotification - Function to display a notification message.
- * @param {Function} props.handleSubscribe - Function to handle subscription button click.
- * @returns {JSX.Element} The rendered Header component.
- */
 const Header = ({ showNotification, handleSubscribe }) => {
   // Use custom TonConnect hook for simplified wallet management
   const { } = useTonConnect();

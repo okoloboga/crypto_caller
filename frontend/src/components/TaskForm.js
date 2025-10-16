@@ -1,35 +1,8 @@
-/**
- * TaskForm component for the RUBLE Farming App.
- * This component provides a form for creating or editing tasks to monitor currency pairs.
- * Users can select a currency pair, set a target price, and specify whether the price should be above or below the target.
- * The form supports both creating new tasks and updating existing ones, with validation and error handling.
- */
-
 import React, { useEffect, useState } from 'react';
-
-// Import hook to retrieve the TON wallet address
 import { useTonAddress } from '@tonconnect/ui-react';
-
-// Import API service functions for creating and updating tasks
 import { createTask, updateTask } from '../services/apiService';
-
-// Import translation hook for internationalization
 import { useTranslation } from 'react-i18next';
-
-// Import Material-UI components for layout and form controls
 import { Box, Button, MenuItem, Select, TextField, FormControl } from '@mui/material';
-
-/**
- * TaskForm component for creating or editing tasks.
- * @param {Object} props - The component props.
- * @param {Object} [props.task] - The task to edit (if provided, the form is in edit mode).
- * @param {string[]} props.currencyPairs - List of available currency pairs for selection.
- * @param {Function} props.onSave - Function to call after saving the task.
- * @param {Function} props.onCancel - Function to call when canceling the form.
- * @param {boolean} [props.disabled] - Whether the form is disabled.
- * @param {Function} [props.onDisabledAction] - Function to call if the form is disabled and an action is attempted.
- * @returns {JSX.Element} The rendered TaskForm component.
- */
 const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledAction }) => {
   // Translation hook for internationalization
   const { t } = useTranslation();

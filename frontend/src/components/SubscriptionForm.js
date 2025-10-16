@@ -1,37 +1,11 @@
-/**
- * SubscriptionForm component for the RUBLE Farming App.
- * This component allows users to subscribe to the service by paying 0.75 TON and providing a phone number.
- * It handles subscription creation, phone number updates, and TON wallet authentication with challenge verification.
- * The form supports editing the phone number if the user is already subscribed.
- */
-
 import React, { useState, useEffect } from 'react';
-
-// Import custom TonConnect hook
 import { useTonConnect } from '../hooks/useTonConnect';
-
-// Import TonConnect UI hook for direct UI access
 import { useTonConnectUI } from '@tonconnect/ui-react';
-
-// Import TON SDK for creating proper message payloads
 import { beginCell } from '@ton/core';
-
-// Import API service functions for user data, subscription, and challenge verification
 import { getUserByWalletAddress, updatePhoneNumber, getSubscriptionConfig, checkSubscription, getChallenge, verifyChallenge, notifySubscriptionTransaction } from '../services/apiService';
-
-// Import translation hook for internationalization
 import { useTranslation } from 'react-i18next';
-
-// Import Material-UI components for layout, styling, and notifications
 import { Box, Button, TextField, Typography, Paper, Snackbar, Alert } from '@mui/material';
 
-/**
- * SubscriptionForm component for managing user subscriptions.
- * @param {Object} props - The component props.
- * @param {Function} props.onCancel - Function to handle canceling the subscription form.
- * @param {Function} props.onSubscriptionChange - Function to update the subscription status in the parent component.
- * @returns {JSX.Element} The rendered SubscriptionForm component.
- */
 const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
   // Translation hook for internationalization
   const { t } = useTranslation();

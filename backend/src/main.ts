@@ -1,9 +1,3 @@
-/**
- * Entry point for the RUBLE Farming App backend.
- * This file initializes the NestJS application, configures HTTPS, sets up global settings
- * (such as API prefix, exception filters, and CORS), and starts the server on port 3000.
- */
-
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
@@ -11,12 +5,6 @@ import { AllExceptionsFilter } from './shared/exceptions/all-exceptions.filter';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
-// SSL certificates are handled by nginx reverse proxy
-
-/**
- * Bootstrap function to initialize and start the NestJS application.
- * Configures HTTPS, global API prefix, exception handling, CORS, and starts the server.
- */
 async function bootstrap() {
   // Create the NestJS application in HTTP mode (SSL handled by nginx)
   const app = await NestFactory.create(AppModule);

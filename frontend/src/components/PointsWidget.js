@@ -1,36 +1,8 @@
-/**
- * PointsWidget component for the RUBLE Farming App.
- * This component displays a progress bar for token farming (points accumulation).
- * Users can accumulate points over time up to a maximum of 50, and claim them to their TON wallet
- * when the maximum is reached. The component also handles user activity detection to pause/resume
- * point accumulation and saves progress to the server.
- */
-
 import React, { useEffect, useState } from 'react';
-
-// Import hook to retrieve the TON wallet address
 import { useTonAddress } from '@tonconnect/ui-react';
-
-// Import API service functions for token withdrawal and points updating
 import { requestTokenWithdrawal, updatePoints } from '../services/apiService';
-
-// Import translation hook for internationalization
 import { useTranslation } from 'react-i18next';
-
-// Import Material-UI components for layout and styling
 import { Box, LinearProgress, Paper } from '@mui/material';
-
-/**
- * PointsWidget component that manages token farming and displays a progress bar.
- * @param {Object} props - The component props.
- * @param {boolean} props.isSubscribed - Indicates if the user is subscribed.
- * @param {Function} props.showNotification - Function to display a notification message.
- * @param {number} props.totalPoints - The total points accumulated by the user.
- * @param {number} props.lastPoints - The last recorded points value.
- * @param {Date} props.lastUpdated - The timestamp of the last points update.
- * @param {Function} props.updatePointsData - Function to update points data (totalPoints, lastPoints, lastUpdated).
- * @returns {JSX.Element} The rendered PointsWidget component.
- */
 const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, updatePointsData }) => {
   // Translation hook for internationalization
   const { t } = useTranslation();

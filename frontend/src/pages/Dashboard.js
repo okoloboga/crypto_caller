@@ -1,38 +1,15 @@
-/**
- * Dashboard component for the RUBLE Farming App.
- * This component serves as the main interface for users after authentication.
- * It manages user subscription status, task creation/editing/deletion, token farming (points),
- * and displays notifications. Users can subscribe, create tasks for monitoring currency pairs,
- * and claim points if they meet the criteria.
- */
-
 import React, { useState, useEffect, useCallback } from 'react';
-
-// Import custom TonConnect hook
 import { useTonConnect } from '../hooks/useTonConnect';
-
-// Import language context and translation hooks for internationalization
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from 'react-i18next';
-
-// Import components for the dashboard layout
 import Header from '../components/Header';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
 import Footer from '../components/Footer';
 import PointsWidget from '../components/PointsWidget';
 import SubscriptionForm from '../components/SubscriptionForm';
-
-// Import API service functions for interacting with the backend
 import { getUserTasks, deleteTask, checkSubscription, getUserByWalletAddress } from '../services/apiService';
-
-// Import Material-UI components for layout and notifications
 import { Box, Snackbar, Alert } from '@mui/material';
-
-/**
- * Dashboard component that renders the main app interface.
- * @returns {JSX.Element} The rendered Dashboard component.
- */
 const Dashboard = () => {
   // Use custom TonConnect hook for simplified wallet management
   const { walletAddress, hasTonProof } = useTonConnect();

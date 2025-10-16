@@ -1,30 +1,17 @@
-/**
- * Root module for the RUBLE Farming App backend.
- * This module defines the overall structure of the NestJS application by importing
- * feature modules, configuring TypeORM for PostgreSQL database connectivity,
- * and setting up Bull for queue management with Redis.
- */
-
-import { Module } from '@nestjs/common'; // Import Module decorator for defining NestJS modules
-import { TypeOrmModule } from '@nestjs/typeorm'; // Import TypeOrmModule for database integration
-import { HttpModule } from '@nestjs/axios'; // Import HttpModule for HTTP requests
-import { UserModule } from './modules/user/user.module'; // Import UserModule for user-related features
-import { TaskModule } from './modules/task/task.module'; // Import TaskModule for task-related features
-import { NotificationModule } from './modules/notification/notification.module'; // Import NotificationModule for notifications
-import { ChallengeModule } from './modules/challenge/challenge.module'; // Import ChallengeModule for challenge generation
-import { AppController } from './app.controller'; // Import AppController for basic app routes
-import { BullModule } from '@nestjs/bull'; // Import BullModule for queue management
-import { PriceMonitorModule } from './modules/price-monitor/price-monitor.module'; // Import PriceMonitorModule for price monitoring
-import { SubscriptionModule } from './modules/subscription/subscription.module'; // Import module for subscription handling
-import { TonModule } from './modules/ton/ton.module'; // Import TonModule for TON blockchain integration
-import { WithdrawalController } from './modules/ton/withdrawal.controller'; // Import WithdrawalController for withdrawal endpoints
-import { RelayerModule } from './modules/relayer/relayer.module'; // Import RelayerModule for relayer integration
-
-/**
- * AppModule class defining the root module of the application.
- * Configures the application by importing feature modules, setting up TypeORM for PostgreSQL,
- * and configuring Bull for queue management with Redis.
- */
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { HttpModule } from '@nestjs/axios';
+import { UserModule } from './modules/user/user.module';
+import { TaskModule } from './modules/task/task.module';
+import { NotificationModule } from './modules/notification/notification.module';
+import { ChallengeModule } from './modules/challenge/challenge.module';
+import { AppController } from './app.controller';
+import { BullModule } from '@nestjs/bull';
+import { PriceMonitorModule } from './modules/price-monitor/price-monitor.module';
+import { SubscriptionModule } from './modules/subscription/subscription.module';
+import { TonModule } from './modules/ton/ton.module';
+import { WithdrawalController } from './modules/ton/withdrawal.controller';
+import { RelayerModule } from './modules/relayer/relayer.module';
 @Module({
   imports: [
     // Feature modules for different parts of the application
