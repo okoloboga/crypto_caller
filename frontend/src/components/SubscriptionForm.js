@@ -10,6 +10,9 @@ import React, { useState, useEffect } from 'react';
 // Import custom TonConnect hook
 import { useTonConnect } from '../hooks/useTonConnect';
 
+// Import TonConnect UI hook for direct UI access
+import { useTonConnectUI } from '@tonconnect/ui-react';
+
 // Import TON SDK for creating proper message payloads
 import { beginCell } from '@ton/core';
 
@@ -35,6 +38,9 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
 
   // Use custom TonConnect hook for simplified wallet management
   const { walletAddress, wallet, hasTonProof, clientId } = useTonConnect();
+  
+  // Get TonConnect UI instance for direct access
+  const [tonConnectUI] = useTonConnectUI();
 
   // State for subscription status, phone number, and notifications
   const [isSubscribed, setIsSubscribed] = useState(false);

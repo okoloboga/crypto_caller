@@ -417,7 +417,6 @@ const Dashboard = () => {
         showNotification={showNotification}
         handleCreateTask={handleCreateTask}
         handleSubscribe={handleSubscribe}
-        setHasTonProof={setHasTonProof}
       />
     </Box>
   );
