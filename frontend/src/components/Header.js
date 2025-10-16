@@ -27,10 +27,9 @@ import { Button, List, ListItem, Box } from '@mui/material';
  * @param {Object} props - The component props.
  * @param {Function} props.showNotification - Function to display a notification message.
  * @param {Function} props.handleSubscribe - Function to handle subscription button click.
- * @param {Function} props.setHasTonProof - Function to update the TON proof status.
  * @returns {JSX.Element} The rendered Header component.
  */
-const Header = ({ showNotification, handleSubscribe, setHasTonProof }) => {
+const Header = ({ showNotification, handleSubscribe }) => {
   // Translation hook for internationalization
   const { t } = useTranslation();
 
@@ -40,10 +39,7 @@ const Header = ({ showNotification, handleSubscribe, setHasTonProof }) => {
   // Access the current language and function to change it
   const { language, changeLanguage } = useLanguage();
 
-  // Update parent component when TON proof status changes
-  useEffect(() => {
-    setHasTonProof(hasTonProof);
-  }, [hasTonProof, setHasTonProof]);
+  // TON proof status is now managed by useTonConnect hook
 
   /**
    * Handle language change by toggling between English and Russian.

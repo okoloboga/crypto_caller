@@ -35,7 +35,7 @@ import { Box, Snackbar, Alert } from '@mui/material';
  */
 const Dashboard = () => {
   // Use custom TonConnect hook for simplified wallet management
-  const { walletAddress, hasTonProof, setHasTonProof } = useTonConnect();
+  const { walletAddress, hasTonProof } = useTonConnect();
 
   // Translation hook for internationalization
   const { t } = useTranslation();
@@ -59,8 +59,8 @@ const Dashboard = () => {
   // State for available currency pairs for task creation
   const [currencyPairs] = useState(['BTC-USD', 'ETH-USD', 'TON-USD']);
 
-  // State to track if TON proof is available for subscription
-  const [hasTonProof, setHasTonProof] = useState(false);
+  // State to track if TON proof is available for subscription (managed by useTonConnect hook)
+  // const [hasTonProof, setHasTonProof] = useState(false); // Removed - now managed by useTonConnect
 
   // State for notification message and visibility
   const [notification, setNotification] = useState('');
@@ -347,7 +347,6 @@ const Dashboard = () => {
       <Header
         showNotification={showNotification}
         handleSubscribe={handleSubscribe}
-        setHasTonProof={setHasTonProof}
       />
 
       {/* Main content area */}
