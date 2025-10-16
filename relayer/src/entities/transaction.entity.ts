@@ -25,7 +25,7 @@ export class TransactionEntity {
   @Index()
   lt: string; // Logical time of the transaction
 
-  @Column({ type: "varchar", length: 255 })
+  @Column({ type: "varchar", length: 1000 })
   @Index()
   hash: string; // Transaction hash
 
@@ -60,7 +60,7 @@ export class TransactionEntity {
   @Column({ type: "int", default: 0 })
   retryCount: number; // Number of retry attempts
 
-  @Column({ type: "varchar", length: 255, nullable: true })
+  @Column({ type: "varchar", length: 1000, nullable: true })
   txHash: string; // Original transaction hash from backend
 
   @Column({ type: "varchar", length: 255, nullable: true })

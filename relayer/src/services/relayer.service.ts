@@ -254,6 +254,14 @@ export class RelayerService implements OnModuleInit {
 
     try {
       // Create transaction record
+      this.logger.log(`📊 Creating transaction record for ${data.userAddress}`);
+      this.logger.log(`📊 Transaction data:`, {
+        userAddress: data.userAddress,
+        amount: data.amount,
+        txHash: data.txHash.substring(0, 50) + '...', // Log only first 50 chars
+        subscriptionContractAddress: data.subscriptionContractAddress,
+      });
+      
       const transaction = this.transactionRepository.create({
         lt: Date.now().toString(),
         hash: data.txHash,
@@ -268,6 +276,7 @@ export class RelayerService implements OnModuleInit {
       });
 
       await this.transactionRepository.save(transaction);
+      this.logger.log(`✅ Transaction record created successfully: ${transaction.id}`);
 
       // Process the subscription (swap + burn)
       const swapResult = await this.swapService.performSwap(
@@ -352,16 +361,23 @@ export class RelayerService implements OnModuleInit {
         };
       }
     } catch (error) {
-      this.logger.error(`Failed to process subscription: ${error.message}`);
+      this.logger.error(`❌ Failed to process subscription: ${error.message}`);
+      this.logger.error(`🔍 Error details:`, {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
 
       // Send refund on error
+      this.logger.log(`🔄 Sending refund due to error: ${data.userAddress}`);
       try {
         await this.tonService.sendRefundUser(
           data.userAddress,
           BigInt(parseFloat(data.amount) * 1_000_000_000),
         );
+        this.logger.log(`✅ Refund sent successfully`);
       } catch (refundError) {
-        this.logger.error(`Failed to send refund: ${refundError.message}`);
+        this.logger.error(`❌ Failed to send refund: ${refundError.message}`);
       }
 
       return {
