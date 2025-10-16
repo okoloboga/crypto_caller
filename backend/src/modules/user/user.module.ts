@@ -6,7 +6,7 @@
  * and exports the TypeORM configuration for use in other modules.
  */
 
-import { Module } from '@nestjs/common'; // Import Module decorator for defining NestJS modules
+import { Module, forwardRef } from '@nestjs/common'; // Import Module decorator for defining NestJS modules
 import { TypeOrmModule } from '@nestjs/typeorm'; // Import TypeOrmModule for database integration
 import { UserController } from './user.controller'; // Import the UserController for HTTP endpoints
 import { UserService } from './user.service'; // Import the UserService for business logic
@@ -23,8 +23,8 @@ import { RelayerModule } from '../relayer/relayer.module'; // Import RelayerModu
   imports: [
     // Configure TypeORM to use the User entity for database operations
     TypeOrmModule.forFeature([User]),
-    // Import RelayerModule for relayer integration
-    RelayerModule,
+    // Import RelayerModule for relayer integration (using forwardRef to avoid circular dependency)
+    forwardRef(() => RelayerModule),
   ],
   controllers: [
     UserController, // Register the UserController to handle HTTP requests
