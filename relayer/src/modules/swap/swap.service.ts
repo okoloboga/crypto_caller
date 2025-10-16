@@ -210,20 +210,32 @@ export class SwapService {
         };
       }
 
-      // Wait for balance update (может потребоваться больше времени для chain of transactions)
-      await new Promise((resolve) => setTimeout(resolve, 10000)); // 10 секунд
-
-      // Get jetton balance AFTER swap
-      const balanceAfter = await this.getActualJettonAmount(
-        this.config.relayerWalletAddress,
-        txId,
-        0n,
-      );
+      // Wait for balance update with retries (jettons may take time to arrive)
+      let balanceAfter = balanceBefore;
+      let actualJettonAmount = 0n;
+      let attempts = 0;
+      const maxAttempts = 5;
       
-      const actualJettonAmount = balanceAfter - balanceBefore;
+      while (attempts < maxAttempts && actualJettonAmount === 0n) {
+        attempts++;
+        this.logger.log(`[DEBUG] Checking balance attempt ${attempts}/${maxAttempts}...`);
+        
+        // Wait progressively longer: 15s, 20s, 25s, 30s, 35s
+        const waitTime = 15000 + (attempts * 5000);
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
+        
+        balanceAfter = await this.getActualJettonAmount(
+          this.config.relayerWalletAddress,
+          txId,
+          0n,
+        );
+        
+        actualJettonAmount = balanceAfter - balanceBefore;
+        this.logger.log(`[DEBUG] Balance check ${attempts}: ${balanceBefore} -> ${balanceAfter} (diff: ${actualJettonAmount})`);
+      }
 
       if (actualJettonAmount === 0n) {
-        this.logger.error(`[DEBUG] ⚠️ No jettons received! Checking transaction details...`);
+        this.logger.error(`[DEBUG] ⚠️ No jettons received after ${maxAttempts} attempts! Checking transaction details...`);
         
         const tx = await this.tonService.getTransaction(txHash);
         this.logger.error(`[DEBUG] Transaction details:`, JSON.stringify(tx, null, 2));
