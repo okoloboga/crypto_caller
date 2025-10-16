@@ -222,8 +222,10 @@ export class SwapService {
         
         // Wait progressively longer: 15s, 20s, 25s, 30s, 35s
         const waitTime = 15000 + (attempts * 5000);
+        this.logger.debug(`[DEBUG] Waiting ${waitTime}ms before balance check...`);
         await new Promise((resolve) => setTimeout(resolve, waitTime));
         
+        this.logger.debug(`[DEBUG] Getting balance for relayer: ${this.config.relayerWalletAddress}`);
         balanceAfter = await this.getActualJettonAmount(
           this.config.relayerWalletAddress,
           txId,
@@ -315,13 +317,20 @@ export class SwapService {
     fallbackAmount: bigint,
   ): Promise<bigint> {
     try {
+      this.logger.debug(`[DEBUG] Getting jetton balance for relayer: ${relayerAddress}`);
+      
       // Ensure wallet is initialized before proceeding
       await this.tonService.forceWalletInitialization();
+      
+      // Get relayer's jetton wallet address
+      const jettonWalletAddress = await this.tonService.getJettonWalletAddress();
+      this.logger.debug(`[DEBUG] Jetton wallet address: ${jettonWalletAddress.toString()}`);
       
       // Get jetton wallet data
       const jettonWallet = await this.tonService.getJettonWalletContract();
       const walletData = await jettonWallet.getData();
 
+      this.logger.debug(`[DEBUG] Jetton wallet balance: ${walletData.balance.toString()}`);
       return walletData.balance;
     } catch (error) {
       this.logger.error(`[DEBUG] Failed to get jetton amount: ${error.message}`);
