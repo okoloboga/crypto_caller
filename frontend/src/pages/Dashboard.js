@@ -8,7 +8,7 @@ import TaskForm from '../components/TaskForm';
 import Footer from '../components/Footer';
 import PointsWidget from '../components/PointsWidget';
 import SubscriptionForm from '../components/SubscriptionForm';
-import { getUserTasks, deleteTask, checkSubscription, getUserByWalletAddress } from '../services/apiService';
+import { getUserTasks, deleteTask, checkSubscriptionFromContract, getUserByWalletAddress } from '../services/apiService';
 import { Box, Snackbar, Alert } from '@mui/material';
 const Dashboard = () => {
   // Use custom TonConnect hook for simplified wallet management
@@ -200,13 +200,13 @@ const Dashboard = () => {
   };
 
   /**
-   * Check the user's subscription status from the backend.
-   * The backend now returns an expiry timestamp from the blockchain.
+   * Check the user's subscription status directly from blockchain contract.
+   * This is the primary method for subscription verification.
    */
   const checkSubscriptionStatus = async () => {
     if (!walletAddress) return;
     try {
-      const result = await checkSubscription(walletAddress);
+      const result = await checkSubscriptionFromContract(walletAddress);
       // Check if the expiry timestamp is in the future
       const isNowSubscribed = result && result.expiresAt && (result.expiresAt * 1000 > Date.now());
       
@@ -220,7 +220,7 @@ const Dashboard = () => {
         setIsSubscribed(false);
       }
     } catch (error) {
-      console.error('Error checking subscription status:', error);
+      console.error('Error checking subscription status from contract:', error);
       setIsSubscribed(false);
       if (isPolling) {
         setIsPolling(false); // Stop polling on error

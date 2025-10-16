@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTonConnect } from '../hooks/useTonConnect';
 import { useTonConnectUI } from '@tonconnect/ui-react';
 import { beginCell } from '@ton/core';
-import { getUserByWalletAddress, updatePhoneNumber, getSubscriptionConfig, checkSubscription, getChallenge, verifyChallenge, notifySubscriptionTransaction } from '../services/apiService';
+import { getUserByWalletAddress, updatePhoneNumber, getSubscriptionConfig, checkSubscriptionFromContract, getChallenge, verifyChallenge, notifySubscriptionTransaction } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
 import { Box, Button, TextField, Typography, Paper, Snackbar, Alert } from '@mui/material';
 
@@ -46,7 +46,7 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
 
       try {
         const user = await getUserByWalletAddress(walletAddress);
-        const subscribeIsActive = await checkSubscription(walletAddress);
+        const subscribeIsActive = await checkSubscriptionFromContract(walletAddress);
         if (user) {
           setPhoneNumber(user.phoneNumber || '');
           setIsSubscribed(subscribeIsActive);

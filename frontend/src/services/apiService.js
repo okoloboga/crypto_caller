@@ -89,6 +89,25 @@ export const checkSubscription = async (walletAddress) => {
   }
 };
 
+/**
+ * Check subscription status directly from blockchain contract.
+ * This is the primary method for subscription verification.
+ * @param {string} walletAddress - The TON wallet address of the user.
+ * @returns {Promise<Object>} The subscription status from blockchain (e.g., { expiresAt: number }).
+ * @throws {Error} If the request fails.
+ */
+export const checkSubscriptionFromContract = async (walletAddress) => {
+  console.log(`Checking subscription status from contract for walletAddress: ${walletAddress}`);
+  try {
+    const response = await api.get(`/subscription/${walletAddress}`);
+    console.log('Contract subscription status successfully checked:', response);
+    return response;
+  } catch (error) {
+    console.error(`Error checking subscription from contract for walletAddress ${walletAddress}:`, error.message);
+    throw error;
+  }
+};
+
 export const notifySubscriptionTransaction = async (walletAddress, phoneNumber, txHash, amount) => {
   console.log(`Notifying backend about subscription transaction:`, {
     walletAddress,
