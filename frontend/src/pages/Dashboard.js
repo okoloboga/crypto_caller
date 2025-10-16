@@ -8,8 +8,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 
-// Import hook to retrieve the TON wallet address
-import { useTonAddress } from '@tonconnect/ui-react';
+// Import custom TonConnect hook
+import { useTonConnect } from '../hooks/useTonConnect';
 
 // Import language context and translation hooks for internationalization
 import { useLanguage } from '../contexts/LanguageContext';
@@ -34,8 +34,8 @@ import { Box, Snackbar, Alert } from '@mui/material';
  * @returns {JSX.Element} The rendered Dashboard component.
  */
 const Dashboard = () => {
-  // Retrieve the TON wallet address using the TonConnect hook
-  const walletAddress = useTonAddress();
+  // Use custom TonConnect hook for simplified wallet management
+  const { walletAddress, hasTonProof, setHasTonProof } = useTonConnect();
 
   // Translation hook for internationalization
   const { t } = useTranslation();

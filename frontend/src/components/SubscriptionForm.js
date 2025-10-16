@@ -7,8 +7,8 @@
 
 import React, { useState, useEffect } from 'react';
 
-// Import TON Connect hooks for wallet integration
-import { useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
+// Import custom TonConnect hook
+import { useTonConnect } from '../hooks/useTonConnect';
 
 // Import TON SDK for creating proper message payloads
 import { beginCell } from '@ton/core';
@@ -33,12 +33,8 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
   // Translation hook for internationalization
   const { t } = useTranslation();
 
-  // TON Connect UI instance and options setter
-  const [tonConnectUI, setOptions] = useTonConnectUI();
-
-  // Retrieve the TON wallet object and address
-  const wallet = useTonWallet();
-  const walletAddress = useTonAddress();
+  // Use custom TonConnect hook for simplified wallet management
+  const { walletAddress, wallet, hasTonProof, clientId } = useTonConnect();
 
   // State for subscription status, phone number, and notifications
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -52,10 +48,10 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
 
   // Check if wallet has TON proof when wallet changes
   useEffect(() => {
-    if (walletAddress && wallet?.connectItems?.tonProof) {
+    if (walletAddress && hasTonProof) {
       console.log('✅ SubscriptionForm: TON Proof available');
     }
-  }, [walletAddress, wallet]);
+  }, [walletAddress, hasTonProof]);
 
   // Fetch user data and subscription status when the wallet address changes
   useEffect(() => {

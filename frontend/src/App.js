@@ -17,8 +17,8 @@ import { LanguageProvider } from './contexts/LanguageContext';
 // Import i18n configuration for translations
 import i18n from './i18n';
 
-// Import hooks to retrieve the TON wallet address and connection status
-import { useTonAddress, useIsConnectionRestored } from '@tonconnect/ui-react';
+// Import custom TonConnect hook
+import { useTonConnect } from './hooks/useTonConnect';
 
 // Import Material-UI components for styling and layout
 import { CssBaseline, Box } from '@mui/material';
@@ -35,9 +35,8 @@ import background from './assets/background.mp4';
  * @returns {JSX.Element} The rendered App component.
  */
 const App = () => {
-  // Retrieve the user's TON wallet address using the TonConnect hook
-  const walletAddress = useTonAddress();
-  const connectionRestored = useIsConnectionRestored();
+  // Use custom TonConnect hook for simplified wallet management
+  const { walletAddress, connectionRestored } = useTonConnect();
   
   console.log(`Wallet address: ${walletAddress}`);
   console.log(`Connection restored: ${connectionRestored}`);

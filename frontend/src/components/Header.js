@@ -7,17 +7,14 @@
 
 import React, { useState, useEffect } from 'react';
 
-// Import TON Connect hooks for wallet integration
-import { useTonAddress, useTonWallet, useTonConnectUI } from '@tonconnect/ui-react';
+// Import custom TonConnect hook
+import { useTonConnect } from '../hooks/useTonConnect';
 
 // Import the TON Connect button component
 import { TonConnectButton } from '@tonconnect/ui-react';
 
 // Import language context for managing the app's language
 import { useLanguage } from '../contexts/LanguageContext';
-
-// Import API service function to generate a challenge for wallet verification
-import { getChallenge } from '../services/apiService';
 
 // Import translation hook for internationalization
 import { useTranslation } from 'react-i18next';
@@ -37,59 +34,16 @@ const Header = ({ showNotification, handleSubscribe, setHasTonProof }) => {
   // Translation hook for internationalization
   const { t } = useTranslation();
 
-  // Retrieve the TON wallet address
-  const walletAddress = useTonAddress();
-
-  // Retrieve the TON wallet object
-  const wallet = useTonWallet();
+  // Use custom TonConnect hook for simplified wallet management
+  const { walletAddress, hasTonProof } = useTonConnect();
 
   // Access the current language and function to change it
   const { language, changeLanguage } = useLanguage();
 
-  // Access the TON Connect UI instance and options setter
-  const [tonConnectUI, setOptions] = useTonConnectUI();
-
-  // Effect to handle TON proof verification when wallet address or wallet changes
+  // Update parent component when TON proof status changes
   useEffect(() => {
-    /**
-     * Check the TON proof for wallet verification.
-     * Updates the hasTonProof state based on the verification result.
-     */
-    const checkTonProof = async () => {
-      if (!walletAddress || !wallet) {
-        setHasTonProof(false);
-        return;
-      }
-
-      // Check if wallet already has TON proof
-      if (wallet.connectItems?.tonProof && 'proof' in wallet.connectItems.tonProof) {
-        console.log('✅ TON Proof found in wallet:', wallet.connectItems.tonProof);
-        setHasTonProof(true);
-        return;
-      }
-
-      // If no proof, try to get challenge and set up connection parameters
-      try {
-        const challenge = await getChallenge(walletAddress);
-        
-        if (challenge) {
-          tonConnectUI.setConnectRequestParameters({
-            state: "ready",
-            value: { tonProof: challenge },
-          });
-          console.log('🔄 Challenge set for TON Proof');
-        }
-        
-        setHasTonProof(false);
-      } catch (error) {
-        console.error('❌ Error setting up TON proof:', error);
-        setHasTonProof(false);
-      }
-    };
-
-    // Check immediately if wallet is already connected
-    checkTonProof();
-  }, [walletAddress, wallet, tonConnectUI]);
+    setHasTonProof(hasTonProof);
+  }, [hasTonProof, setHasTonProof]);
 
   /**
    * Handle language change by toggling between English and Russian.
