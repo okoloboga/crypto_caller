@@ -43,18 +43,41 @@ export class UserController {
     // Create user subscription
     const user = await this.userService.createSubscription(walletAddress, phoneNumber);
     
-    // Notify relayer about the subscription
+    // Check relayer health first
+    console.log(`🔍 Checking relayer health before notification...`);
     try {
-      await this.relayerService.processSubscription({
+      const isHealthy = await this.relayerService.checkHealth();
+      console.log(`📊 Relayer health check: ${isHealthy ? '✅ Healthy' : '❌ Unhealthy'}`);
+    } catch (healthError) {
+      console.error(`❌ Relayer health check failed:`, healthError.message);
+    }
+    
+    // Notify relayer about the subscription
+    console.log(`🔄 Starting relayer notification for ${walletAddress}`);
+    console.log(`📊 Relayer data:`, {
+      userAddress: walletAddress,
+      amount: amount,
+      txHash: txHash,
+      subscriptionContractAddress: process.env.SUBSCRIPTION_CONTRACT_ADDRESS || '',
+    });
+    
+    try {
+      const relayerResponse = await this.relayerService.processSubscription({
         userAddress: walletAddress,
         amount: amount,
         txHash: txHash,
         subscriptionContractAddress: process.env.SUBSCRIPTION_CONTRACT_ADDRESS || '',
       });
       
-      console.log(`✅ Relayer notified about subscription for ${walletAddress}`);
+      console.log(`✅ Relayer notified successfully for ${walletAddress}`);
+      console.log(`📋 Relayer response:`, relayerResponse);
     } catch (error) {
-      console.error(`❌ Failed to notify relayer: ${error.message}`);
+      console.error(`❌ Failed to notify relayer for ${walletAddress}:`);
+      console.error(`🔍 Error details:`, {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
       // Don't throw error - user subscription is created, relayer notification is optional
     }
     

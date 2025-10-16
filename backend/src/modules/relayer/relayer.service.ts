@@ -29,16 +29,37 @@ export class RelayerService {
    */
   async processSubscription(data: RelayerSubscriptionRequest): Promise<RelayerSubscriptionResponse> {
     try {
-      this.logger.log(`Sending subscription to relayer: ${data.userAddress}, amount: ${data.amount}`);
+      this.logger.log(`🔄 Starting relayer notification process`);
+      this.logger.log(`📊 Relayer URL: ${this.relayerUrl}`);
+      this.logger.log(`📋 Request data:`, {
+        userAddress: data.userAddress,
+        amount: data.amount,
+        txHash: data.txHash,
+        subscriptionContractAddress: data.subscriptionContractAddress,
+      });
+      
+      const fullUrl = `${this.relayerUrl}/api/relayer/process-subscription`;
+      this.logger.log(`🌐 Making HTTP POST request to: ${fullUrl}`);
       
       const response = await firstValueFrom(
-        this.httpService.post(`${this.relayerUrl}/api/relayer/process-subscription`, data)
+        this.httpService.post(fullUrl, data)
       );
 
-      this.logger.log(`Relayer response: ${JSON.stringify(response.data)}`);
+      this.logger.log(`✅ Relayer HTTP request successful`);
+      this.logger.log(`📋 Response status: ${response.status}`);
+      this.logger.log(`📋 Response data: ${JSON.stringify(response.data)}`);
+      
       return response.data;
     } catch (error) {
-      this.logger.error(`Failed to send subscription to relayer: ${error.message}`);
+      this.logger.error(`❌ Failed to send subscription to relayer`);
+      this.logger.error(`🔍 Error type: ${error.constructor.name}`);
+      this.logger.error(`🔍 Error message: ${error.message}`);
+      this.logger.error(`🔍 Error details:`, {
+        code: error.code,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+      });
       throw error;
     }
   }
@@ -48,12 +69,22 @@ export class RelayerService {
    */
   async checkHealth(): Promise<boolean> {
     try {
+      this.logger.log(`🔍 Checking relayer health at: ${this.relayerUrl}/api/relayer/health`);
+      
       const response = await firstValueFrom(
         this.httpService.get(`${this.relayerUrl}/api/relayer/health`)
       );
+      
+      this.logger.log(`📊 Health check response: status=${response.status}, data=${JSON.stringify(response.data)}`);
       return response.status === 200;
     } catch (error) {
-      this.logger.error(`Relayer health check failed: ${error.message}`);
+      this.logger.error(`❌ Relayer health check failed: ${error.message}`);
+      this.logger.error(`🔍 Health check error details:`, {
+        code: error.code,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+      });
       return false;
     }
   }

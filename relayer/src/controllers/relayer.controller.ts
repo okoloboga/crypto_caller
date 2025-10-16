@@ -16,14 +16,27 @@ export class RelayerController {
 
   @Post("process-subscription")
   async processSubscription(@Body() data: ProcessSubscriptionDto) {
-    this.logger.log(`Received subscription request: ${JSON.stringify(data)}`);
+    this.logger.log(`🔄 Received subscription request from backend`);
+    this.logger.log(`📊 Request data:`, {
+      userAddress: data.userAddress,
+      amount: data.amount,
+      txHash: data.txHash,
+      subscriptionContractAddress: data.subscriptionContractAddress,
+    });
 
     try {
+      this.logger.log(`🚀 Starting subscription processing...`);
       const result = await this.relayerService.processSubscription(data);
-      this.logger.log(`Subscription processed successfully: ${result.txId}`);
+      this.logger.log(`✅ Subscription processed successfully: ${result.txId}`);
+      this.logger.log(`📋 Processing result:`, result);
       return result;
     } catch (error) {
-      this.logger.error(`Failed to process subscription: ${error.message}`);
+      this.logger.error(`❌ Failed to process subscription: ${error.message}`);
+      this.logger.error(`🔍 Error details:`, {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
       return {
         success: false,
         txId: "",
