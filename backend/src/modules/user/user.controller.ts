@@ -86,10 +86,13 @@ export class UserController {
         stack: error.stack,
         name: error.name,
       });
-      // Don't throw error - user subscription is created, relayer notification is optional
+      // Don't throw error - relayer notification is optional
     }
     
-    return user;
+    return { 
+      success: true, 
+      message: "Subscription request processed, user will be created after successful swap + burn + callback" 
+    };
   }
 
   /**
