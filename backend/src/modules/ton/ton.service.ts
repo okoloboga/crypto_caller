@@ -6,7 +6,7 @@
  * (e.g., for handling withdrawals).
  */
 
-import { Injectable } from '@nestjs/common'; // Import Injectable decorator for NestJS service
+import { Injectable, OnModuleInit } from '@nestjs/common'; // Import Injectable decorator for NestJS service
 import {
   TonClient,
   WalletContractV4,
@@ -25,7 +25,7 @@ import * as nacl from 'tweetnacl'; // Import nacl for cryptographic operations
  * Initializes a central wallet and handles sending Jetton tokens to recipient addresses.
  */
 @Injectable()
-export class TonService {
+export class TonService implements OnModuleInit {
   // TON client for interacting with the TON blockchain
   private client: TonClient;
 
@@ -36,12 +36,14 @@ export class TonService {
   private jettonMasterAddress: Address;
 
   // Key pair for signing transactions
-  private keyPair: nacl.SignKeyPair;
+  private keyPair: nacl.SignKeyPair | null = null;
+
+  // Flag to track initialization status
+  private isInitialized = false;
 
   /**
-   * Constructor to initialize the TON client and central wallet.
-   * Sets up the TonClient with the TON Center API endpoint and initializes the central wallet
-   * using a mnemonic from environment variables.
+   * Constructor to initialize the TON client and basic configuration.
+   * Sets up the TonClient with the TON Center API endpoint.
    * @throws Error if JETTON_MASTER_ADDRESS is not defined in the environment.
    */
   constructor() {
@@ -57,9 +59,14 @@ export class TonService {
       throw new Error('JETTON_MASTER_ADDRESS is not defined in .env');
     }
     this.jettonMasterAddress = Address.parse(jettonAddress);
+  }
 
-    // Initialize the central wallet
-    this.initCentralWallet();
+  /**
+   * Initialize the service after module initialization.
+   * This ensures proper async initialization of the central wallet.
+   */
+  async onModuleInit() {
+    await this.initCentralWallet();
   }
 
   /**
@@ -67,18 +74,38 @@ export class TonService {
    * Derives the key pair and creates a WalletContractV4 instance.
    */
   private async initCentralWallet() {
-    // Split the mnemonic into an array of words
-    const mnemonic = process.env.CENTRAL_WALLET_MNEMONIC.split(' ');
-    // Derive the key pair from the mnemonic
-    const keyPair = await mnemonicToPrivateKey(mnemonic);
-    // Generate a signing key pair using nacl
-    this.keyPair = nacl.sign.keyPair.fromSecretKey(Buffer.from(keyPair.secretKey));
+    try {
+      // Validate mnemonic exists
+      if (!process.env.CENTRAL_WALLET_MNEMONIC) {
+        throw new Error('CENTRAL_WALLET_MNEMONIC is not defined in .env');
+      }
 
-    // Create a WalletContractV4 instance for the central wallet
-    this.centralWallet = WalletContractV4.create({
-      workchain: 0, // Use the base workchain (0)
-      publicKey: Buffer.from(this.keyPair.publicKey),
-    });
+      // Split the mnemonic into an array of words
+      const mnemonic = process.env.CENTRAL_WALLET_MNEMONIC.split(' ');
+      
+      // Validate mnemonic length
+      if (mnemonic.length !== 24) {
+        throw new Error('CENTRAL_WALLET_MNEMONIC must contain exactly 24 words');
+      }
+
+      // Derive the key pair from the mnemonic
+      const keyPair = await mnemonicToPrivateKey(mnemonic);
+      
+      // Generate a signing key pair using nacl
+      this.keyPair = nacl.sign.keyPair.fromSecretKey(Buffer.from(keyPair.secretKey));
+
+      // Create a WalletContractV4 instance for the central wallet
+      this.centralWallet = WalletContractV4.create({
+        workchain: 0, // Use the base workchain (0)
+        publicKey: Buffer.from(this.keyPair.publicKey),
+      });
+
+      this.isInitialized = true;
+      console.log('Central wallet initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize central wallet:', error);
+      throw error;
+    }
   }
 
   /**
@@ -110,19 +137,33 @@ export class TonService {
    * @throws Error if the central wallet is not initialized or if the transaction fails.
    */
   async sendTokens(recipientAddress: string, amount: string) {
-    // Ensure the central wallet and key pair are initialized
-    if (!this.centralWallet || !this.keyPair) {
-      throw new Error('Central wallet is not initialized yet');
+    // Ensure the service is fully initialized
+    if (!this.isInitialized || !this.centralWallet || !this.keyPair) {
+      throw new Error('Service is not fully initialized yet. Please wait and try again.');
     }
 
     try {
+      // Validate input parameters
+      if (!recipientAddress || !amount) {
+        throw new Error('Recipient address and amount are required');
+      }
+
+      // Validate amount is a positive number
+      const amountNumber = parseFloat(amount);
+      if (isNaN(amountNumber) || amountNumber <= 0) {
+        throw new Error('Amount must be a positive number');
+      }
+
       const wallet = this.centralWallet;
       const contract = this.client.open(wallet);
 
       // Get the current sequence number of the wallet
       const seqno = await contract.getSeqno();
+      console.log(`Current wallet seqno: ${seqno}`);
+
       // Get the Jetton wallet address for the central wallet
       const jettonWalletAddress = await this.getUserJettonWalletAddress(wallet.address, this.jettonMasterAddress);
+      console.log(`Jetton wallet address: ${jettonWalletAddress.toString()}`);
 
       // Construct the message body for the Jetton transfer
       const messageBody = beginCell()
@@ -161,6 +202,8 @@ export class TonService {
       const externalMessageCell = beginCell().store(storeMessage(externalMessage)).endCell();
       const signedTransaction = externalMessageCell.toBoc();
 
+      console.log(`Sending transaction with BOC length: ${signedTransaction.length}`);
+
       // Send the transaction to the TON network
       await this.client.sendFile(signedTransaction);
 
@@ -168,7 +211,7 @@ export class TonService {
     } catch (error) {
       // Log and throw an error if the transaction fails
       console.error('Error sending tokens:', error);
-      throw new Error('Failed to send tokens');
+      throw new Error(`Failed to send tokens: ${error.message}`);
     }
   }
 }
