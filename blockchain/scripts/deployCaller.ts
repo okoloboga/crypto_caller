@@ -6,7 +6,8 @@ import * as QRCode from 'qrcode-terminal';
 export async function run(provider: NetworkProvider) {
   // ⚙️ Задай параметры
   const owner = Address.parse('UQDIkS1d_Lhd7EDttTtcmr9Xzg78uEMDEsYFde-PZCgfoOtU');
-  const stonRouter = Address.parse('UQCpIGMtcP6OQH17MacwuwMKyuOF5F8LwBhU2NElKZtyGI4Y'); // адрес relayer
+  const treasury = Address.parse('UQB26VtCk8H5o23Gk_fW80wCncY-kcWQ4LBEx6PDabmi5CLh'); // treasury адрес (получает 1/3 от платежей)
+  const stonRouter = Address.parse('UQCpIGMtcP6OQH17MacwuwMKyuOF5F8LwBhU2NElKZtyGI4Y'); // адрес relayer (получает 2/3 от платежей)
   const jettonMaster = Address.parse('EQA5QopV0455mb09Nz6iPL3JsX_guIGf77a6l-DtqSQh0aE-'); // можно фейковый
   const minPayment = toNano('0.1'); // минимальный платеж (вместо фиксированной цены)
   const period = 30n * 24n * 3600n; // 30 дней
@@ -15,6 +16,7 @@ export async function run(provider: NetworkProvider) {
   const subscription = provider.open(
     await SubscriptionContract.fromInit(
       owner,
+      treasury,
       stonRouter,
       jettonMaster,
       minPayment,
@@ -49,13 +51,15 @@ export async function run(provider: NetworkProvider) {
   console.log('✅ SubscriptionContract deployed at:', subscription.address.toString());
   console.log('📋 Contract parameters:');
   console.log('   Owner:', owner.toString());
-  console.log('   Relayer:', stonRouter.toString());
+  console.log('   Treasury:', treasury.toString(), '(получает 1/3 от платежей)');
+  console.log('   Relayer:', stonRouter.toString(), '(получает 2/3 от платежей)');
   console.log('   Jetton Master:', jettonMaster.toString());
   console.log('   Min Payment:', minPayment.toString(), 'nanotons (0.1 TON)');
   console.log('   Period:', period.toString(), 'seconds (30 days)');
   console.log('');
   console.log('💡 Note: Contract deployed successfully without Subscribe call');
   console.log('   Contract accepts any payment >= 0.1 TON');
+  console.log('   Payment split: 1/3 to Treasury, 2/3 to Relayer');
   console.log('   Backend controls actual subscription price via SUBSCRIPTION_PRICE');
   console.log('   Users can now send Subscribe messages to activate subscriptions');
 }

@@ -25,9 +25,14 @@ message(0x06) RefundUser {
   amount: Int as coins;
 }
 
+message(0x07) OwnerSetTreasury {
+  treasury: Address;
+}
+
 contract SubscriptionContract {
   // ---- storage ----
   owner: Address;
+  treasury: Address;      // кошелек для получения 1/3 от платежей
   minPayment: Int as coins;        // минимальная сумма платежа (вместо фиксированной цены)
   subscribePeriod: Int as uint32;  // seconds
   subscriptions: map<Address, Int as uint64>; // user -> expiry timestamp
@@ -36,8 +41,9 @@ contract SubscriptionContract {
   jettonMaster: Address; // для информации (можно не использовать в MVP)
   paused: Bool;
 
-  init(ownerAddr: Address, stonRouter: Address, jettonMaster: Address, minPayment: Int as coins, period: Int as uint32) {
+  init(ownerAddr: Address, treasuryAddr: Address, stonRouter: Address, jettonMaster: Address, minPayment: Int as coins, period: Int as uint32) {
     self.owner = ownerAddr;
+    self.treasury = treasuryAddr;
     self.stonRouter = stonRouter;
     self.jettonMaster = jettonMaster;
     self.minPayment = minPayment;
@@ -54,14 +60,14 @@ contract SubscriptionContract {
     let incoming = context().value;
     require(incoming >= self.minPayment, "ERR_INSUFFICIENT_PAYMENT");
 
-    // Гибкое деление: 1/3 на owner, 2/3 на relayer от любой суммы
-    let tonToOwner: Int = incoming / 3;
-    let tonToSwap: Int = incoming - tonToOwner;
+    // Гибкое деление: 1/3 на treasury, 2/3 на relayer от любой суммы
+    let tonToTreasury: Int = incoming / 3;
+    let tonToSwap: Int = incoming - tonToTreasury;
 
-    // Отправляем 1/3 владельцу. Ошибки игнорируем (чтобы не ломать UX подписки).
+    // Отправляем 1/3 в treasury. Ошибки игнорируем (чтобы не ломать UX подписки).
     message(MessageParameters{
-      to: self.owner,
-      value: tonToOwner,
+      to: self.treasury,
+      value: tonToTreasury,
       mode: SendIgnoreErrors
     });
 
@@ -152,6 +158,11 @@ contract SubscriptionContract {
     self.paused = msg.flag;
   }
 
+  receive(msg: OwnerSetTreasury) {
+    require(sender() == self.owner, "ERR_ONLY_OWNER");
+    self.treasury = msg.treasury;
+  }
+
   // Getters
   get fun isSubscribed(user: Address): Int {
     let expiryMaybe = self.subscriptions.get(user);
@@ -175,6 +186,10 @@ contract SubscriptionContract {
 
   get fun getRouter(): Address {
     return self.stonRouter;
+  }
+
+  get fun getTreasury(): Address {
+    return self.treasury;
   }
 
   get fun getMinPayment(): Int {

@@ -6,6 +6,8 @@ import '@ton/test-utils';
 describe('SubscriptionContract - advanced', () => {
     let blockchain: Blockchain;
     let deployer: SandboxContract<TreasuryContract>;
+    let treasury: SandboxContract<TreasuryContract>;
+    let router: SandboxContract<TreasuryContract>;
     let user1: SandboxContract<TreasuryContract>;
     let user2: SandboxContract<TreasuryContract>;
     let user3: SandboxContract<TreasuryContract>;
@@ -14,14 +16,17 @@ describe('SubscriptionContract - advanced', () => {
     beforeEach(async () => {
         blockchain = await Blockchain.create();
         deployer = await blockchain.treasury('deployer');
+        treasury = await blockchain.treasury('treasury');
+        router = await blockchain.treasury('router');
         user1 = await blockchain.treasury('user1');
         user2 = await blockchain.treasury('user2');
         user3 = await blockchain.treasury('user3');
 
         contract = blockchain.openContract(
             await SubscriptionContract.fromInit(
-                deployer.address,
-                deployer.address,   // mock STON router
+                deployer.address,   // owner
+                treasury.address,   // treasury - получает 1/3 от платежей
+                router.address,     // router - получает 2/3 от платежей
                 deployer.address,   // mock jetton master
                 toNano('0.1'),      // минимальный платеж (вместо фиксированной цены)
                 30n * 24n * 3600n   // 30 days
@@ -50,13 +55,13 @@ describe('SubscriptionContract - advanced', () => {
         expect(expiry2).toBe(0n);
 
         // Activate subscriptions via OnSwapCallback
-        await contract.send(deployer.getSender(), { value: toNano('0.01') }, { 
+        await contract.send(router.getSender(), { value: toNano('0.01') }, { 
             $$type: 'OnSwapCallback', 
             user: user1.address, 
             jettonAmount: toNano('10'), 
             success: true 
         });
-        await contract.send(deployer.getSender(), { value: toNano('0.01') }, { 
+        await contract.send(router.getSender(), { value: toNano('0.01') }, { 
             $$type: 'OnSwapCallback', 
             user: user2.address, 
             jettonAmount: toNano('10'), 
@@ -73,7 +78,7 @@ describe('SubscriptionContract - advanced', () => {
     it('should correctly extend subscription if subscribing near expiry', async () => {
         // First subscription
         await contract.send(user1.getSender(), { value: toNano('0.75') }, { $$type: 'Subscribe' });
-        await contract.send(deployer.getSender(), { value: toNano('0.01') }, { 
+        await contract.send(router.getSender(), { value: toNano('0.01') }, { 
             $$type: 'OnSwapCallback', 
             user: user1.address, 
             jettonAmount: toNano('10'), 
@@ -86,7 +91,7 @@ describe('SubscriptionContract - advanced', () => {
 
         // Second subscription
         await contract.send(user1.getSender(), { value: toNano('0.75') }, { $$type: 'Subscribe' });
-        await contract.send(deployer.getSender(), { value: toNano('0.01') }, { 
+        await contract.send(router.getSender(), { value: toNano('0.01') }, { 
             $$type: 'OnSwapCallback', 
             user: user1.address, 
             jettonAmount: toNano('10'), 
@@ -114,24 +119,24 @@ describe('SubscriptionContract - advanced', () => {
     it('should handle multiple successful and failed swap callbacks', async () => {
         // Successful swap
         const res1 = await contract.send(
-            deployer.getSender(), 
+            router.getSender(), 
             { value: toNano('0.1') },
             { $$type: 'OnSwapCallback', user: user1.address, jettonAmount: toNano('10'), success: true });
     
         expect(res1.transactions).toHaveTransaction({
-            from: deployer.address,
+            from: router.address,
             to: contract.address,
             success: true
         });
     
         // Failed swap (но контракт не падает)
         const res2 = await contract.send(
-            deployer.getSender(), 
+            router.getSender(), 
             { value: toNano('0.01') },
             { $$type: 'OnSwapCallback', user: user2.address, jettonAmount: toNano('10'), success: false });
     
         expect(res2.transactions).toHaveTransaction({
-            from: deployer.address,
+            from: router.address,
             to: contract.address,
             success: true // теперь true, а не false
         });
@@ -170,7 +175,7 @@ describe('SubscriptionContract - advanced', () => {
     it('should handle subscriptions right on expiry boundary', async () => {
         // First subscription
         await contract.send(user1.getSender(), { value: toNano('0.75') }, { $$type: 'Subscribe' });
-        await contract.send(deployer.getSender(), { value: toNano('0.01') }, { 
+        await contract.send(router.getSender(), { value: toNano('0.01') }, { 
             $$type: 'OnSwapCallback', 
             user: user1.address, 
             jettonAmount: toNano('10'), 
@@ -183,7 +188,7 @@ describe('SubscriptionContract - advanced', () => {
 
         // Second subscription
         await contract.send(user1.getSender(), { value: toNano('0.75') }, { $$type: 'Subscribe' });
-        await contract.send(deployer.getSender(), { value: toNano('0.01') }, { 
+        await contract.send(router.getSender(), { value: toNano('0.01') }, { 
             $$type: 'OnSwapCallback', 
             user: user1.address, 
             jettonAmount: toNano('10'), 
@@ -210,7 +215,7 @@ describe('SubscriptionContract - advanced', () => {
         expect(pendingBefore).toBeGreaterThan(0n);
         
         // Send failed swap callback
-        const res = await contract.send(deployer.getSender(), { value: toNano('0.01') }, { 
+        const res = await contract.send(router.getSender(), { value: toNano('0.01') }, { 
             $$type: 'OnSwapCallback', 
             user: user1.address, 
             jettonAmount: toNano('0'), 
@@ -237,7 +242,7 @@ describe('SubscriptionContract - advanced', () => {
     it('should handle RefundUser message from relayer', async () => {
         const refundAmount = toNano('0.5');
         
-        const res = await contract.send(deployer.getSender(), { value: toNano('0.01') }, { 
+        const res = await contract.send(router.getSender(), { value: toNano('0.01') }, { 
             $$type: 'RefundUser', 
             user: user1.address, 
             amount: refundAmount 
@@ -245,7 +250,7 @@ describe('SubscriptionContract - advanced', () => {
         
         // Check that the RefundUser message was processed successfully
         expect(res.transactions).toHaveTransaction({
-            from: deployer.address,
+            from: router.address,
             to: contract.address,
             success: true,
             op: 6
@@ -319,16 +324,22 @@ describe('SubscriptionContract - advanced', () => {
 
     it('should split payment correctly for different amounts', async () => {
         const payment = toNano('1.5'); // 1.5 TON
-        const expectedOwnerShare = payment / 3n; // 0.5 TON
-        const expectedRelayerShare = payment - expectedOwnerShare; // 1.0 TON
+        const expectedTreasuryShare = payment / 3n; // 0.5 TON
+        const expectedRelayerShare = payment - expectedTreasuryShare; // 1.0 TON
         
         const res = await contract.send(user1.getSender(), { value: payment }, { $$type: 'Subscribe' });
         
         // Проверяем, что контракт отправил транзакции (используем toHaveTransaction)
-        // Проверяем наличие транзакции к owner (примерно 1/3)
+        // Проверяем наличие транзакции к treasury (примерно 1/3)
         expect(res.transactions).toHaveTransaction({
             from: contract.address,
-            to: deployer.address,
+            to: treasury.address,
+        });
+        
+        // Проверяем наличие транзакции к router (примерно 2/3)
+        expect(res.transactions).toHaveTransaction({
+            from: contract.address,
+            to: router.address,
         });
         
         // Проверяем, что общий результат успешен
@@ -366,6 +377,92 @@ describe('SubscriptionContract - advanced', () => {
             from: user1.address, 
             to: contract.address, 
             success: true 
+        });
+    });
+
+    it('should allow owner to update treasury address', async () => {
+        const newTreasury = user3.address;
+        
+        // Обновляем treasury адрес
+        await contract.send(deployer.getSender(), { value: toNano('0.01') }, { 
+            $$type: 'OwnerSetTreasury', 
+            treasury: newTreasury 
+        });
+        
+        // Проверяем, что обновился
+        const currentTreasury = await contract.getGetTreasury();
+        expect(currentTreasury.toString()).toBe(newTreasury.toString());
+    });
+
+    it('should prevent non-owner from updating treasury', async () => {
+        const newTreasury = user3.address;
+        
+        const res = await contract.send(user1.getSender(), { value: toNano('0.01') }, { 
+            $$type: 'OwnerSetTreasury', 
+            treasury: newTreasury 
+        });
+        
+        expect(res.transactions).toHaveTransaction({ 
+            from: user1.address, 
+            to: contract.address, 
+            success: false 
+        });
+    });
+
+    it('should send payments to correct treasury address', async () => {
+        const payment = toNano('0.75');
+        
+        const res = await contract.send(user1.getSender(), { value: payment }, { $$type: 'Subscribe' });
+        
+        // Проверяем, что платеж отправлен на treasury (1/3)
+        expect(res.transactions).toHaveTransaction({
+            from: contract.address,
+            to: treasury.address,
+        });
+        
+        // Проверяем, что платеж отправлен на router (2/3)
+        expect(res.transactions).toHaveTransaction({
+            from: contract.address,
+            to: router.address,
+        });
+        
+        // Проверяем, что общий результат успешен
+        expect(res.transactions).toHaveTransaction({
+            from: user1.address,
+            to: contract.address,
+            success: true
+        });
+    });
+
+    it('should update treasury and send future payments to new treasury', async () => {
+        const newTreasury = user3.address;
+        const payment = toNano('0.75');
+        
+        // Обновляем treasury
+        await contract.send(deployer.getSender(), { value: toNano('0.01') }, { 
+            $$type: 'OwnerSetTreasury', 
+            treasury: newTreasury 
+        });
+        
+        // Отправляем платеж
+        const res = await contract.send(user1.getSender(), { value: payment }, { $$type: 'Subscribe' });
+        
+        // Проверяем, что платеж отправлен на новый treasury
+        expect(res.transactions).toHaveTransaction({
+            from: contract.address,
+            to: newTreasury,
+        });
+        
+        // Проверяем, что платеж отправлен на router (2/3)
+        expect(res.transactions).toHaveTransaction({
+            from: contract.address,
+            to: router.address,
+        });
+        
+        // Проверяем, что НЕ отправлен на старый treasury
+        expect(res.transactions).not.toHaveTransaction({
+            from: contract.address,
+            to: treasury.address,
         });
     });
 });
