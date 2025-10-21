@@ -6,7 +6,7 @@ import { getUserByWalletAddress, updatePhoneNumber, getSubscriptionConfig, check
 import { useTranslation } from 'react-i18next';
 import { Box, Button, TextField, Typography, Paper, Snackbar, Alert } from '@mui/material';
 
-const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
+const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }) => {
   // Translation hook for internationalization
   const { t } = useTranslation();
 
@@ -276,6 +276,13 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
           }, 1000);
         }
         
+        console.log('🚀 Sending transaction to TON Connect...');
+        
+        // Notify parent component that transaction is starting
+        if (onTransactionStart) {
+          onTransactionStart();
+        }
+        
         const result = await tonConnectUI.sendTransaction(txSubscription);
         console.log('🔍 DEBUG: Transaction result:', result);
         
@@ -311,9 +318,9 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange }) => {
       
       showNotification(t('transactionSuccess')); // "Transaction sent successfully!"
       
-      // 7. Close the form and trigger the parent component to start polling for status change
+      // 7. Trigger the parent component to start polling for status change
+      // This will automatically close the subscription form and show pending
       onSubscriptionChange(true); // This will now signal the Dashboard to start polling
-      onCancel(); // Close the subscription form
 
     } catch (error) {
       console.error('Error in handleRegister:', error);

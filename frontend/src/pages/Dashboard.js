@@ -33,6 +33,9 @@ import { Box, Snackbar, Alert } from '@mui/material';
   
   // State to show pending subscription process
   const [isPendingSubscription, setIsPendingSubscription] = useState(false);
+  
+  // State to track if transaction is being sent
+  const [isTransactionSending, setIsTransactionSending] = useState(false);
 
   // State to store the current task being edited or created
   const [currentTask, setCurrentTask] = useState(null);
@@ -57,13 +60,28 @@ import { Box, Snackbar, Alert } from '@mui/material';
    * @param {boolean} status - A signal (true) to start polling.
    */
   const handleSubscriptionStatusChange = (status) => {
+    console.log('handleSubscriptionStatusChange called with status:', status);
     if (status === true) {
+      console.log('Starting subscription status polling...');
       showNotification(t('checkingSubscriptionStatus')); // Inform user
       setIsPolling(true);
       setIsPendingSubscription(true); // Show pending state
+      setIsTransactionSending(false); // Transaction has been sent
       // Ensure subscription form is closed immediately to reveal pending overlay
       setOnSubscription(false);
+      console.log('Subscription form closed, pending state activated');
     }
+  };
+
+  /**
+   * Handles the start of transaction sending.
+   * Shows pending state immediately when transaction starts.
+   */
+  const handleTransactionStart = () => {
+    console.log('Transaction starting, showing pending state...');
+    setIsTransactionSending(true);
+    setIsPendingSubscription(true);
+    setOnSubscription(false);
   };
 
   // Set the document title on component mount
@@ -385,16 +403,14 @@ import { Box, Snackbar, Alert } from '@mui/material';
           />
         </Box>
 
-        {/* Subscription form (shown if onSubscription is true) */}
-        {onSubscription ? (
+        {/* Subscription form (shown if onSubscription is true and not pending) */}
+        {onSubscription && !isPendingSubscription && !isTransactionSending ? (
           <SubscriptionForm
             onCancel={() => setOnSubscription(false)}
             onSubscriptionChange={handleSubscriptionStatusChange}
+            onTransactionStart={handleTransactionStart}
           />
-        ) : (
-          <>
-          </>
-        )}
+        ) : null}
 
         {/* Pending subscription process (shown when transaction is processing) */}
         {isPendingSubscription && <SubscriptionPending />}
