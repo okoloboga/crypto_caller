@@ -10,6 +10,7 @@ export const useTonConnect = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [hasTonProof, setHasTonProof] = useState(false);
   const [clientId, setClientId] = useState(null);
+  const [isVerifying, setIsVerifying] = useState(false);
   const firstProofLoading = useRef(true);
 
   useEffect(() => {
@@ -50,17 +51,28 @@ export const useTonConnect = () => {
         setHasTonProof(false);
         setIsConnected(false);
         setClientId(null);
+        setIsVerifying(false);
         setTimeout(() => tonConnectUI.setConnectRequestParameters(null), 100);
         return;
       }
 
+      // Проверяем, есть ли информация об аккаунте
+      if (!wallet.account) {
+        console.log('Wallet connected but no account info yet');
+        setIsConnected(true);
+        setHasTonProof(false);
+        return;
+      }
+
       if (wallet.connectItems?.tonProof && 'proof' in wallet.connectItems.tonProof) {
-        console.log('✅ TON Proof received:', wallet.connectItems.tonProof);
+        console.log('✅ TON Proof received, starting verification...');
+        setIsVerifying(true);
         setHasTonProof(true);
         setIsConnected(true);
         
         if (!clientId) {
           console.error('Client ID not available for proof verification.');
+          setIsVerifying(false);
           return;
         }
         
@@ -73,18 +85,24 @@ export const useTonConnect = () => {
           
           if (authResponse.valid) {
             console.log('✅ Proof verification successful');
+            setHasTonProof(true);
           } else {
             console.error('❌ Proof verification failed');
+            setHasTonProof(false);
             tonConnectUI.disconnect();
           }
         } catch (e) {
           console.error('TonProof verification failed:', e);
+          setHasTonProof(false);
           tonConnectUI.disconnect();
+        } finally {
+          setIsVerifying(false);
         }
       } else {
         console.log('Wallet is connected, but no proof. Requesting new proof payload.');
         setHasTonProof(false);
         setIsConnected(true);
+        setIsVerifying(false);
         recreateProofPayload();
       }
     });
@@ -99,6 +117,7 @@ export const useTonConnect = () => {
     hasTonProof,
     connectionRestored,
     clientId,
+    isVerifying,
     setHasTonProof,
     recreateProofPayload
   };

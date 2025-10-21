@@ -11,9 +11,9 @@ import SubscriptionForm from '../components/SubscriptionForm';
 import SubscriptionPending from '../components/SubscriptionPending';
 import { getUserTasks, deleteTask, checkSubscription, getUserByWalletAddress } from '../services/apiService';
 import { Box, Snackbar, Alert } from '@mui/material';
-const Dashboard = () => {
-  // Use custom TonConnect hook for simplified wallet management
-  const { walletAddress, hasTonProof } = useTonConnect();
+  const Dashboard = () => {
+    // Use custom TonConnect hook for simplified wallet management
+    const { walletAddress, hasTonProof, isConnected, connectionRestored, isVerifying } = useTonConnect();
 
   // Translation hook for internationalization
   const { t } = useTranslation();
@@ -292,19 +292,50 @@ const Dashboard = () => {
   };
 
   /**
-   * Handle subscription button click.
-   * Shows a notification if the wallet is not connected or TON proof is missing.
+   * Handle subscription button click with improved wallet connection check.
+   * Shows appropriate notifications based on wallet connection status.
    */
   const handleSubscribe = () => {
+    console.log('handleSubscribe called:', { 
+      walletAddress, 
+      hasTonProof, 
+      isConnected, 
+      connectionRestored,
+      isVerifying
+    });
+    
+    // Проверяем, восстановлено ли соединение
+    if (!connectionRestored) {
+      showNotification(t('walletConnecting'));
+      return;
+    }
+    
+    // Проверяем, есть ли адрес кошелька
     if (!walletAddress) {
       showNotification(t('connectWallet'));
-      setTimeout(() => showNotification(''), 2000);
-    } else if (!hasTonProof) {
-      showNotification(t('tryConnection'));
-      setTimeout(() => showNotification(''), 2000);
-    } else {
-      setOnSubscription(true);
+      return;
     }
+    
+    // Проверяем, подключен ли кошелек
+    if (!isConnected) {
+      showNotification(t('walletNotReady'));
+      return;
+    }
+    
+    // Проверяем, идет ли верификация
+    if (isVerifying) {
+      showNotification(t('waitingForProof'));
+      return;
+    }
+    
+    // Проверяем, есть ли TON Proof
+    if (!hasTonProof) {
+      showNotification(t('tryConnection'));
+      return;
+    }
+    
+    // Если все проверки пройдены, открываем форму подписки
+    setOnSubscription(true);
   };
 
   /**
