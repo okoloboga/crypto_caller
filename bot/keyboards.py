@@ -37,7 +37,7 @@ def get_main_menu(backgammon_url: str) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="X.COM", url="https://x.com/ruble_com?s=11")
             ],
             [
-                InlineKeyboardButton(text="Обратная связь", callback_data="leave_feedback")]
+                InlineKeyboardButton(text="CHANNEL", url="https://t.me/RUBLECOM")]
         ]
     )
 
