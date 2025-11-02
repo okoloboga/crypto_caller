@@ -29,6 +29,9 @@ if (!analyticsToken || !appName) {
   console.log('Telegram Analytics initialized successfully');
 }
 
+// Export telegramAnalytics for use in components
+export { telegramAnalytics };
+
 // Create a root element for rendering the React application
 const root = ReactDOM.createRoot(document.getElementById('root'));
 

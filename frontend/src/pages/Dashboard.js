@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTonConnect } from '../hooks/useTonConnect';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from 'react-i18next';
+import { useBackButton } from '../hooks/useBackButton';
+import { useAnalytics } from '../hooks/useAnalytics';
 import Header from '../components/Header';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
@@ -17,6 +19,9 @@ import { Box, Snackbar, Alert } from '@mui/material';
 
   // Translation hook for internationalization
   const { t } = useTranslation();
+
+  // Analytics hook for tracking events
+  const { trackEvent } = useAnalytics();
 
   // Language context to access the current language
   const { } = useLanguage();
@@ -84,10 +89,14 @@ import { Box, Snackbar, Alert } from '@mui/material';
     setOnSubscription(false);
   };
 
-  // Set the document title on component mount
+  // Set the document title on component mount and track app opened event
   useEffect(() => {
     document.title = "RUBLE CALLER";
-  }, []);
+    trackEvent('app_opened', {
+      walletAddress: walletAddress || 'not_connected',
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only track once on mount
 
   // Fetch subscription status and user data when wallet address changes
   useEffect(() => {
@@ -303,6 +312,12 @@ import { Box, Snackbar, Alert } from '@mui/material';
       await deleteTask(taskId);
       setTasks(tasks.filter(task => task.id !== taskId));
       showNotification(t('taskDeleted'));
+      
+      // Track task deleted event
+      trackEvent('task_deleted', {
+        walletAddress: walletAddress || 'unknown',
+        taskId: taskId,
+      });
     } catch (error) {
       console.error('Error deleting task:', error);
       showNotification(t('taskDeleteFail'));
@@ -369,6 +384,21 @@ import { Box, Snackbar, Alert } from '@mui/material';
       setCurrentTask({ currencyPair: 'BTC-USD', targetPrice: '0' });
     }
   };
+
+  // Handle back button click - close forms and return to main screen
+  const handleBackButton = () => {
+    if (currentTask) {
+      setCurrentTask(null);
+    } else if (onSubscription) {
+      setOnSubscription(false);
+    }
+  };
+
+  // Manage BackButton visibility - show when in form mode
+  useBackButton({
+    onClick: handleBackButton,
+    show: currentTask !== null || onSubscription,
+  });
 
   return (
     <Box

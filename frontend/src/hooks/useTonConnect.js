@@ -1,6 +1,7 @@
 import { useTonAddress, useTonWallet, useIsConnectionRestored, useTonConnectUI } from '@tonconnect/ui-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getChallenge, verifyProof } from '../services/apiService';
+import { telegramAnalytics } from '../index';
 export const useTonConnect = () => {
   const walletAddress = useTonAddress();
   const wallet = useTonWallet();
@@ -86,6 +87,18 @@ export const useTonConnect = () => {
           if (authResponse.valid) {
             console.log('✅ Proof verification successful');
             setHasTonProof(true);
+            
+            // Track wallet connected event
+            try {
+              if (telegramAnalytics && typeof telegramAnalytics.trackEvent === 'function') {
+                telegramAnalytics.trackEvent('wallet_connected', {
+                  walletAddress: wallet.account.address || 'unknown',
+                });
+                console.log('✅ Wallet connected event tracked');
+              }
+            } catch (error) {
+              console.error('Error tracking wallet_connected event:', error);
+            }
           } else {
             console.error('❌ Proof verification failed');
             setHasTonProof(false);

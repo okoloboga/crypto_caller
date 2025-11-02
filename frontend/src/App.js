@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { LanguageProvider } from './contexts/LanguageContext';
 import i18n from './i18n';
 import { useTonConnect } from './hooks/useTonConnect';
+import { useTelegramWebApp } from './hooks/useTelegramWebApp';
 import { CssBaseline, Box } from '@mui/material';
 import Dashboard from './pages/Dashboard';
 import background from './assets/background.mp4';
 const App = () => {
   const { walletAddress, connectionRestored } = useTonConnect();
+  const { webApp, ready: webAppReady, viewportHeight, safeAreaInsets } = useTelegramWebApp();
   
   if (!connectionRestored) {
     return (
@@ -18,7 +20,7 @@ const App = () => {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            height: '100vh',
+            height: viewportHeight ? `${viewportHeight}px` : '100vh',
             width: '100vw',
             backgroundColor: '#000000',
             margin: 0,
@@ -65,12 +67,14 @@ const App = () => {
     <>
       <CssBaseline />
       <Box
-        sx={{
-          margin: 0,
-          padding: 0,
-          height: '100vh',
-          overflow: 'hidden',
-        }}
+          sx={{
+            margin: 0,
+            padding: 0,
+            height: viewportHeight ? `${viewportHeight}px` : '100vh',
+            overflow: 'hidden',
+            paddingTop: safeAreaInsets.top > 0 ? `${safeAreaInsets.top}px` : 0,
+            paddingBottom: safeAreaInsets.bottom > 0 ? `${safeAreaInsets.bottom}px` : 0,
+          }}
       >
         <video
           autoPlay

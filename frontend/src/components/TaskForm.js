@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { createTask, updateTask } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
+import { useMainButton } from '../hooks/useMainButton';
+import { useAnalytics } from '../hooks/useAnalytics';
 import { Box, Button, MenuItem, Select, TextField, FormControl } from '@mui/material';
 const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledAction }) => {
   // Translation hook for internationalization
@@ -9,6 +11,9 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
 
   // Retrieve the TON wallet address
   const walletAddress = useTonAddress();
+
+  // Analytics hook for tracking events
+  const { trackEvent } = useAnalytics();
 
   // State for the form data, initialized with the task or default values
   const [form, setForm] = useState(task || { currencyPair: 'BTC-USD', targetPrice: '0', isPriceAbove: true });
@@ -57,6 +62,12 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
         // Create new task
         const taskData = { walletAddress, ...form };
         await createTask(taskData);
+        
+        // Track task created event
+        trackEvent('task_created', {
+          walletAddress: walletAddress || 'unknown',
+          currencyPair: form.currencyPair,
+        });
       }
       onSave(); // Notify parent component of successful save
     } catch (error) {
@@ -66,6 +77,14 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
       setLoading(false);
     }
   };
+
+  // Manage MainButton for saving task
+  useMainButton({
+    text: t('save'),
+    onClick: handleSave,
+    show: !disabled && !loading,
+    progress: loading,
+  });
 
   return (
     <Box sx={{ 
@@ -132,12 +151,14 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
         marginTop: 2 
       }}
       >
+        {/* MainButton is used instead - this button is kept as fallback for non-Telegram environments */}
         <Button
           variant="contained"
           color="secondary"
           onClick={handleSave}
           disabled={disabled || loading}
           fullWidth
+          sx={{ display: { xs: 'block' } }}
         >
           {t('save')}
         </Button>

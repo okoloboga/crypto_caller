@@ -4,6 +4,8 @@ import { useTonConnectUI } from '@tonconnect/ui-react';
 import { beginCell } from '@ton/core';
 import { getUserByWalletAddress, updatePhoneNumber, getSubscriptionConfig, checkSubscription, getChallenge, verifyChallenge, notifySubscriptionTransaction } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
+import { useMainButton } from '../hooks/useMainButton';
+import { useAnalytics } from '../hooks/useAnalytics';
 import { Box, Button, TextField, Typography, Paper, Snackbar, Alert } from '@mui/material';
 
 const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }) => {
@@ -15,6 +17,9 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
   
   // Get TonConnect UI instance for direct access
   const [tonConnectUI] = useTonConnectUI();
+
+  // Analytics hook for tracking events
+  const { trackEvent } = useAnalytics();
 
   // State for subscription status, phone number, and notifications
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -62,6 +67,14 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
 
     fetchUserData();
   }, [walletAddress, t, hasShownNotification]);
+
+  // Manage MainButton for subscription purchase
+  useMainButton({
+    text: isSubscribed ? (isEditing ? t('save') : '') : t('payForSubscription'),
+    onClick: isSubscribed ? (isEditing ? handleSave : undefined) : handleRegister,
+    show: !isSubscribed || isEditing,
+    progress: false,
+  });
 
   /**
    * Ensure the wallet is connected, throwing an error if not.
@@ -179,6 +192,12 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
    */
   const handleRegister = async () => {
     console.log('Starting handleRegister');
+    
+    // Track subscription purchase started
+    trackEvent('subscription_purchase_started', {
+      walletAddress: walletAddress || 'unknown',
+    });
+    
     if (!newPhoneNumber) {
       showNotification(t('enterPhoneNumber'));
       return;
@@ -296,6 +315,12 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
             config.price // Amount in TON
           );
           console.log('✅ Backend notified successfully about transaction');
+          
+          // Track subscription purchase completed
+          trackEvent('subscription_purchase_completed', {
+            walletAddress: walletAddress,
+            amount: config.price,
+          });
         } catch (backendError) {
           console.error('❌ Failed to notify backend:', backendError);
           // Don't throw error - transaction was successful, backend notification is optional
@@ -398,8 +423,9 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
                 backgroundColor: "#383838",
               }}
             />
+            {/* MainButton is used instead - this button is kept as fallback for non-Telegram environments */}
             <Button
-              sx={{ marginTop: 2 }}
+              sx={{ marginTop: 2, display: { xs: 'block' } }}
               onClick={handleRegister}
               variant="contained"
               color="secondary"

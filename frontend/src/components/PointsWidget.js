@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { requestTokenWithdrawal, updatePoints } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
+import { useMainButton } from '../hooks/useMainButton';
+import { useAnalytics } from '../hooks/useAnalytics';
 import { Box, LinearProgress, Paper } from '@mui/material';
 const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, updatePointsData }) => {
   // Translation hook for internationalization
@@ -9,6 +11,9 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
 
   // Retrieve the TON wallet address
   const walletAddress = useTonAddress();
+
+  // Analytics hook for tracking events
+  const { trackEvent } = useAnalytics();
 
   // State for local points tracking
   const [localLastPoints, setLastPoints] = useState(lastPoints);
@@ -92,6 +97,14 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   const isFull = localLastPoints >= maxPoints;
   const progressValue = isFull ? 100 : (localLastPoints / maxPoints) * 100;
 
+  // Manage MainButton for claiming tokens when progress is full
+  useMainButton({
+    text: isFull ? 'COLLECT' : '',
+    onClick: handleProgressBarClick,
+    show: isFull,
+    progress: false,
+  });
+
   /**
    * Save the current points progress to the server.
    * @param {number} newPoints - The new points value to save.
@@ -127,6 +140,13 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
 
         // Update parent component with new points data
         updatePointsData(newTotalPoints, 0, new Date());
+        
+        // Track tokens claimed event
+        trackEvent('tokens_claimed', {
+          walletAddress: walletAddress || 'unknown',
+          amount: maxPoints,
+        });
+        
         showNotification(t('pointsClaimed')); // Notify success
       } catch (error) {
         console.error('Error claiming points:', error);
