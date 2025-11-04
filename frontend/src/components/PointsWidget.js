@@ -154,6 +154,8 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
         // Reset points after claiming
         setTotalPoints(newTotalPoints);
         setLastPoints(0);
+        localLastPointsRef.current = 0; // Update ref
+        lastSavedPointsRef.current = 0; // Update last saved points too
         setLocalLastUpdated(resetTime); // Set local lastUpdated immediately
         resetJustHappened.current = true; // Mark that reset just happened
         
@@ -356,6 +358,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
       if (lastPoints > prevPoints + 0.01) {
         console.log(`[PointsWidget] Syncing localLastPoints from ${prevPoints.toFixed(4)} to ${lastPoints} (server has more)`);
         localLastPointsRef.current = lastPoints;
+        lastSavedPointsRef.current = lastPoints; // Update last saved points too
         return lastPoints;
       } else {
         // Keep local accumulation - don't sync down

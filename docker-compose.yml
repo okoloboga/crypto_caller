@@ -44,22 +44,6 @@ services:
       - default
     restart: unless-stopped
 
-  # Сервис для Frontend (Telegram Mini App)
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "8001:80"
-      - "8002:443"
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - default
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-
   # Сервис для Postgres
   postgres:
     image: postgres:15-alpine
@@ -117,8 +101,8 @@ services:
       - "80:80"
       - "443:443"
     depends_on:
-      - backend
-      - frontend
+      backend:
+        condition: service_healthy
     networks:
       - default
     volumes:
