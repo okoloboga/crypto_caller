@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { createTask, updateTask } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
@@ -38,7 +38,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
    * Handle saving the task (create or update).
    * Validates the form, sends the data to the server, and triggers the onSave callback.
    */
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (disabled) {
       onDisabledAction();
       return;
@@ -76,7 +76,7 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
     } finally {
       setLoading(false);
     }
-  };
+  }, [disabled, form, task, isNewTask, walletAddress, trackEvent, onSave, onDisabledAction, t]);
 
   // Manage MainButton for saving task
   useMainButton({

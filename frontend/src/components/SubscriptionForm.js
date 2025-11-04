@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTonConnect } from '../hooks/useTonConnect';
 import { useTonConnectUI } from '@tonconnect/ui-react';
 import { beginCell } from '@ton/core';
@@ -68,22 +68,6 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
     fetchUserData();
   }, [walletAddress, t, hasShownNotification]);
 
-  // Manage MainButton for subscription purchase
-  // Only show button when we have valid text (not empty)
-  const mainButtonText = isSubscribed 
-    ? (isEditing ? t('save') : undefined)
-    : t('payForSubscription');
-  const shouldShowMainButton = mainButtonText && mainButtonText.trim().length > 0;
-  
-  useMainButton({
-    text: mainButtonText,
-    onClick: isSubscribed 
-      ? (isEditing ? handleSave : undefined)
-      : handleRegister,
-    show: shouldShowMainButton,
-    progress: false,
-  });
-
   /**
    * Ensure the wallet is connected, throwing an error if not.
    * @throws {Error} If the wallet is not connected.
@@ -98,7 +82,7 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
    * Show a notification message to the user.
    * @param {string} message - The message to display.
    */
-  const showNotification = (message) => {
+  const showNotification = useCallback((message) => {
     setNotification(message);
     setOpen(true);
 
@@ -106,12 +90,12 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
       setNotification('');
       setOpen(false);
     }, 3000); // Hide notification after 3 seconds
-  };
+  }, []);
 
   /**
    * Handle saving a new phone number for an existing subscription.
    */
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!newPhoneNumber) {
       showNotification(t('enterPhoneNumber'));
       return;
@@ -132,7 +116,8 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
       console.error('Error updating phone number:', error);
       showNotification(t('updateFailed'));
     }
-  };
+  }, [newPhoneNumber, walletAddress, t, showNotification]);
+
 
   /**
    * Validate a phone number using a regular expression.
@@ -148,7 +133,7 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
    * Refresh the TON Connect payload with a new challenge.
    * @param {string|null} challenge - The challenge string for TON proof.
    */
-  const refreshPayload = async (challenge) => {
+  const refreshPayload = useCallback(async (challenge) => {
     tonConnectUI.setConnectRequestParameters({ state: "loading" });
 
     if (challenge) {
@@ -159,7 +144,7 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
     } else {
       tonConnectUI.setConnectRequestParameters(null);
     }
-  };
+  }, [tonConnectUI]);
 
   /**
    * Connect the wallet with TON proof for verification.
@@ -167,7 +152,7 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
    * @returns {Promise<string>} The TON proof string.
    * @throws {Error} If TON proof is not provided by the wallet.
    */
-  const connectWalletWithProof = async (challenge) => {
+  const connectWalletWithProof = useCallback(async (challenge) => {
     console.log('Starting connectWalletWithProof with challenge:', challenge);
     try {
       console.log('Waiting for TonProof...');
@@ -191,14 +176,14 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
       console.error('Error obtaining TON Proof:', error);
       throw error;
     }
-  };
+  }, [wallet, refreshPayload]);
 
   /**
    * Handle the subscription registration process.
    * Validates phone number, verifies wallet, fetches subscription contract details,
    * and sends a transaction to the smart contract to activate the subscription.
    */
-  const handleRegister = async () => {
+  const handleRegister = useCallback(async () => {
     console.log('Starting handleRegister');
     
     // Track subscription purchase started
@@ -359,7 +344,23 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
       console.error('Error in handleRegister:', error);
       showNotification(t('activationFailed'));
     }
-  };
+  }, [newPhoneNumber, walletAddress, wallet, tonConnectUI, connectWalletWithProof, showNotification, t, trackEvent, onTransactionStart, onSubscriptionChange]);
+
+  // Manage MainButton for subscription purchase
+  // Only show button when we have valid text (not empty)
+  const mainButtonText = isSubscribed 
+    ? (isEditing ? t('save') : undefined)
+    : t('payForSubscription');
+  const shouldShowMainButton = mainButtonText && mainButtonText.trim().length > 0;
+  
+  useMainButton({
+    text: mainButtonText,
+    onClick: isSubscribed 
+      ? (isEditing ? handleSave : undefined)
+      : handleRegister,
+    show: shouldShowMainButton,
+    progress: false,
+  });
 
   return (
     <Paper sx={{ 
