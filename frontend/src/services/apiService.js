@@ -16,6 +16,11 @@ api.interceptors.response.use(
 );
 
 export const getUserByWalletAddress = async (walletAddress) => {
+  if (!walletAddress) {
+    console.warn('getUserByWalletAddress called without walletAddress');
+    return null;
+  }
+  
   console.log(`Fetching user data for walletAddress: ${walletAddress}`);
   try {
     console.log(api.defaults.baseURL);

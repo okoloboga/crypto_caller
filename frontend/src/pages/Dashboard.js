@@ -199,14 +199,23 @@ import { Box, Snackbar, Alert } from '@mui/material';
     localStorage.setItem('lastPoints', newLastPoints.toString());
     localStorage.setItem('totalPoints', newTotalPoints.toString());
     localStorage.setItem('lastUpdated', newLastUpdated.toISOString());
-    fetchUserData();
-  }, []);
+    
+    // Only fetch user data if wallet address is available
+    if (walletAddress) {
+      fetchUserData();
+    }
+  }, [walletAddress]);
 
   /**
    * Fetch user data from the backend using the wallet address.
    * Updates points and last updated timestamp based on the response.
    */
   const fetchUserData = async () => {
+    if (!walletAddress) {
+      console.warn('fetchUserData called without walletAddress');
+      return;
+    }
+    
     try {
       const response = await getUserByWalletAddress(walletAddress);
       if (response === false) {
