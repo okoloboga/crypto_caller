@@ -28,7 +28,12 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   const resetJustHappened = useRef(false);
   
   // Ref to track current localLastPoints to avoid stale closure in useEffect
-  const localLastPointsRef = useRef(localLastPoints);
+  const localLastPointsRef = useRef(lastPoints);
+  
+  // Initialize ref with initial value on mount
+  useEffect(() => {
+    localLastPointsRef.current = lastPoints;
+  }, []); // Only on mount
 
   // Maximum points that can be accumulated before claiming
   const maxPoints = 1000;
@@ -286,10 +291,22 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
     setTotalPoints(totalPoints);
   }, [totalPoints]);
 
-  // Sync local last points with the prop value
+  // Sync local last points with the prop value (upward sync only)
+  // Don't sync down - preserve local accumulation that hasn't been saved to server yet
   useEffect(() => {
-    setLastPoints(lastPoints);
-    localLastPointsRef.current = lastPoints; // Update ref
+    setLastPoints((prevPoints) => {
+      // Only sync if server value is significantly greater (upward sync only)
+      // This preserves local accumulation that hasn't been saved to server
+      if (lastPoints > prevPoints + 0.01) {
+        console.log(`[PointsWidget] Syncing localLastPoints from ${prevPoints.toFixed(4)} to ${lastPoints} (server has more)`);
+        localLastPointsRef.current = lastPoints;
+        return lastPoints;
+      } else {
+        // Keep local accumulation - don't sync down
+        console.log(`[PointsWidget] Keeping localLastPoints=${prevPoints.toFixed(4)} (local is accumulating or equal, server: ${lastPoints})`);
+        return prevPoints;
+      }
+    });
   }, [lastPoints]);
 
   // Determine if the progress bar is full and calculate the progress percentage

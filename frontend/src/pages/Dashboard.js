@@ -230,6 +230,7 @@ import { Box, Snackbar, Alert } from '@mui/material';
   /**
    * Fetch user data from the backend using the wallet address.
    * Updates points and last updated timestamp based on the response.
+   * Preserves local accumulation that hasn't been saved to server yet.
    */
   const fetchUserData = async () => {
     if (!walletAddress) {
@@ -240,32 +241,60 @@ import { Box, Snackbar, Alert } from '@mui/material';
     try {
       const response = await getUserByWalletAddress(walletAddress);
       if (response === false) {
-        console.log('User not found');
-        setTotalPoints(0);
-        setLastPoints(0);
+        console.log('[Dashboard] User not found');
+        // Only reset if local points are also 0 (no accumulation)
+        setTotalPoints((prev) => prev || 0);
+        setLastPoints((prev) => prev || 0);
         setLastUpdated(new Date());
         localStorage.setItem('totalPoints', '0');
         localStorage.setItem('lastUpdated', new Date().toISOString());
       } else {
         console.log('[Dashboard] Received user:', response);
-        const lastUpdated = response.lastUpdated ? new Date(response.lastUpdated) : new Date();
-        console.log(`[Dashboard] fetchUserData: Server lastUpdated=${response.lastUpdated}, Parsed=${lastUpdated}, Valid=${isValidDate(lastUpdated)}`);
         console.log(`[Dashboard] fetchUserData: Server points=${response.points}, lastPoints=${response.lastPoints}`);
         
-        const finalLastUpdated = isValidDate(lastUpdated) ? lastUpdated : new Date();
-        console.log(`[Dashboard] fetchUserData: Setting lastUpdated to ${finalLastUpdated.toISOString()}`);
+        // Get current local values before overwriting (use functional updates)
+        setLastPoints((currentLocalPoints) => {
+          // Only update if server has more points (server is ahead)
+          // This preserves local accumulation that hasn't been saved to server yet
+          if (response.lastPoints > currentLocalPoints + 0.01) {
+            console.log(`[Dashboard] fetchUserData: Server has more points (${response.lastPoints} > ${currentLocalPoints.toFixed(4)}), syncing`);
+            // Update totalPoints separately
+            setTotalPoints(response.points);
+            localStorage.setItem('totalPoints', response.points);
+            localStorage.setItem('lastPoints', response.lastPoints);
+            return response.lastPoints;
+          } else {
+            console.log(`[Dashboard] fetchUserData: Keeping local points (${currentLocalPoints.toFixed(4)} >= ${response.lastPoints}), server data is stale`);
+            // Keep local points, don't overwrite
+            return currentLocalPoints;
+          }
+        });
         
-        setTotalPoints(response.points);
-        setLastPoints(response.lastPoints);
-        setLastUpdated(finalLastUpdated);
-        localStorage.setItem('totalPoints', response.points);
-        localStorage.setItem('lastUpdated', finalLastUpdated.toISOString());
+        // For lastUpdated, use server value only if it's significantly newer
+        const lastUpdated = response.lastUpdated ? new Date(response.lastUpdated) : new Date();
+        const finalLastUpdated = isValidDate(lastUpdated) ? lastUpdated : new Date();
+        
+        setLastUpdated((currentLastUpdated) => {
+          // Only update lastUpdated if server time is significantly newer (more than 1 minute)
+          const serverTime = finalLastUpdated.getTime();
+          const localTime = currentLastUpdated ? currentLastUpdated.getTime() : Date.now();
+          const timeDiff = serverTime - localTime;
+          
+          if (timeDiff > 60000) {
+            console.log(`[Dashboard] fetchUserData: Server lastUpdated is newer (diff: ${timeDiff}ms), updating`);
+            localStorage.setItem('lastUpdated', finalLastUpdated.toISOString());
+            return finalLastUpdated;
+          } else {
+            console.log(`[Dashboard] fetchUserData: Keeping local lastUpdated (diff: ${timeDiff}ms)`);
+            // Keep local lastUpdated
+            return currentLastUpdated || finalLastUpdated;
+          }
+        });
       }
     } catch (error) {
-      console.error('Error fetching user data:', error);
-      setLastUpdated(new Date());
-      localStorage.setItem('totalPoints', '0');
-      localStorage.setItem('lastUpdated', new Date().toISOString());
+      console.error('[Dashboard] Error fetching user data:', error);
+      // Don't reset on error - preserve local state
+      setLastUpdated((current) => current || new Date());
     }
   };
 
