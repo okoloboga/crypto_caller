@@ -45,6 +45,11 @@ export const useTonConnect = () => {
     }
     recreateProofPayload();
   }, [recreateProofPayload]);
+  // Track if we've already requested proof for current wallet connection
+  const proofRequestedRef = useRef(false);
+  const currentWalletAddressRef = useRef(null);
+  const reconnectInProgressRef = useRef(false);
+
   useEffect(() => {
     const unsubscribe = tonConnectUI.onStatusChange(async (wallet) => {
       if (!wallet) {
@@ -53,6 +58,9 @@ export const useTonConnect = () => {
         setIsConnected(false);
         setClientId(null);
         setIsVerifying(false);
+        proofRequestedRef.current = false;
+        currentWalletAddressRef.current = null;
+        reconnectInProgressRef.current = false;
         setTimeout(() => tonConnectUI.setConnectRequestParameters(null), 100);
         return;
       }
@@ -65,11 +73,22 @@ export const useTonConnect = () => {
         return;
       }
 
+      const walletAddress = wallet.account.address;
+
+      // Reset proof request flag if wallet address changed
+      if (currentWalletAddressRef.current !== walletAddress) {
+        proofRequestedRef.current = false;
+        reconnectInProgressRef.current = false;
+        currentWalletAddressRef.current = walletAddress;
+      }
+
       if (wallet.connectItems?.tonProof && 'proof' in wallet.connectItems.tonProof) {
         console.log('✅ TON Proof received, starting verification...');
         setIsVerifying(true);
         setHasTonProof(true);
         setIsConnected(true);
+        proofRequestedRef.current = false; // Reset flag after receiving proof
+        reconnectInProgressRef.current = false; // Reset reconnect flag
         
         if (!clientId) {
           console.error('Client ID not available for proof verification.');
@@ -112,11 +131,43 @@ export const useTonConnect = () => {
           setIsVerifying(false);
         }
       } else {
-        console.log('Wallet is connected, but no proof. Requesting new proof payload.');
+        // Wallet is connected but no proof
+        console.log('Wallet is connected, but no proof. Requesting new proof.');
         setHasTonProof(false);
         setIsConnected(true);
         setIsVerifying(false);
-        recreateProofPayload();
+        
+        // Only request proof once per wallet connection and not during reconnect
+        if (!proofRequestedRef.current && !reconnectInProgressRef.current) {
+          proofRequestedRef.current = true;
+          
+          // First, set up the challenge
+          await recreateProofPayload();
+          
+          // Then, request connection with proof by reconnecting
+          // Disconnect and reconnect to get fresh proof
+          try {
+            reconnectInProgressRef.current = true;
+            
+            // Small delay to ensure challenge is set
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            // Temporarily disconnect to allow reconnection with proof
+            // This ensures we get a fresh proof when reconnecting
+            tonConnectUI.disconnect();
+            
+            // Small delay before reconnecting
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            // Request new connection with proof
+            // This will prompt the user to sign the proof in their wallet
+            tonConnectUI.connectWallet();
+          } catch (error) {
+            console.error('Error requesting proof connection:', error);
+            proofRequestedRef.current = false; // Reset on error
+            reconnectInProgressRef.current = false;
+          }
+        }
       }
     });
 
