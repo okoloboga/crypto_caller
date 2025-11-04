@@ -67,14 +67,14 @@ const App = () => {
     <>
       <CssBaseline />
       <Box
-          sx={{
-            margin: 0,
-            padding: 0,
+        sx={{
+          margin: 0,
+          padding: 0,
             height: viewportHeight ? `${viewportHeight}px` : '100vh',
-            overflow: 'hidden',
+          overflow: 'hidden',
             paddingTop: safeAreaInsets.top > 0 ? `${safeAreaInsets.top}px` : 0,
             paddingBottom: safeAreaInsets.bottom > 0 ? `${safeAreaInsets.bottom}px` : 0,
-          }}
+        }}
       >
         <video
           autoPlay

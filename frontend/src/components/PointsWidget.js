@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { requestTokenWithdrawal, updatePoints } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
-import { useMainButton } from '../hooks/useMainButton';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { Box, LinearProgress, Paper } from '@mui/material';
 const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, updatePointsData }) => {
@@ -168,16 +167,6 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   // Determine if the progress bar is full and calculate the progress percentage
   const isFull = localLastPoints >= maxPoints;
   const progressValue = isFull ? 100 : (localLastPoints / maxPoints) * 100;
-
-  // Manage MainButton for claiming tokens when progress is full
-  // Only show button when progress is full (has valid text)
-  useMainButton({
-    text: isFull ? 'COLLECT' : undefined,
-    onClick: isFull ? handleProgressBarClick : undefined,
-    show: isFull,
-    progress: false,
-  });
-
 
   return (
     <Paper sx={{ 

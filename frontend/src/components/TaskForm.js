@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { createTask, updateTask } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
-import { useMainButton } from '../hooks/useMainButton';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { Box, Button, MenuItem, Select, TextField, FormControl } from '@mui/material';
 const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledAction }) => {
@@ -78,14 +77,6 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
     }
   }, [disabled, form, task, isNewTask, walletAddress, trackEvent, onSave, onDisabledAction, t]);
 
-  // Manage MainButton for saving task
-  useMainButton({
-    text: t('save'),
-    onClick: handleSave,
-    show: !disabled && !loading,
-    progress: loading,
-  });
-
   return (
     <Box sx={{ 
       backgroundColor: '#1a1a1a',
@@ -151,14 +142,12 @@ const TaskForm = ({ task, currencyPairs, onSave, onCancel, disabled, onDisabledA
         marginTop: 2 
       }}
       >
-        {/* MainButton is used instead - this button is kept as fallback for non-Telegram environments */}
         <Button
           variant="contained"
           color="secondary"
           onClick={handleSave}
           disabled={disabled || loading}
           fullWidth
-          sx={{ display: { xs: 'block' } }}
         >
           {t('save')}
         </Button>

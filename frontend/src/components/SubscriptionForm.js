@@ -4,7 +4,6 @@ import { useTonConnectUI } from '@tonconnect/ui-react';
 import { beginCell } from '@ton/core';
 import { getUserByWalletAddress, updatePhoneNumber, getSubscriptionConfig, checkSubscription, getChallenge, verifyChallenge, notifySubscriptionTransaction } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
-import { useMainButton } from '../hooks/useMainButton';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { Box, Button, TextField, Typography, Paper, Snackbar, Alert } from '@mui/material';
 
@@ -346,22 +345,6 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
     }
   }, [newPhoneNumber, walletAddress, wallet, tonConnectUI, connectWalletWithProof, showNotification, t, trackEvent, onTransactionStart, onSubscriptionChange]);
 
-  // Manage MainButton for subscription purchase
-  // Only show button when we have valid text (not empty)
-  const mainButtonText = isSubscribed 
-    ? (isEditing ? t('save') : undefined)
-    : t('payForSubscription');
-  const shouldShowMainButton = mainButtonText && mainButtonText.trim().length > 0;
-  
-  useMainButton({
-    text: mainButtonText,
-    onClick: isSubscribed 
-      ? (isEditing ? handleSave : undefined)
-      : handleRegister,
-    show: shouldShowMainButton,
-    progress: false,
-  });
-
   return (
     <Paper sx={{ 
       padding: 3, 
@@ -432,9 +415,8 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
                 backgroundColor: "#383838",
               }}
             />
-            {/* MainButton is used instead - this button is kept as fallback for non-Telegram environments */}
             <Button
-              sx={{ marginTop: 2, display: { xs: 'block' } }}
+              sx={{ marginTop: 2 }}
               onClick={handleRegister}
               variant="contained"
               color="secondary"

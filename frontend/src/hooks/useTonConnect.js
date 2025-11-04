@@ -2,6 +2,15 @@ import { useTonAddress, useTonWallet, useIsConnectionRestored, useTonConnectUI }
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getChallenge, verifyProof } from '../services/apiService';
 import { telegramAnalytics } from '../index';
+
+// Helper function to check if running in Telegram Mini App
+const isInTelegramMiniApp = () => {
+  return typeof window !== 'undefined' && 
+         window.Telegram && 
+         window.Telegram.WebApp &&
+         window.Telegram.WebApp.initDataUnsafe?.user !== undefined;
+};
+
 export const useTonConnect = () => {
   const walletAddress = useTonAddress();
   const wallet = useTonWallet();
@@ -132,13 +141,16 @@ export const useTonConnect = () => {
         }
       } else {
         // Wallet is connected but no proof
-        console.log('Wallet is connected, but no proof. Requesting new proof.');
+        console.log('Wallet is connected, but no proof.');
         setHasTonProof(false);
         setIsConnected(true);
         setIsVerifying(false);
         
-        // Only request proof once per wallet connection and not during reconnect
-        if (!proofRequestedRef.current && !reconnectInProgressRef.current) {
+        // Only automatically request proof in Telegram Mini App
+        // In browser, let user use app without proof (they can reconnect manually if needed)
+        const isInTelegram = isInTelegramMiniApp();
+        
+        if (isInTelegram && !proofRequestedRef.current && !reconnectInProgressRef.current) {
           proofRequestedRef.current = true;
           
           // First, set up the challenge
@@ -166,6 +178,13 @@ export const useTonConnect = () => {
             console.error('Error requesting proof connection:', error);
             proofRequestedRef.current = false; // Reset on error
             reconnectInProgressRef.current = false;
+          }
+        } else if (!isInTelegram) {
+          // In browser, just set up the challenge for potential future use
+          // but don't force reconnection
+          if (!proofRequestedRef.current) {
+            proofRequestedRef.current = true;
+            await recreateProofPayload();
           }
         }
       }
