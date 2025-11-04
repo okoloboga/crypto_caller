@@ -252,19 +252,24 @@ import { Box, Snackbar, Alert } from '@mui/material';
         console.log('[Dashboard] Received user:', response);
         console.log(`[Dashboard] fetchUserData: Server points=${response.points}, lastPoints=${response.lastPoints}`);
         
+        // Use points from server (not lastPoints) - points is the accumulated value
+        // lastPoints is just the last saved value, but points is what we actually track
+        const serverPoints = response.points || 0;
+        
         // Get current local values before overwriting (use functional updates)
         setLastPoints((currentLocalPoints) => {
           // Only update if server has more points (server is ahead)
           // This preserves local accumulation that hasn't been saved to server yet
-          if (response.lastPoints > currentLocalPoints + 0.01) {
-            console.log(`[Dashboard] fetchUserData: Server has more points (${response.lastPoints} > ${currentLocalPoints.toFixed(4)}), syncing`);
+          // Use serverPoints (points field) instead of lastPoints
+          if (serverPoints > currentLocalPoints + 0.01) {
+            console.log(`[Dashboard] fetchUserData: Server has more points (${serverPoints.toFixed(4)} > ${currentLocalPoints.toFixed(4)}), syncing`);
             // Update totalPoints separately
-            setTotalPoints(response.points);
-            localStorage.setItem('totalPoints', response.points);
-            localStorage.setItem('lastPoints', response.lastPoints);
-            return response.lastPoints;
+            setTotalPoints(serverPoints);
+            localStorage.setItem('totalPoints', serverPoints);
+            localStorage.setItem('lastPoints', serverPoints); // Use points as lastPoints too
+            return serverPoints;
           } else {
-            console.log(`[Dashboard] fetchUserData: Keeping local points (${currentLocalPoints.toFixed(4)} >= ${response.lastPoints}), server data is stale`);
+            console.log(`[Dashboard] fetchUserData: Keeping local points (${currentLocalPoints.toFixed(4)} >= ${serverPoints.toFixed(4)}), local accumulation is ahead`);
             // Keep local points, don't overwrite
             return currentLocalPoints;
           }
