@@ -1,26 +1,37 @@
-# Базовый образ с Node.js
-FROM node:18 AS build
+ARG NODE_IMAGE=node:18-slim
 
-# Установка рабочей директории
+# 1. Base Stage
+FROM ${NODE_IMAGE} AS base
 WORKDIR /app
 
-# Копируем package.json и package-lock.json
+# 2. Production Dependencies Stage
+FROM base AS prod-deps
 COPY package*.json ./
+RUN npm ci --only=production && npm cache clean --force
 
-# Установка зависимостей
-RUN npm install
-
-# Копируем остальные файлы проекта
+# 3. Build Stage
+FROM base AS builder
+COPY package*.json ./
+RUN npm ci && npm cache clean --force
 COPY . .
-
-# Компиляция TypeScript в JavaScript
 RUN npm run build
 
-# Установка переменных окружения
+# 4. Runner Stage (Final)
+FROM ${NODE_IMAGE} AS runner
+WORKDIR /app
+
 ENV NODE_ENV=production
 
-# Экспонируем порт для приложения
+# Установка curl для healthcheck
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Копируем только production зависимости
+COPY --from=prod-deps /app/node_modules ./node_modules
+
+# Копируем только собранные файлы и package.json
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
+
 EXPOSE 3000
 
-# Запуск backend приложения
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/main.js"]

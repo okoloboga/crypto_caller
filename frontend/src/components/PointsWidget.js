@@ -30,9 +30,13 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   // Ref to track current localLastPoints to avoid stale closure in useEffect
   const localLastPointsRef = useRef(lastPoints);
   
+  // Ref to track last saved points to avoid duplicate saves
+  const lastSavedPointsRef = useRef(lastPoints);
+  
   // Initialize ref with initial value on mount
   useEffect(() => {
     localLastPointsRef.current = lastPoints;
+    lastSavedPointsRef.current = lastPoints;
   }, []); // Only on mount
 
   // Maximum points that can be accumulated before claiming
@@ -45,6 +49,9 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   const saveProgressToServer = useCallback(async (newPoints) => {
     try {
       await updatePoints(walletAddress, newPoints);
+      // Update last saved points after successful save
+      lastSavedPointsRef.current = newPoints;
+      console.log(`[PointsWidget] Successfully saved points to server: ${newPoints}`);
     } catch (err) {
       console.error('Error saving progress:', err);
     }
@@ -109,9 +116,19 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
       setLocalLastUpdated(new Date());
     }
 
+    // Track last saved points to avoid duplicate saves
+    const lastSavedPoints = lastSavedPointsRef.current;
+    
     // Save progress to the server if the user is inactive and points have changed significantly
-    if (!isActive && Math.abs(newPoints - localLastPoints) >= 1) {
+    if (!isActive && Math.abs(newPoints - lastSavedPoints) >= 1) {
       console.log(`[PointsWidget] Saving progress to server (user inactive): ${newPoints}`);
+      saveProgressToServer(newPoints);
+    }
+    
+    // Also save when threshold of 0.5 points is reached (regardless of activity)
+    // Compare with last saved value to avoid duplicate saves
+    if (Math.abs(newPoints - lastSavedPoints) >= 0.5) {
+      console.log(`[PointsWidget] Saving progress to server (threshold reached): ${newPoints}`);
       saveProgressToServer(newPoints);
     }
   }, [localLastUpdated, lastUpdated, localLastPoints, maxPoints, isActive, saveProgressToServer]);
@@ -224,6 +241,44 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
     return () => clearInterval(interval);
   }, [walletAddress, incrementPoints]);
 
+  // Periodic save to server every 30 seconds
+  useEffect(() => {
+    if (!walletAddress) return;
+    
+    const saveInterval = setInterval(() => {
+      const currentPoints = localLastPointsRef.current;
+      if (currentPoints > 0) {
+        console.log(`[PointsWidget] Periodic save to server: ${currentPoints}`);
+        saveProgressToServer(currentPoints);
+      }
+    }, 30000); // Every 30 seconds
+    
+    return () => clearInterval(saveInterval);
+  }, [walletAddress, saveProgressToServer]);
+
+  // Save on page unload (before leaving the app)
+  useEffect(() => {
+    if (!walletAddress) return;
+    
+    const handleBeforeUnload = () => {
+      const currentPoints = localLastPointsRef.current;
+      if (currentPoints > 0) {
+        console.log(`[PointsWidget] Saving on page unload: ${currentPoints}`);
+        // Use sendBeacon for reliable sending even when page is closing
+        const data = JSON.stringify({
+          walletAddress: walletAddress,
+          newPoints: currentPoints
+        });
+        const blob = new Blob([data], { type: 'application/json' });
+        const apiUrl = process.env.API_URL || process.env.REACT_APP_API_URL || 'https://caller.ruble.website/api';
+        navigator.sendBeacon(`${apiUrl}/user/update-points`, blob);
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [walletAddress]);
+
   // Sync localLastPoints when lastUpdated prop changes (sync with server data)
   // But don't overwrite if local state is accumulating or if reset just happened
   useEffect(() => {
@@ -248,6 +303,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
       if (lastPoints > prevPoints + 0.01) {
         console.log(`[PointsWidget] useEffect lastUpdated: Syncing localLastPoints from ${prevPoints.toFixed(4)} to ${lastPoints} (server has significantly more)`);
         localLastPointsRef.current = lastPoints; // Update ref
+        lastSavedPointsRef.current = lastPoints; // Update last saved points too
         return lastPoints;
       } else {
         // Don't sync down - keep local accumulation

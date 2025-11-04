@@ -11,12 +11,20 @@ services:
     ports:
       - "3001:3000"
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro 
     networks:
       - default
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # Сервис для relayer
   relayer:
@@ -28,15 +36,35 @@ services:
     ports:
       - "3002:3001"
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - default
     restart: unless-stopped
 
+  # Сервис для Frontend (Telegram Mini App)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8001:80"
+      - "8002:443"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - default
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+
   # Сервис для Postgres
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
+    env_file:
+      - ./.env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -47,14 +75,19 @@ services:
     #   - "5432:5432"
     networks:
       - default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   # Сервис для Redis
   redis:
-    image: redis:alpine
+    image: redis:7-alpine
     volumes:
       # Монтируем свой конфигурационный файл redis.conf в контейнер
       - ./redis.conf:/usr/local/etc/redis/redis.conf
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]  # Указываем путь к конфигурационному файлу
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     networks:
       - default
     deploy:
@@ -75,7 +108,7 @@ services:
       - default
     restart: always
 
-  # Сервис для Nginx
+  # Сервис для Nginx (для landing page и проксирования)
   nginx:
     build:
       context: .
@@ -85,6 +118,7 @@ services:
       - "443:443"
     depends_on:
       - backend
+      - frontend
     networks:
       - default
     volumes:
