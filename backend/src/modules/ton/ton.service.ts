@@ -156,30 +156,26 @@ export class TonService implements OnModuleInit {
       const contract = this.client.open(wallet);
 
       // Check wallet account state before sending
-      const accountState = await this.client.getAccount(wallet.address);
-      console.log(`Wallet account state: ${JSON.stringify(accountState, null, 2)}`);
-      
-      // If account is not initialized, we need to initialize it first
-      if (accountState.state.type === 'uninit') {
-        throw new Error('Central wallet is not initialized in blockchain. Please initialize it first by sending a transaction.');
+      try {
+        const accountState = await this.client.getContractState(wallet.address);
+        console.log(`Wallet account state: ${accountState.state}`);
+        
+        // If account is not initialized, we need to initialize it first
+        if (accountState.state === 'uninitialized') {
+          throw new Error('Central wallet is not initialized in blockchain. Please initialize it first by sending a transaction.');
+        }
+      } catch (accountError) {
+        console.warn(`Could not get account state: ${accountError.message}`);
+        // Continue anyway - seqno check will fail if wallet is not active
       }
 
       // Get the current sequence number of the wallet
-      let seqno = await contract.getSeqno();
+      const seqno = await contract.getSeqno();
       console.log(`Current wallet seqno: ${seqno}`);
       
-      // Double-check seqno by querying account state if needed
+      // If seqno is null, wallet might not be active
       if (seqno === null || seqno === undefined) {
-        // Try to get seqno from account state
-        if (accountState.state.type === 'active') {
-          const stateData = accountState.state;
-          // For WalletV4, seqno is stored in the account data
-          // If we can't get it, start from 0
-          seqno = 0;
-          console.log(`Seqno not available, using 0 as fallback`);
-        } else {
-          throw new Error('Cannot get seqno: wallet account is not active');
-        }
+        throw new Error('Cannot get seqno: wallet account is not active or not initialized');
       }
 
       // Get the Jetton wallet address for the central wallet
