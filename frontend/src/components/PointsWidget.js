@@ -170,9 +170,10 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   const progressValue = isFull ? 100 : (localLastPoints / maxPoints) * 100;
 
   // Manage MainButton for claiming tokens when progress is full
+  // Only show button when progress is full (has valid text)
   useMainButton({
-    text: isFull ? 'COLLECT' : '',
-    onClick: handleProgressBarClick,
+    text: isFull ? 'COLLECT' : undefined,
+    onClick: isFull ? handleProgressBarClick : undefined,
     show: isFull,
     progress: false,
   });

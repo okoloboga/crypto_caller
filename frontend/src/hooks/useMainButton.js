@@ -28,8 +28,12 @@ export const useMainButton = ({ text, onClick, show = true, progress = false, co
 
     const mainButton = webApp.MainButton;
 
-    // Set button text
-    if (text !== undefined) {
+    // Validate text - it must not be empty if we want to show the button
+    const hasValidText = text && text.trim().length > 0;
+    const shouldShow = show && hasValidText;
+
+    // Only set text if it's valid and not empty
+    if (hasValidText) {
       mainButton.setText(text);
     }
 
@@ -41,35 +45,43 @@ export const useMainButton = ({ text, onClick, show = true, progress = false, co
       mainButton.textColor = textColor;
     }
 
-    // Show or hide button
-    if (show) {
+    // Show or hide button only if we have valid text
+    if (shouldShow) {
       mainButton.show();
     } else {
       mainButton.hide();
     }
 
     // Show or hide progress indicator
-    if (progress) {
+    if (progress && shouldShow) {
       mainButton.showProgress();
     } else {
       mainButton.hideProgress();
     }
 
-    // Set up click handler
-    const handleClick = () => {
-      if (onClickRef.current) {
-        onClickRef.current();
-      }
-    };
+    // Set up click handler only if we have valid text
+    if (shouldShow && onClickRef.current) {
+      const handleClick = () => {
+        if (onClickRef.current) {
+          onClickRef.current();
+        }
+      };
 
-    mainButton.onClick(handleClick);
+      mainButton.onClick(handleClick);
 
-    // Cleanup: remove click handler and hide button
-    return () => {
-      mainButton.offClick(handleClick);
-      mainButton.hide();
-      mainButton.hideProgress();
-    };
+      // Cleanup: remove click handler and hide button
+      return () => {
+        mainButton.offClick(handleClick);
+        mainButton.hide();
+        mainButton.hideProgress();
+      };
+    } else {
+      // Cleanup: just hide button if no valid text
+      return () => {
+        mainButton.hide();
+        mainButton.hideProgress();
+      };
+    }
   }, [webApp, text, show, progress, color, textColor]);
 };
 

@@ -69,10 +69,18 @@ const SubscriptionForm = ({ onCancel, onSubscriptionChange, onTransactionStart }
   }, [walletAddress, t, hasShownNotification]);
 
   // Manage MainButton for subscription purchase
+  // Only show button when we have valid text (not empty)
+  const mainButtonText = isSubscribed 
+    ? (isEditing ? t('save') : undefined)
+    : t('payForSubscription');
+  const shouldShowMainButton = mainButtonText && mainButtonText.trim().length > 0;
+  
   useMainButton({
-    text: isSubscribed ? (isEditing ? t('save') : '') : t('payForSubscription'),
-    onClick: isSubscribed ? (isEditing ? handleSave : undefined) : handleRegister,
-    show: !isSubscribed || isEditing,
+    text: mainButtonText,
+    onClick: isSubscribed 
+      ? (isEditing ? handleSave : undefined)
+      : handleRegister,
+    show: shouldShowMainButton,
     progress: false,
   });
 
