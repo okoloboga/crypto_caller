@@ -50,9 +50,11 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
     const lastUpdatedTime = new Date(lastUpdated).getTime();
     let timeElapsed = (now - lastUpdatedTime) / 5000; // Time difference in 5-second intervals
     
-    console.log(`[PointsWidget] incrementPoints called`);
-    console.log(`[PointsWidget] Now: ${now}, LastUpdated: ${lastUpdatedTime}, TimeElapsed: ${timeElapsed} intervals`);
-    console.log(`[PointsWidget] Current localLastPoints: ${localLastPoints}`);
+    // Log only every 10th call or if there's an issue
+    const shouldLog = Math.random() < 0.1 || timeElapsed < 0 || timeElapsed > 720;
+    if (shouldLog) {
+      console.log(`[PointsWidget] incrementPoints: TimeElapsed=${timeElapsed.toFixed(4)}, localLastPoints=${localLastPoints.toFixed(4)}`);
+    }
 
     // Protect against negative time (future dates)
     if (timeElapsed < 0) {
@@ -71,7 +73,9 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
     const pointsToAdd = timeElapsed * accumulationRate;
     const newPoints = Math.min(localLastPoints + pointsToAdd, maxPoints);
     
-    console.log(`[PointsWidget] Accumulation rate: ${accumulationRate}, Points to add: ${pointsToAdd}, New points: ${newPoints}`);
+    if (shouldLog) {
+      console.log(`[PointsWidget] incrementPoints: Points to add=${pointsToAdd.toFixed(6)}, New points=${newPoints.toFixed(4)}`);
+    }
 
     setLastPoints(newPoints);
 
@@ -162,51 +166,30 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
     return () => clearInterval(interval);
   }, [walletAddress, incrementPoints]);
 
-  // Update points when lastUpdated prop changes (sync with server data)
-  // This useEffect is kept for syncing with server data, but incrementPoints handles the actual calculation
+  // Sync localLastPoints when lastUpdated prop changes (sync with server data)
+  // This useEffect only syncs when lastUpdated changes (from server), not when localLastPoints changes
+  // The actual increment is handled by incrementPoints() every 5 seconds
   useEffect(() => {
     if (!lastUpdated || isNaN(new Date(lastUpdated).getTime())) {
       console.log('[PointsWidget] useEffect lastUpdated: Last updated time is null or invalid');
       return;
     }
 
-    console.log(`[PointsWidget] useEffect lastUpdated triggered: lastUpdated=${lastUpdated}, localLastPoints=${localLastPoints}`);
+    console.log(`[PointsWidget] useEffect lastUpdated triggered: lastUpdated=${lastUpdated.toISOString()}`);
+    console.log(`[PointsWidget] useEffect lastUpdated: lastPoints prop=${lastPoints}`);
     
-    // Recalculate points when lastUpdated changes (e.g., after fetching from server)
-    // But limit the calculation to avoid instant fill
-    const now = Date.now();
-    const lastUpdatedTime = new Date(lastUpdated).getTime();
-    let timeElapsed = (now - lastUpdatedTime) / 5000;
-    
-    // Protect against negative time or too large time differences
-    if (timeElapsed < 0) {
-      console.warn(`[PointsWidget] useEffect lastUpdated: Negative timeElapsed: ${timeElapsed}. Setting to 0.`);
-      timeElapsed = 0;
-    }
-    
-    const maxTimeElapsed = 720; // 1 hour in 5-second intervals
-    if (timeElapsed > maxTimeElapsed) {
-      console.warn(`[PointsWidget] useEffect lastUpdated: TimeElapsed too large: ${timeElapsed}. Limiting to ${maxTimeElapsed}.`);
-      timeElapsed = maxTimeElapsed;
-    }
-
-    const accumulationRate = 0.01;
-    const pointsToAdd = timeElapsed * accumulationRate;
-    const newPoints = Math.min(localLastPoints + pointsToAdd, maxPoints);
-    
-    console.log(`[PointsWidget] useEffect lastUpdated: Calculated newPoints=${newPoints} (added ${pointsToAdd} points)`);
-    
-    // Only update if there's a significant difference to avoid unnecessary updates
-    if (Math.abs(newPoints - localLastPoints) > 0.001) {
-      setLastPoints(newPoints);
-    }
-
-    // Save progress to the server if the user is inactive and points have changed significantly
-    if (!isActive && Math.abs(newPoints - localLastPoints) >= 1) {
-      console.log(`[PointsWidget] useEffect lastUpdated: Saving progress to server (user inactive): ${newPoints}`);
-      saveProgressToServer(newPoints);
-    }
-  }, [lastUpdated, localLastPoints, maxPoints, isActive, saveProgressToServer]);
+    // When lastUpdated changes (from server), sync localLastPoints with the prop value
+    // This ensures we're in sync with server data, but we don't recalculate here
+    // The calculation is done by incrementPoints() every 5 seconds
+    // Use functional update to avoid dependency on localLastPoints
+    setLastPoints((prevPoints) => {
+      if (prevPoints !== lastPoints) {
+        console.log(`[PointsWidget] useEffect lastUpdated: Syncing localLastPoints from ${prevPoints} to ${lastPoints}`);
+        return lastPoints;
+      }
+      return prevPoints;
+    });
+  }, [lastUpdated, lastPoints]); // Only depend on lastUpdated and lastPoints prop, NOT localLastPoints
 
   // Sync local total points with the prop value
   useEffect(() => {
