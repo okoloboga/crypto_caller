@@ -89,16 +89,39 @@ export class UserService {
     // Calculate the time elapsed since the last update
     const now = Date.now();
     const lastUpdated = user.lastUpdated ? user.lastUpdated.getTime() : now;
-    const timeElapsed = (now - lastUpdated) / 5000; // Time difference in seconds
+    let timeElapsed = (now - lastUpdated) / 5000; // Time difference in 5-second intervals
+    
+    console.log(`[updatePoints] Wallet: ${walletAddress}`);
+    console.log(`[updatePoints] Now: ${now}, LastUpdated: ${lastUpdated}, TimeElapsed: ${timeElapsed} intervals`);
+    console.log(`[updatePoints] Current points: ${user.points}, New points param: ${newPoints}`);
+
+    // Protect against negative time (future dates) or too large time differences
+    if (timeElapsed < 0) {
+      console.warn(`[updatePoints] Negative timeElapsed detected: ${timeElapsed}. Setting to 0.`);
+      timeElapsed = 0;
+    }
+    
+    // Limit maximum timeElapsed to prevent instant fill (max 1 hour = 720 intervals of 5 seconds)
+    const maxTimeElapsed = 720; // 1 hour in 5-second intervals
+    if (timeElapsed > maxTimeElapsed) {
+      console.warn(`[updatePoints] TimeElapsed too large: ${timeElapsed}. Limiting to ${maxTimeElapsed}.`);
+      timeElapsed = maxTimeElapsed;
+    }
 
     // Calculate new points based on accumulation rate
-    const accumulationRate = 0.005;
+    const accumulationRate = 0.01; // Updated to match frontend
     let calculatedPoints = user.points + timeElapsed * accumulationRate;
+    
+    console.log(`[updatePoints] Accumulation rate: ${accumulationRate}, Calculated points before cap: ${calculatedPoints}`);
 
-    // Cap points at 100
-    if (calculatedPoints > 100) {
-      calculatedPoints = 100;
+    // Cap points at 1000 (updated to match frontend)
+    const maxPoints = 1000;
+    if (calculatedPoints > maxPoints) {
+      console.log(`[updatePoints] Points exceeded max (${maxPoints}), capping at ${maxPoints}`);
+      calculatedPoints = maxPoints;
     }
+    
+    console.log(`[updatePoints] Final calculated points: ${calculatedPoints}`);
 
     // Update the user's points, last updated time, and last points
     user.points = calculatedPoints;

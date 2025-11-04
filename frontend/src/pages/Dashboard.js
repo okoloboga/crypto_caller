@@ -147,9 +147,18 @@ import { Box, Snackbar, Alert } from '@mui/material';
   // Load last updated timestamp from localStorage on mount
   useEffect(() => {
     const storedLastUpdated = localStorage.getItem('lastUpdated');
+    console.log(`[Dashboard] Loading lastUpdated from localStorage: ${storedLastUpdated}`);
     if (storedLastUpdated) {
-      setLastUpdated(new Date(storedLastUpdated));
+      const parsedDate = new Date(storedLastUpdated);
+      console.log(`[Dashboard] Parsed localStorage lastUpdated: ${parsedDate.toISOString()}, Valid: ${isValidDate(parsedDate)}`);
+      if (isValidDate(parsedDate)) {
+        setLastUpdated(parsedDate);
+      } else {
+        console.warn(`[Dashboard] Invalid date in localStorage, using current date`);
+        setLastUpdated(new Date());
+      }
     } else {
+      console.log(`[Dashboard] No lastUpdated in localStorage, using current date`);
       setLastUpdated(new Date());
     }
   }, []);
@@ -192,16 +201,22 @@ import { Box, Snackbar, Alert } from '@mui/material';
    * @param {Date} newLastUpdated - The new last updated timestamp.
    */
   const updatePointsData = useCallback((newTotalPoints, newLastPoints, newLastUpdated) => {
-    console.log('Updating points data:', newTotalPoints, newLastPoints, newLastUpdated);
+    console.log('[Dashboard] updatePointsData called:', { newTotalPoints, newLastPoints, newLastUpdated });
+    console.log(`[Dashboard] updatePointsData: newLastUpdated=${newLastUpdated}, Valid=${isValidDate(newLastUpdated)}`);
+    
+    const finalLastUpdated = isValidDate(newLastUpdated) ? newLastUpdated : new Date();
+    console.log(`[Dashboard] updatePointsData: Setting lastUpdated to ${finalLastUpdated.toISOString()}`);
+    
     setTotalPoints(newTotalPoints);
     setLastPoints(newLastPoints);
-    setLastUpdated(newLastUpdated);
+    setLastUpdated(finalLastUpdated);
     localStorage.setItem('lastPoints', newLastPoints.toString());
     localStorage.setItem('totalPoints', newTotalPoints.toString());
-    localStorage.setItem('lastUpdated', newLastUpdated.toISOString());
+    localStorage.setItem('lastUpdated', finalLastUpdated.toISOString());
     
     // Only fetch user data if wallet address is available
     if (walletAddress) {
+      console.log('[Dashboard] updatePointsData: Fetching user data from server');
       fetchUserData();
     }
   }, [walletAddress]);
@@ -226,13 +241,19 @@ import { Box, Snackbar, Alert } from '@mui/material';
         localStorage.setItem('totalPoints', '0');
         localStorage.setItem('lastUpdated', new Date().toISOString());
       } else {
-        console.log('Received user:', response);
+        console.log('[Dashboard] Received user:', response);
         const lastUpdated = response.lastUpdated ? new Date(response.lastUpdated) : new Date();
+        console.log(`[Dashboard] fetchUserData: Server lastUpdated=${response.lastUpdated}, Parsed=${lastUpdated}, Valid=${isValidDate(lastUpdated)}`);
+        console.log(`[Dashboard] fetchUserData: Server points=${response.points}, lastPoints=${response.lastPoints}`);
+        
+        const finalLastUpdated = isValidDate(lastUpdated) ? lastUpdated : new Date();
+        console.log(`[Dashboard] fetchUserData: Setting lastUpdated to ${finalLastUpdated.toISOString()}`);
+        
         setTotalPoints(response.points);
         setLastPoints(response.lastPoints);
-        setLastUpdated(isValidDate(lastUpdated) ? lastUpdated : new Date());
+        setLastUpdated(finalLastUpdated);
         localStorage.setItem('totalPoints', response.points);
-        localStorage.setItem('lastUpdated', lastUpdated.toISOString());
+        localStorage.setItem('lastUpdated', finalLastUpdated.toISOString());
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
