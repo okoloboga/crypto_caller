@@ -22,7 +22,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   const [isActive, setIsActive] = useState(true);
 
   // Maximum points that can be accumulated before claiming
-  const maxPoints = 100.000;
+  const maxPoints = 1000;
 
   /**
    * Save the current points progress to the server.
