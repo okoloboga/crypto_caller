@@ -74,7 +74,7 @@ This project is designed to be run using Docker. Ensure you have the necessary e
 - The application relies on several environment variables for configuration. Ensure the following are set in your .env file:
 
 OKX_API_KEY, OKX_API_SECRET, OKX_API_PASSPHRASE: Credentials for the OKX API.
-TON_API_KEY, JETTON_MASTER_ADDRESS, CENTRAL_WALLET_MNEMONIC: Credentials for TON blockchain operations.
+TON_API_KEY, JETTON_MASTER_ADDRESS, RELAYER_PRIV_KEY, RELAYER_WALLET_ADDR: Credentials for TON blockchain operations (Backend uses the same wallet as Relayer with WalletContractV5R1).
 TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER: Credentials for Twilio notifications.
 Database connection details (e.g., DATABASE_HOST, DATABASE_PORT, etc.).
 Future Improvements
