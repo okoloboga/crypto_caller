@@ -14,8 +14,6 @@ import {
   Address,
   toNano,
   internal,
-  external,
-  storeMessage,
 } from '@ton/ton'; // Import TON blockchain utilities
 import { mnemonicToPrivateKey } from '@ton/crypto'; // Import utility for deriving keys from mnemonic
 import * as nacl from 'tweetnacl'; // Import nacl for cryptographic operations
@@ -157,9 +155,32 @@ export class TonService implements OnModuleInit {
       const wallet = this.centralWallet;
       const contract = this.client.open(wallet);
 
+      // Check wallet account state before sending
+      const accountState = await this.client.getAccount(wallet.address);
+      console.log(`Wallet account state: ${JSON.stringify(accountState, null, 2)}`);
+      
+      // If account is not initialized, we need to initialize it first
+      if (accountState.state.type === 'uninit') {
+        throw new Error('Central wallet is not initialized in blockchain. Please initialize it first by sending a transaction.');
+      }
+
       // Get the current sequence number of the wallet
-      const seqno = await contract.getSeqno();
+      let seqno = await contract.getSeqno();
       console.log(`Current wallet seqno: ${seqno}`);
+      
+      // Double-check seqno by querying account state if needed
+      if (seqno === null || seqno === undefined) {
+        // Try to get seqno from account state
+        if (accountState.state.type === 'active') {
+          const stateData = accountState.state;
+          // For WalletV4, seqno is stored in the account data
+          // If we can't get it, start from 0
+          seqno = 0;
+          console.log(`Seqno not available, using 0 as fallback`);
+        } else {
+          throw new Error('Cannot get seqno: wallet account is not active');
+        }
+      }
 
       // Get the Jetton wallet address for the central wallet
       const jettonWalletAddress = await this.getUserJettonWalletAddress(wallet.address, this.jettonMasterAddress);
@@ -185,27 +206,18 @@ export class TonService implements OnModuleInit {
         body: messageBody,
       });
 
-      // Create the transfer transaction
-      const body = wallet.createTransfer({
+      // Use sendTransfer method from opened contract (more reliable than external message)
+      // This method handles the transaction signing and sending automatically
+      console.log(`Sending transfer with seqno: ${seqno}`);
+      console.log(`Recipient: ${recipientAddress}, Amount: ${amount}`);
+      console.log(`Jetton wallet: ${jettonWalletAddress.toString()}`);
+      
+      await contract.sendTransfer({
         seqno,
         secretKey: Buffer.from(this.keyPair.secretKey),
         messages: [internalMessage],
+        sendMode: 1, // Send mode for wallet v4
       });
-
-      // Create an external message for the transaction
-      const externalMessage = external({
-        to: wallet.address,
-        body,
-      });
-
-      // Serialize the external message into a cell
-      const externalMessageCell = beginCell().store(storeMessage(externalMessage)).endCell();
-      const signedTransaction = externalMessageCell.toBoc();
-
-      console.log(`Sending transaction with BOC length: ${signedTransaction.length}`);
-
-      // Send the transaction to the TON network
-      await this.client.sendFile(signedTransaction);
 
       return { success: true, message: `Sent ${amount} tokens to ${recipientAddress}` };
     } catch (error) {
