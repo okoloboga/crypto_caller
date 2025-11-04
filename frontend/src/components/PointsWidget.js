@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { requestTokenWithdrawal, updatePoints } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
@@ -18,8 +18,14 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   const [localLastPoints, setLastPoints] = useState(lastPoints);
   const [, setTotalPoints] = useState(totalPoints);
 
+  // Local lastUpdated state to prevent overwriting with stale server data
+  const [localLastUpdated, setLocalLastUpdated] = useState(lastUpdated);
+
   // State to track user activity (active/inactive)
   const [isActive, setIsActive] = useState(true);
+  
+  // Ref to track if points were just reset (to prevent overwriting lastUpdated)
+  const resetJustHappened = useRef(false);
 
   // Maximum points that can be accumulated before claiming
   const maxPoints = 1000;
@@ -41,14 +47,24 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
    * Points accumulate at a rate of 0.01 per 5 seconds up to the maximum.
    */
   const incrementPoints = useCallback(() => {
-    if (!lastUpdated || isNaN(new Date(lastUpdated).getTime())) {
+    // Use localLastUpdated instead of prop lastUpdated to prevent stale server data
+    const effectiveLastUpdated = localLastUpdated || lastUpdated;
+    
+    if (!effectiveLastUpdated || isNaN(new Date(effectiveLastUpdated).getTime())) {
       console.warn('[PointsWidget] incrementPoints: Last updated time is null or invalid');
       return;
     }
 
     const now = Date.now();
-    const lastUpdatedTime = new Date(lastUpdated).getTime();
+    const lastUpdatedTime = new Date(effectiveLastUpdated).getTime();
     let timeElapsed = (now - lastUpdatedTime) / 5000; // Time difference in 5-second intervals
+    
+    // If points are very low and timeElapsed is large, reset lastUpdated to prevent huge jump
+    if (localLastPoints < 1 && timeElapsed > 10) {
+      console.warn(`[PointsWidget] Large timeElapsed (${timeElapsed}) with low points (${localLastPoints}). Resetting lastUpdated.`);
+      setLocalLastUpdated(new Date());
+      timeElapsed = 0.1; // Use minimal timeElapsed
+    }
     
     // Log only every 10th call or if there's an issue
     const shouldLog = Math.random() < 0.1 || timeElapsed < 0 || timeElapsed > 720;
@@ -78,13 +94,18 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
     }
 
     setLastPoints(newPoints);
+    
+    // Update localLastUpdated when points are added (to track accurate time)
+    if (pointsToAdd > 0) {
+      setLocalLastUpdated(new Date());
+    }
 
     // Save progress to the server if the user is inactive and points have changed significantly
     if (!isActive && Math.abs(newPoints - localLastPoints) >= 1) {
       console.log(`[PointsWidget] Saving progress to server (user inactive): ${newPoints}`);
       saveProgressToServer(newPoints);
     }
-  }, [lastUpdated, localLastPoints, maxPoints, isActive, saveProgressToServer]);
+  }, [localLastUpdated, lastUpdated, localLastPoints, maxPoints, isActive, saveProgressToServer]);
 
   /**
    * Handle progress bar click to claim points.
@@ -98,23 +119,31 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
 
     if (localLastPoints >= maxPoints) {
       try {
-        console.log(`Claiming points: ${localLastPoints}`);
+        console.log(`[PointsWidget] Claiming points: ${localLastPoints}`);
         await requestTokenWithdrawal(walletAddress, maxPoints); // Send tokens to the wallet
         await updatePoints(walletAddress, 0);
         const newTotalPoints = 0;
+        const resetTime = new Date();
 
         // Reset points after claiming
         setTotalPoints(newTotalPoints);
         setLastPoints(0);
-
+        setLocalLastUpdated(resetTime); // Set local lastUpdated immediately
+        resetJustHappened.current = true; // Mark that reset just happened
+        
         // Update parent component with new points data
-        updatePointsData(newTotalPoints, 0, new Date());
+        updatePointsData(newTotalPoints, 0, resetTime);
         
         // Track tokens claimed event
         trackEvent('tokens_claimed', {
           walletAddress: walletAddress || 'unknown',
           amount: maxPoints,
         });
+        
+        // Clear the reset flag after a delay (to prevent server data from overwriting)
+        setTimeout(() => {
+          resetJustHappened.current = false;
+        }, 2000);
         
         showNotification(t('pointsClaimed')); // Notify success
       } catch (error) {
@@ -126,27 +155,47 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
 
   // Detect user activity to pause/resume point accumulation
   useEffect(() => {
+    let inactivityTimer = null;
+
     /**
-     * Handle user activity by setting the active state.
+     * Handle user activity by setting the active state and resetting the inactivity timer.
      */
     const handleUserActivity = () => {
       setIsActive(true);
+      
+      // Clear existing timer
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
+      
+      // Set a new timer to mark the user as inactive after 30 seconds of no activity
+      inactivityTimer = setTimeout(() => {
+        setIsActive(false);
+      }, 30000);
     };
 
-    // Set a timer to mark the user as inactive after 30 seconds of no activity
-    const inactivityTimer = setTimeout(() => {
+    // Initial timer
+    inactivityTimer = setTimeout(() => {
       setIsActive(false);
     }, 30000);
 
-    // Add event listeners for user activity (mouse movement and keypress)
+    // Add event listeners for user activity (mouse movement, keypress, click, scroll)
     window.addEventListener('mousemove', handleUserActivity);
     window.addEventListener('keypress', handleUserActivity);
+    window.addEventListener('click', handleUserActivity);
+    window.addEventListener('scroll', handleUserActivity);
+    window.addEventListener('touchstart', handleUserActivity);
 
     // Cleanup: Remove event listeners and clear the timer on unmount
     return () => {
-      clearTimeout(inactivityTimer);
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
       window.removeEventListener('mousemove', handleUserActivity);
       window.removeEventListener('keypress', handleUserActivity);
+      window.removeEventListener('click', handleUserActivity);
+      window.removeEventListener('scroll', handleUserActivity);
+      window.removeEventListener('touchstart', handleUserActivity);
     };
   }, []);
 
@@ -167,11 +216,16 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   }, [walletAddress, incrementPoints]);
 
   // Sync localLastPoints when lastUpdated prop changes (sync with server data)
-  // This useEffect only syncs when lastUpdated changes (from server), not when localLastPoints changes
-  // The actual increment is handled by incrementPoints() every 5 seconds
+  // But don't overwrite localLastUpdated if reset just happened
   useEffect(() => {
     if (!lastUpdated || isNaN(new Date(lastUpdated).getTime())) {
       console.log('[PointsWidget] useEffect lastUpdated: Last updated time is null or invalid');
+      return;
+    }
+
+    // Don't overwrite localLastUpdated if reset just happened (to prevent stale server data)
+    if (resetJustHappened.current) {
+      console.log('[PointsWidget] useEffect lastUpdated: Reset just happened, skipping sync to prevent overwrite');
       return;
     }
 
@@ -189,7 +243,17 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
       }
       return prevPoints;
     });
-  }, [lastUpdated, lastPoints]); // Only depend on lastUpdated and lastPoints prop, NOT localLastPoints
+    
+    // Only sync localLastUpdated if it's significantly different (more than 1 minute)
+    const serverTime = new Date(lastUpdated).getTime();
+    const localTime = new Date(localLastUpdated || lastUpdated).getTime();
+    const timeDiff = Math.abs(serverTime - localTime);
+    
+    if (timeDiff > 60000) { // More than 1 minute difference
+      console.log(`[PointsWidget] useEffect lastUpdated: Syncing localLastUpdated from server (diff: ${timeDiff}ms)`);
+      setLocalLastUpdated(new Date(lastUpdated));
+    }
+  }, [lastUpdated, lastPoints, localLastUpdated]); // Only depend on lastUpdated and lastPoints prop, NOT localLastPoints
 
   // Sync local total points with the prop value
   useEffect(() => {

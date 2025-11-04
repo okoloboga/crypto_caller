@@ -214,10 +214,16 @@ import { Box, Snackbar, Alert } from '@mui/material';
     localStorage.setItem('totalPoints', newTotalPoints.toString());
     localStorage.setItem('lastUpdated', finalLastUpdated.toISOString());
     
-    // Only fetch user data if wallet address is available
-    if (walletAddress) {
-      console.log('[Dashboard] updatePointsData: Fetching user data from server');
-      fetchUserData();
+    // Only fetch user data if wallet address is available and points weren't just reset
+    // Delay fetchUserData to prevent overwriting fresh reset data
+    if (walletAddress && newLastPoints > 0) {
+      console.log('[Dashboard] updatePointsData: Fetching user data from server (delayed)');
+      // Delay to allow PointsWidget to set its local state first
+      setTimeout(() => {
+        fetchUserData();
+      }, 1000);
+    } else if (walletAddress && newLastPoints === 0) {
+      console.log('[Dashboard] updatePointsData: Points reset to 0, skipping fetchUserData to prevent overwrite');
     }
   }, [walletAddress]);
 
