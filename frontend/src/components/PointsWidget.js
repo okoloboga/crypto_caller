@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { requestTokenWithdrawal, updatePoints } from '../services/apiService';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +24,78 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
 
   // Maximum points that can be accumulated before claiming
   const maxPoints = 100.000;
+
+  /**
+   * Save the current points progress to the server.
+   * @param {number} newPoints - The new points value to save.
+   */
+  const saveProgressToServer = useCallback(async (newPoints) => {
+    try {
+      await updatePoints(walletAddress, newPoints);
+    } catch (err) {
+      console.error('Error saving progress:', err);
+    }
+  }, [walletAddress]);
+
+  /**
+   * Increment points based on elapsed time since the last update.
+   * Points accumulate at a rate of 0.005 per 5 seconds up to the maximum.
+   */
+  const incrementPoints = useCallback(() => {
+    if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
+      const now = Date.now();
+      const timeElapsed = (now - new Date(lastUpdated).getTime()) / 5000;
+      const accumulationRate = 0.001;
+      const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
+
+      setLastPoints(newPoints);
+
+      // Save progress to the server if the user is inactive and points have changed significantly
+      if (!isActive && Math.abs(newPoints - localLastPoints) >= 1) {
+        saveProgressToServer(newPoints);
+      }
+    } else {
+      console.log('Last updated time is null or invalid');
+    }
+  }, [lastUpdated, localLastPoints, maxPoints, isActive, saveProgressToServer]);
+
+  /**
+   * Handle progress bar click to claim points.
+   * If the maximum points are reached, the points are claimed and sent to the user's wallet.
+   */
+  const handleProgressBarClick = useCallback(async () => {
+    if (localLastPoints < maxPoints) {
+      showNotification(t('notFull')); // Notify if the progress bar is not full
+      return;
+    }
+
+    if (localLastPoints >= maxPoints) {
+      try {
+        console.log(`Claiming points: ${localLastPoints}`);
+        await requestTokenWithdrawal(walletAddress, maxPoints); // Send tokens to the wallet
+        await updatePoints(walletAddress, 0);
+        const newTotalPoints = 0;
+
+        // Reset points after claiming
+        setTotalPoints(newTotalPoints);
+        setLastPoints(0);
+
+        // Update parent component with new points data
+        updatePointsData(newTotalPoints, 0, new Date());
+        
+        // Track tokens claimed event
+        trackEvent('tokens_claimed', {
+          walletAddress: walletAddress || 'unknown',
+          amount: maxPoints,
+        });
+        
+        showNotification(t('pointsClaimed')); // Notify success
+      } catch (error) {
+        console.error('Error claiming points:', error);
+        showNotification(t('pointsClaimError')); // Notify error
+      }
+    }
+  }, [localLastPoints, maxPoints, walletAddress, showNotification, t, updatePointsData, trackEvent]);
 
   // Detect user activity to pause/resume point accumulation
   useEffect(() => {
@@ -65,7 +137,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
 
     // Cleanup: Clear the interval on unmount
     return () => clearInterval(interval);
-  }, [walletAddress, lastUpdated]);
+  }, [walletAddress, incrementPoints]);
 
   // Update points based on elapsed time since last update
   useEffect(() => {
@@ -81,7 +153,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
         saveProgressToServer(newPoints);
       }
     }
-  }, [lastUpdated]);
+  }, [lastUpdated, localLastPoints, maxPoints, isActive, saveProgressToServer]);
 
   // Sync local total points with the prop value
   useEffect(() => {
@@ -105,77 +177,6 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
     progress: false,
   });
 
-  /**
-   * Save the current points progress to the server.
-   * @param {number} newPoints - The new points value to save.
-   */
-  const saveProgressToServer = async (newPoints) => {
-    try {
-      await updatePoints(walletAddress, newPoints);
-    } catch (err) {
-      console.error('Error saving progress:', err);
-    }
-  };
-
-  /**
-   * Handle progress bar click to claim points.
-   * If the maximum points are reached, the points are claimed and sent to the user's wallet.
-   */
-  const handleProgressBarClick = async () => {
-    if (localLastPoints < maxPoints) {
-      showNotification(t('notFull')); // Notify if the progress bar is not full
-      return;
-    }
-
-    if (localLastPoints >= maxPoints) {
-      try {
-        console.log(`Claiming points: ${localLastPoints}`);
-        await requestTokenWithdrawal(walletAddress, maxPoints); // Send tokens to the wallet
-        await updatePoints(walletAddress, 0);
-        const newTotalPoints = 0;
-
-        // Reset points after claiming
-        setTotalPoints(newTotalPoints);
-        setLastPoints(0);
-
-        // Update parent component with new points data
-        updatePointsData(newTotalPoints, 0, new Date());
-        
-        // Track tokens claimed event
-        trackEvent('tokens_claimed', {
-          walletAddress: walletAddress || 'unknown',
-          amount: maxPoints,
-        });
-        
-        showNotification(t('pointsClaimed')); // Notify success
-      } catch (error) {
-        console.error('Error claiming points:', error);
-        showNotification(t('pointsClaimError')); // Notify error
-      }
-    }
-  };
-
-  /**
-   * Increment points based on elapsed time since the last update.
-   * Points accumulate at a rate of 0.005 per 5 seconds up to the maximum.
-   */
-  const incrementPoints = () => {
-    if (lastUpdated && !isNaN(new Date(lastUpdated).getTime())) {
-      const now = Date.now();
-      const timeElapsed = (now - new Date(lastUpdated).getTime()) / 5000;
-      const accumulationRate = 0.001;
-      const newPoints = Math.min(localLastPoints + timeElapsed * accumulationRate, maxPoints);
-
-      setLastPoints(newPoints);
-
-      // Save progress to the server if the user is inactive and points have changed significantly
-      if (!isActive && Math.abs(newPoints - localLastPoints) >= 1) {
-        saveProgressToServer(newPoints);
-      }
-    } else {
-      console.log('Last updated time is null or invalid');
-    }
-  };
 
   return (
     <Paper sx={{ 
