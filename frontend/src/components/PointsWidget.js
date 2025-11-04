@@ -26,6 +26,9 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   
   // Ref to track if points were just reset (to prevent overwriting lastUpdated)
   const resetJustHappened = useRef(false);
+  
+  // Ref to track current localLastPoints to avoid stale closure in useEffect
+  const localLastPointsRef = useRef(localLastPoints);
 
   // Maximum points that can be accumulated before claiming
   const maxPoints = 1000;
@@ -94,6 +97,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
     }
 
     setLastPoints(newPoints);
+    localLastPointsRef.current = newPoints; // Update ref
     
     // Update localLastUpdated when points are added (to track accurate time)
     if (pointsToAdd > 0) {
@@ -216,7 +220,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   }, [walletAddress, incrementPoints]);
 
   // Sync localLastPoints when lastUpdated prop changes (sync with server data)
-  // But don't overwrite localLastUpdated if reset just happened
+  // But don't overwrite if local state is accumulating or if reset just happened
   useEffect(() => {
     if (!lastUpdated || isNaN(new Date(lastUpdated).getTime())) {
       console.log('[PointsWidget] useEffect lastUpdated: Last updated time is null or invalid');
@@ -229,31 +233,53 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
       return;
     }
 
-    console.log(`[PointsWidget] useEffect lastUpdated triggered: lastUpdated=${lastUpdated.toISOString()}`);
-    console.log(`[PointsWidget] useEffect lastUpdated: lastPoints prop=${lastPoints}`);
-    
-    // When lastUpdated changes (from server), sync localLastPoints with the prop value
-    // This ensures we're in sync with server data, but we don't recalculate here
-    // The calculation is done by incrementPoints() every 5 seconds
-    // Use functional update to avoid dependency on localLastPoints
+    // Use functional update to get current localLastPoints without dependency
     setLastPoints((prevPoints) => {
-      if (prevPoints !== lastPoints) {
-        console.log(`[PointsWidget] useEffect lastUpdated: Syncing localLastPoints from ${prevPoints} to ${lastPoints}`);
+      // Update ref
+      localLastPointsRef.current = prevPoints;
+      
+      // Only sync if server value is significantly greater (more than 0.01 points difference)
+      // This prevents overwriting local accumulation with stale server data
+      if (lastPoints > prevPoints + 0.01) {
+        console.log(`[PointsWidget] useEffect lastUpdated: Syncing localLastPoints from ${prevPoints.toFixed(4)} to ${lastPoints} (server has significantly more)`);
+        localLastPointsRef.current = lastPoints; // Update ref
         return lastPoints;
+      } else {
+        // Don't sync down - keep local accumulation
+        console.log(`[PointsWidget] useEffect lastUpdated: Keeping localLastPoints=${prevPoints.toFixed(4)} (local is accumulating or equal)`);
+        return prevPoints;
       }
-      return prevPoints;
     });
     
-    // Only sync localLastUpdated if it's significantly different (more than 1 minute)
-    const serverTime = new Date(lastUpdated).getTime();
-    const localTime = new Date(localLastUpdated || lastUpdated).getTime();
-    const timeDiff = Math.abs(serverTime - localTime);
-    
-    if (timeDiff > 60000) { // More than 1 minute difference
-      console.log(`[PointsWidget] useEffect lastUpdated: Syncing localLastUpdated from server (diff: ${timeDiff}ms)`);
-      setLocalLastUpdated(new Date(lastUpdated));
-    }
-  }, [lastUpdated, lastPoints, localLastUpdated]); // Only depend on lastUpdated and lastPoints prop, NOT localLastPoints
+    // Don't sync localLastUpdated from server if local points are accumulating
+    // Only sync if server time is significantly newer (more than 5 minutes) AND server has significantly more points
+    // This prevents overwriting local accumulation with stale server data
+    setLocalLastUpdated((prevLocalLastUpdated) => {
+      if (!prevLocalLastUpdated) {
+        // If no localLastUpdated, use server value
+        return new Date(lastUpdated);
+      }
+      
+      const serverTime = new Date(lastUpdated).getTime();
+      const localTime = new Date(prevLocalLastUpdated).getTime();
+      const timeDiff = serverTime - localTime;
+      
+      // Use ref to get current localLastPoints (avoid stale closure)
+      const currentLocalPoints = localLastPointsRef.current;
+      
+      // Only sync if server time is significantly newer (more than 5 minutes) 
+      // AND server has significantly more points (more than 0.1 points difference)
+      // This prevents overwriting local accumulation
+      if (timeDiff > 300000 && lastPoints > currentLocalPoints + 0.1) {
+        console.log(`[PointsWidget] useEffect lastUpdated: Syncing localLastUpdated from server (diff: ${timeDiff}ms, server has more points: ${lastPoints} > ${currentLocalPoints})`);
+        return new Date(lastUpdated);
+      } else {
+        // Keep local lastUpdated - it's more recent or local is accumulating
+        console.log(`[PointsWidget] useEffect lastUpdated: Keeping localLastUpdated (server time diff: ${timeDiff}ms, server points: ${lastPoints}, local: ${currentLocalPoints})`);
+        return prevLocalLastUpdated;
+      }
+    });
+  }, [lastUpdated, lastPoints]); // Only depend on props, not local state
 
   // Sync local total points with the prop value
   useEffect(() => {
@@ -263,6 +289,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
   // Sync local last points with the prop value
   useEffect(() => {
     setLastPoints(lastPoints);
+    localLastPointsRef.current = lastPoints; // Update ref
   }, [lastPoints]);
 
   // Determine if the progress bar is full and calculate the progress percentage
