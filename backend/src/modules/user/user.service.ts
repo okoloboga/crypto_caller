@@ -111,7 +111,7 @@ export class UserService {
     // Calculate new points based on accumulation rate
     const accumulationRate = 0.01; // Updated to match frontend
     let calculatedPoints = user.points + timeElapsed * accumulationRate;
-    
+
     console.log(`[updatePoints] Accumulation rate: ${accumulationRate}, Calculated points before cap: ${calculatedPoints}`);
 
     // Cap points at 1000 (updated to match frontend)

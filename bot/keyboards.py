@@ -25,9 +25,9 @@ def get_main_menu(backgammon_url: str) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="📞 CALLER", web_app=WebAppInfo(url="https://caller.ruble.website")),
                 InlineKeyboardButton(text="📈 TRADER", web_app=WebAppInfo(url="https://trade.ruble.website"))
             ],
-            # [
-            #     InlineKeyboardButton(text="🎲 BACKGAMMON", web_app=WebAppInfo(url=backgammon_url))
-            # ],
+            [
+                InlineKeyboardButton(text="🎲 BACKGAMMON", web_app=WebAppInfo(url="https://backgammon.ruble.website"))
+            ],
             [
                 InlineKeyboardButton(text="🏦 BUY", url="https://www.geckoterminal.com/ru/ton/pools/EQDPn9nZc_0B1Hv6mWbFBvM1F64yLPnbpL6wGVPJQaoeL8BZ"),
                 InlineKeyboardButton(text="🧾 CONTRACT", url="https://tonviewer.com/EQA5QopV0455mb09Nz6iPL3JsX_guIGf77a6l-DtqSQh0aE-")
@@ -37,7 +37,7 @@ def get_main_menu(backgammon_url: str) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="X.COM", url="https://x.com/ruble_com?s=11")
             ],
             [
-                InlineKeyboardButton(text="CHANNEL", url="https://t.me/RUBLECOM")]
+                InlineKeyboardButton(text="CHANNEL", url="https://t.me/rulabsltd")]
         ]
     )
 

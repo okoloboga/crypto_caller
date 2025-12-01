@@ -195,7 +195,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
       if (inactivityTimer) {
         clearTimeout(inactivityTimer);
       }
-      
+
       // Set a new timer to mark the user as inactive after 30 seconds of no activity
       inactivityTimer = setTimeout(() => {
         setIsActive(false);
@@ -217,7 +217,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
     // Cleanup: Remove event listeners and clear the timer on unmount
     return () => {
       if (inactivityTimer) {
-        clearTimeout(inactivityTimer);
+      clearTimeout(inactivityTimer);
       }
       window.removeEventListener('mousemove', handleUserActivity);
       window.removeEventListener('keypress', handleUserActivity);
@@ -313,7 +313,7 @@ const PointsWidget = ({ showNotification, totalPoints, lastPoints, lastUpdated, 
         return prevPoints;
       }
     });
-    
+
     // Don't sync localLastUpdated from server if local points are accumulating
     // Only sync if server time is significantly newer (more than 5 minutes) AND server has significantly more points
     // This prevents overwriting local accumulation with stale server data

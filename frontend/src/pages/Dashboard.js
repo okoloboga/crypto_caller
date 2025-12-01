@@ -220,7 +220,7 @@ import { Box, Snackbar, Alert } from '@mui/material';
       console.log('[Dashboard] updatePointsData: Fetching user data from server (delayed)');
       // Delay to allow PointsWidget to set its local state first
       setTimeout(() => {
-        fetchUserData();
+    fetchUserData();
       }, 1000);
     } else if (walletAddress && newLastPoints === 0) {
       console.log('[Dashboard] updatePointsData: Points reset to 0, skipping fetchUserData to prevent overwrite');
