@@ -26,7 +26,7 @@ def get_main_menu(backgammon_url: str) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="📈 TRADER", web_app=WebAppInfo(url="https://trade.ruble.website"))
             ],
             [
-                InlineKeyboardButton(text="🎲 BACKGAMMON", web_app=WebAppInfo(url="https://backgammon.ruble.website"))
+                InlineKeyboardButton(text="🎲 BACKGAMMON", web_app=WebAppInfo(url=backgammon_url))
             ],
             [
                 InlineKeyboardButton(text="🏦 BUY", url="https://www.geckoterminal.com/ru/ton/pools/EQDPn9nZc_0B1Hv6mWbFBvM1F64yLPnbpL6wGVPJQaoeL8BZ"),
